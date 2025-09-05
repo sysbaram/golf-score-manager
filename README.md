@@ -26,7 +26,7 @@ Google Sheets와 연동하는 스마트 골프 스코어 관리 웹 애플리케
 
 ### 1. 저장소 클론
 ```bash
-git clone https://github.com/yourusername/golf-score-manager.git
+git clone https://github.com/sysbaram/golf-score-manager.git
 cd golf-score-manager
 ```
 
@@ -52,15 +52,58 @@ pip install -r requirements.txt
 8. **Google Sheets API** 활성화
 9. `credentials.json` 파일을 프로젝트 루트에 다운로드
 
-### 5. 애플리케이션 실행
+### 5. 환경변수 설정 (선택사항)
+```bash
+# 로컬 개발용
+export GOOGLE_SPREADSHEET_ID="your_spreadsheet_id"
+export GOOGLE_CLIENT_ID="your_client_id"
+export GOOGLE_CLIENT_SECRET="your_client_secret"
+```
+
+### 6. 애플리케이션 실행
 ```bash
 python app.py
 ```
 
-### 6. 웹 브라우저에서 접속
+### 7. 웹 브라우저에서 접속
 ```
 http://localhost:3000
 ```
+
+## 🌐 배포 (Render)
+
+### 1. Render 계정 생성
+1. [Render.com](https://render.com) 접속
+2. GitHub 계정으로 로그인
+
+### 2. 새 웹 서비스 생성
+1. **New** → **Web Service**
+2. GitHub 저장소 연결: `sysbaram/golf-score-manager`
+3. **Build Command**: `pip install -r requirements.txt`
+4. **Start Command**: `python app.py`
+
+### 3. 환경변수 설정
+Render 대시보드에서 다음 환경변수 설정:
+```
+GOOGLE_SPREADSHEET_ID=your_spreadsheet_id
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+```
+
+### 4. 배포 완료
+- 자동으로 배포가 시작됩니다
+- 배포 완료 후 제공되는 URL로 접속 가능
+
+## 🔒 보안 설정
+
+### 환경변수 사용
+- **로컬 개발**: `credentials.json`, `token.json` 파일 사용
+- **배포 환경**: 환경변수 사용 (보안 강화)
+
+### 보안 파일 제외
+- `credentials.json`: Google API 클라이언트 정보
+- `token.json`: OAuth 인증 토큰
+- `.env`: 환경변수 파일
 
 ## 📁 프로젝트 구조
 

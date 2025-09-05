@@ -17,7 +17,7 @@ from googleapiclient.errors import HttpError
 
 # Google Sheets API 설정
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'  # 실제 스프레드시트 ID로 변경 필요
+SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID', 'YOUR_SPREADSHEET_ID')
 RANGE_NAME = 'A1:Z1000'  # 데이터를 저장할 시트 범위
 
 class GolfScoreManager:
@@ -32,8 +32,14 @@ class GolfScoreManager:
     def _authenticate(self):
         """Google Sheets API 인증"""
         creds = None
-        # token.json 파일이 있으면 기존 인증 정보 사용
-        if os.path.exists('token.json'):
+        
+        # 환경변수에서 인증 정보 확인
+        if os.getenv('GOOGLE_CREDENTIALS_JSON'):
+            # 환경변수에서 JSON 문자열로 인증 정보 받기
+            creds_data = json.loads(os.getenv('GOOGLE_CREDENTIALS_JSON'))
+            creds = Credentials.from_authorized_user_info(creds_data, SCOPES)
+        elif os.path.exists('token.json'):
+            # 로컬 개발용: token.json 파일이 있으면 기존 인증 정보 사용
             creds = Credentials.from_authorized_user_file('token.json', SCOPES)
         
         # 유효한 인증 정보가 없으면 새로 인증
@@ -41,13 +47,29 @@ class GolfScoreManager:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
+                # 환경변수에서 credentials 정보 확인
+                if os.getenv('GOOGLE_CLIENT_ID') and os.getenv('GOOGLE_CLIENT_SECRET'):
+                    # 환경변수에서 OAuth 클라이언트 정보 사용
+                    client_config = {
+                        "installed": {
+                            "client_id": os.getenv('GOOGLE_CLIENT_ID'),
+                            "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "redirect_uris": ["http://localhost"]
+                        }
+                    }
+                    flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
+                else:
+                    # 로컬 개발용: credentials.json 파일 사용
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        'credentials.json', SCOPES)
                 creds = flow.run_local_server(port=0)
             
-            # 인증 정보를 token.json에 저장
-            with open('token.json', 'w') as token:
-                token.write(creds.to_json())
+            # 인증 정보를 token.json에 저장 (로컬 개발용)
+            if not os.getenv('GOOGLE_CREDENTIALS_JSON'):
+                with open('token.json', 'w') as token:
+                    token.write(creds.to_json())
         
         self.credentials = creds
         self.service = build('sheets', 'v4', credentials=creds)

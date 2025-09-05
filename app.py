@@ -12,8 +12,8 @@ from golf_score_manager import GolfScoreManager
 app = Flask(__name__)
 CORS(app)
 
-# Google Sheets 스프레드시트 ID
-SPREADSHEET_ID = '1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10'
+# Google Sheets 스프레드시트 ID (환경변수에서 가져오기)
+SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID', '1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10')
 
 # GolfScoreManager 인스턴스 생성
 golf_manager = None
