@@ -1,0 +1,837 @@
+/* 골프 스코어 관리 시스템 스타일 */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 터치 친화적 스타일 */
+input, select, button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 4px;
+}
+
+input:focus, select:focus, button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+}
+
+/* iOS Safari 줌 방지 */
+input[type="number"] {
+    font-size: 16px;
+}
+
+/* 터치 영역 최소화 방지 */
+button, .nav-tab, input, select {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 헤더 */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: white;
+}
+
+.header-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.header-content p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* 네비게이션 탭 */
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    background: white;
+    border-radius: 10px;
+    padding: 5px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.nav-tab {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.nav-tab:hover {
+    background: #f8f9fa;
+}
+
+.nav-tab.active {
+    background: #007bff;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+}
+
+.nav-tab i {
+    margin-right: 8px;
+}
+
+/* 메인 콘텐츠 */
+.main-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    min-height: 500px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 카드 */
+.card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.card h2 {
+    color: #495057;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.card h2 i {
+    margin-right: 10px;
+    color: #007bff;
+}
+
+/* 폼 스타일 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+/* 스코어 그리드 */
+.scores-grid h3 {
+    margin: 20px 0 15px 0;
+    color: #495057;
+    text-align: center;
+}
+
+.detailed-scores-container {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.holes-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.hole-group h4 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.holes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.hole-detail {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease;
+}
+
+.hole-detail:hover {
+    border-color: #007bff;
+}
+
+.hole-number {
+    text-align: center;
+    font-weight: 700;
+    color: #007bff;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.par-selector {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.par-selector label {
+    display: block;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.par-selector select {
+    padding: 4px 8px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: white;
+    color: #495057;
+}
+
+.par-selector select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+    outline: none;
+}
+
+.detail-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.detail-input {
+    text-align: center;
+}
+
+.detail-input label {
+    display: block;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.detail-input input,
+.detail-input select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: white;
+}
+
+.detail-input select {
+    text-align-last: center;
+    cursor: pointer;
+}
+
+.detail-input select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+    outline: none;
+}
+
+/* Iron 선택 관련 스타일 */
+.iron-container {
+    position: relative;
+}
+
+.iron-container > select {
+    margin-bottom: 8px;
+}
+
+.iron-selections {
+    margin-bottom: 8px;
+    border-top: 1px solid #e9ecef;
+    padding-top: 8px;
+}
+
+.iron-selection-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.iron-selection-item select {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: white;
+}
+
+.remove-iron-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-iron-btn:hover {
+    background: #c82333;
+}
+
+.add-iron-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 32px;
+}
+
+.add-iron-btn:hover {
+    background: #218838;
+}
+
+.add-iron-btn i {
+    font-size: 0.8rem;
+}
+
+.detail-input select option:first-child {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.detail-input input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.hole-total {
+    text-align: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e9ecef;
+}
+
+.hole-total label {
+    display: block;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    color: #495057;
+    font-weight: 600;
+}
+
+.hole-total input {
+    width: 100%;
+    padding: 6px;
+    border: 2px solid #28a745;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #28a745;
+    background: #f8fff9;
+}
+
+.hole-total input:focus {
+    border-color: #1e7e34;
+    box-shadow: 0 0 0 2px rgba(40,167,69,0.1);
+}
+
+/* 버튼 */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* 테이블 */
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+
+tr:hover {
+    background: #f8f9fa;
+}
+
+/* 통계 */
+.stats-form {
+    display: flex;
+    gap: 15px;
+    align-items: end;
+    margin-bottom: 30px;
+}
+
+.stats-form .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.stats-results {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.stat-value {
+    color: #007bff;
+    font-weight: 700;
+}
+
+/* 로딩 오버레이 */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-overlay.show {
+    display: flex;
+}
+
+.loading-spinner {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    color: #007bff;
+    margin-bottom: 15px;
+}
+
+.loading-spinner p {
+    margin: 0;
+    color: #495057;
+    font-weight: 500;
+}
+
+/* 알림 */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    display: none;
+    z-index: 1001;
+    max-width: 400px;
+}
+
+.notification.error {
+    background: #dc3545;
+}
+
+.notification.warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.notification.show {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#notification-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .container {
+        padding: 5px;
+        max-width: 100%;
+    }
+    
+    .header {
+        padding: 10px 5px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+    
+    .header p {
+        font-size: 0.9rem;
+    }
+    
+    .nav-tabs {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .nav-tab {
+        padding: 12px 8px;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    
+    .tab-content {
+        padding: 10px 5px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .form-group input {
+        padding: 12px;
+        font-size: 16px; /* iOS 줌 방지 */
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 1rem;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .holes-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .hole-group {
+        width: 100%;
+    }
+    
+    .hole-group h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    
+    .holes {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .hole-detail {
+        min-width: auto;
+        margin: 0;
+        padding: 12px;
+        border-radius: 6px;
+    }
+    
+    .hole-number {
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+    
+    .par-selector {
+        margin-bottom: 8px;
+    }
+    
+    .par-selector select {
+        padding: 8px;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+    
+    .detail-inputs {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .detail-input label {
+        font-size: 0.75rem;
+        margin-bottom: 3px;
+    }
+    
+    .detail-input input,
+    .detail-input select {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .detail-input select {
+        text-align-last: center;
+    }
+    
+    .iron-selection-item {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .iron-selection-item select {
+        width: 100%;
+    }
+    
+    .remove-iron-btn {
+        align-self: flex-end;
+        min-width: 28px;
+        min-height: 28px;
+        padding: 4px 6px;
+    }
+    
+    .add-iron-btn {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+        min-height: 36px;
+    }
+    
+    .add-iron-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .hole-total {
+        margin-top: 8px;
+        padding-top: 8px;
+    }
+    
+    .hole-total label {
+        font-size: 0.8rem;
+        margin-bottom: 3px;
+    }
+    
+    .hole-total input {
+        padding: 8px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 8px 4px;
+    }
+    
+    .stat-item {
+        flex-direction: column;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem;
+    }
+}
+
+/* 매우 작은 화면 (iPhone SE 등) */
+@media (max-width: 480px) {
+    .container {
+        padding: 3px;
+    }
+    
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .nav-tab {
+        padding: 10px 6px;
+        font-size: 0.8rem;
+    }
+    
+    .hole-detail {
+        padding: 8px;
+    }
+    
+    .detail-inputs {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+    
+    .detail-input input,
+    .detail-input select {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+    
+    .detail-input select {
+        text-align-last: center;
+    }
+    
+    .par-selector select {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+    
+    .table-container {
+        font-size: 0.7rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 6px 2px;
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+}
