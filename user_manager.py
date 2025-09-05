@@ -145,15 +145,23 @@ class UserManager:
         except Exception as e:
             return {'success': False, 'message': f'회원가입 중 오류가 발생했습니다: {str(e)}'}
     
-    def authenticate_user(self, username: str, password: str) -> Dict:
-        """사용자 로그인 인증"""
+    def authenticate_user(self, username_or_email: str, password: str) -> Dict:
+        """사용자 로그인 인증 (사용자명 또는 이메일)"""
         try:
-            user = self.get_user_by_username(username)
+            # 사용자명 또는 이메일로 사용자 조회
+            user = None
+            if '@' in username_or_email:
+                # 이메일로 로그인 시도
+                user = self.get_user_by_email(username_or_email)
+            else:
+                # 사용자명으로 로그인 시도
+                user = self.get_user_by_username(username_or_email)
+            
             if not user:
-                return {'success': False, 'message': '사용자명 또는 비밀번호가 올바르지 않습니다.'}
+                return {'success': False, 'message': '사용자명/이메일 또는 비밀번호가 올바르지 않습니다.'}
             
             if not self._verify_password(password, user['password_hash']):
-                return {'success': False, 'message': '사용자명 또는 비밀번호가 올바르지 않습니다.'}
+                return {'success': False, 'message': '사용자명/이메일 또는 비밀번호가 올바르지 않습니다.'}
             
             # 마지막 로그인 시간 업데이트
             self.update_last_login(user['user_id'])

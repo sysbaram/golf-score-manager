@@ -110,14 +110,14 @@ def login():
                 return jsonify({'error': 'UserManager 초기화 실패'}), 500
         
         data = request.get_json()
-        username = data.get('username', '').strip()
+        username_or_email = data.get('username', '').strip()
         password = data.get('password', '').strip()
         
-        if not username or not password:
-            return jsonify({'error': '사용자명과 비밀번호를 입력해주세요.'}), 400
+        if not username_or_email or not password:
+            return jsonify({'error': '사용자명/이메일과 비밀번호를 입력해주세요.'}), 400
         
         # 로그인 처리
-        result = user_manager.authenticate_user(username, password)
+        result = user_manager.authenticate_user(username_or_email, password)
         
         if result['success']:
             # 세션에 사용자 정보 저장

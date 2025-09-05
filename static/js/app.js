@@ -445,11 +445,11 @@ class GolfScoreApp {
     }
 
     async handleLogin() {
-        const username = document.getElementById('login-username').value.trim();
+        const usernameOrEmail = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
 
-        if (!username || !password) {
-            this.showNotification('사용자명과 비밀번호를 입력해주세요.', 'error');
+        if (!usernameOrEmail || !password) {
+            this.showNotification('사용자명/이메일과 비밀번호를 입력해주세요.', 'error');
             return;
         }
 
@@ -462,7 +462,7 @@ class GolfScoreApp {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ username: usernameOrEmail, password })
             });
 
             const result = await response.json();
