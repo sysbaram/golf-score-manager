@@ -19,7 +19,7 @@ from googleapiclient.errors import HttpError
 # Google Sheets API 설정
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 USERS_SHEET_ID = os.getenv('GOOGLE_USERS_SHEET_ID')  # 사용자 정보용 스프레드시트
-USERS_RANGE = 'A1:F1000'  # 사용자 데이터 범위
+USERS_RANGE = 'Member!A1:F1000'  # 사용자 데이터 범위
 
 class UserManager:
     """사용자 관리 클래스"""
@@ -75,7 +75,7 @@ class UserManager:
         try:
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=USERS_SHEET_ID,
-                range='A1:F1'
+                range='Member!A1:F1'
             ).execute()
             
             values = result.get('values', [])
@@ -86,11 +86,11 @@ class UserManager:
                 body = {'values': [headers]}
                 self.service.spreadsheets().values().update(
                     spreadsheetId=USERS_SHEET_ID,
-                    range='A1:F1',
+                    range='Member!A1:F1',
                     valueInputOption='USER_ENTERED',
                     body=body
                 ).execute()
-                print("사용자 헤더가 추가되었습니다.")
+                print("Member 시트에 사용자 헤더가 추가되었습니다.")
                 
         except HttpError as error:
             print(f"사용자 헤더 확인 중 오류: {error}")

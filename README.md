@@ -19,7 +19,8 @@ Google Sheets와 연동하는 스마트 골프 스코어 관리 웹 애플리케
 
 ### Google Sheets 연동
 - **자동 저장**: 스코어를 Google Sheets에 자동 저장
-- **헤더 관리**: 첫 번째 행에 상세 항목 헤더 자동 생성
+- **시트 분리**: Score 시트(스코어 데이터), Member 시트(회원 정보) 분리
+- **헤더 관리**: 각 시트의 첫 번째 행에 상세 항목 헤더 자동 생성
 - **데이터 구조**: 18홀 × 6개 항목 (Par, Driver, Wood/Util, Iron, Putter, Total)
 
 ## 🚀 설치 및 실행
@@ -55,9 +56,11 @@ pip install -r requirements.txt
 ### 5. 환경변수 설정 (선택사항)
 ```bash
 # 로컬 개발용
-export GOOGLE_SPREADSHEET_ID="your_spreadsheet_id"
+export GOOGLE_SPREADSHEET_ID="your_score_sheet_id"      # Score 시트용
+export GOOGLE_USERS_SHEET_ID="your_member_sheet_id"     # Member 시트용
 export GOOGLE_CLIENT_ID="your_client_id"
 export GOOGLE_CLIENT_SECRET="your_client_secret"
+export FLASK_SECRET_KEY="your_secret_key"
 ```
 
 ### 6. 애플리케이션 실행
@@ -85,9 +88,11 @@ http://localhost:3000
 ### 3. 환경변수 설정
 Render 대시보드에서 다음 환경변수 설정:
 ```
-GOOGLE_SPREADSHEET_ID=your_spreadsheet_id
+GOOGLE_SPREADSHEET_ID=your_score_sheet_id
+GOOGLE_USERS_SHEET_ID=your_member_sheet_id
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
+FLASK_SECRET_KEY=your_secret_key
 ```
 
 ### 4. 배포 완료
@@ -104,7 +109,7 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 ### 환경변수 사용
 - **로컬 개발**: `credentials.json`, `token.json` 파일 사용
 - **배포 환경**: 환경변수 사용 (보안 강화)
-- **필수 환경변수**: `GOOGLE_SPREADSHEET_ID`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- **필수 환경변수**: `GOOGLE_SPREADSHEET_ID`, `GOOGLE_USERS_SHEET_ID`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FLASK_SECRET_KEY`
 
 ### 보안 파일 제외
 - `credentials.json`: Google API 클라이언트 정보
@@ -155,6 +160,8 @@ golf-score-manager/
 - **자동 계산**: 모든 Iron 선택의 총합 자동 계산
 
 ### Google Sheets 데이터 구조
+
+#### Score 시트 (스코어 데이터)
 ```
 A열: 날짜
 B열: 플레이어 이름
@@ -168,6 +175,16 @@ I열: 홀1_Iron
 J열: 홀1_Putter
 K열: 홀1_Total
 ... (18홀 × 6개 항목)
+```
+
+#### Member 시트 (회원 정보)
+```
+A열: user_id
+B열: username
+C열: email
+D열: password_hash
+E열: created_at
+F열: last_login
 ```
 
 ## 📄 라이선스

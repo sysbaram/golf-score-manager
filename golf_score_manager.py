@@ -18,7 +18,7 @@ from googleapiclient.errors import HttpError
 # Google Sheets API 설정
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID')
-RANGE_NAME = 'A1:Z1000'  # 데이터를 저장할 시트 범위
+SCORE_RANGE_NAME = 'Score!A1:Z1000'  # 스코어 데이터를 저장할 시트 범위
 
 class GolfScoreManager:
     """골프 스코어 관리 클래스"""
@@ -170,7 +170,7 @@ class GolfScoreManager:
             body = {'values': [values]}
             result = self.service.spreadsheets().values().append(
                 spreadsheetId=self.spreadsheet_id,
-                range=RANGE_NAME,
+                range=SCORE_RANGE_NAME,
                 valueInputOption='USER_ENTERED',
                 body=body
             ).execute()
@@ -183,10 +183,10 @@ class GolfScoreManager:
     def _ensure_headers(self):
         """스프레드시트에 헤더가 있는지 확인하고 없으면 추가"""
         try:
-            # 첫 번째 행 읽기
+            # Score 시트의 첫 번째 행 읽기
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='A1:Z1'
+                range='Score!A1:Z1'
             ).execute()
             
             values = result.get('values', [])
@@ -215,7 +215,7 @@ class GolfScoreManager:
                     return result
                 
                 end_column = num_to_col_letters(len(headers))
-                range_name = f'A1:{end_column}1'
+                range_name = f'Score!A1:{end_column}1'
                 
                 body = {'values': [headers]}
                 self.service.spreadsheets().values().update(
@@ -224,7 +224,7 @@ class GolfScoreManager:
                     valueInputOption='USER_ENTERED',
                     body=body
                 ).execute()
-                print(f"헤더가 추가되었습니다. 범위: {range_name}")
+                print(f"Score 시트에 헤더가 추가되었습니다. 범위: {range_name}")
                 
         except HttpError as error:
             print(f"헤더 확인 중 오류: {error}")
@@ -234,7 +234,7 @@ class GolfScoreManager:
         try:
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range=RANGE_NAME
+                range=SCORE_RANGE_NAME
             ).execute()
             
             values = result.get('values', [])
