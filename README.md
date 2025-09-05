@@ -64,6 +64,21 @@ export FLASK_SECRET_KEY="your_secret_key"
 ```
 
 ### 6. 애플리케이션 실행
+
+#### 방법 1: 환경변수 설정 스크립트 사용 (권장)
+```bash
+./start_server.sh
+```
+
+#### 방법 2: 수동 환경변수 설정
+```bash
+export GOOGLE_SPREADSHEET_ID="1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10"
+export GOOGLE_USERS_SHEET_ID="1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10"
+export FLASK_SECRET_KEY="your-secret-key-change-in-production-12345"
+python app.py
+```
+
+#### 방법 3: 환경변수 없이 실행 (credentials.json 사용)
 ```bash
 python app.py
 ```
