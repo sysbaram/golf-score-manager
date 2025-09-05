@@ -291,6 +291,9 @@ class GolfScoreApp {
         
         // 로그인한 사용자만 스코어 입력 가능
         this.loadRounds();
+        
+        // 스코어 입력 화면으로 자동 이동
+        this.switchToScoreInputTab();
     }
 
     updateUIForLoggedOutUser() {
@@ -300,6 +303,26 @@ class GolfScoreApp {
         
         // 로그인하지 않은 사용자는 로그인 요구 메시지 표시
         this.showLoginRequiredMessage();
+    }
+
+    switchToScoreInputTab() {
+        // 스코어 입력 탭으로 전환
+        const tabs = document.querySelectorAll('.nav-tab');
+        const contents = document.querySelectorAll('.tab-content');
+        
+        // 모든 탭 비활성화
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        
+        // 스코어 입력 탭 활성화
+        const scoreTab = document.querySelector('[data-tab="score-input"]');
+        const scoreContent = document.getElementById('score-input');
+        
+        if (scoreTab && scoreContent) {
+            scoreTab.classList.add('active');
+            scoreContent.classList.add('active');
+            this.currentTab = 'score-input';
+        }
     }
 
     showLoginRequiredMessage() {
@@ -373,6 +396,8 @@ class GolfScoreApp {
                 this.updateUIForLoggedInUser();
                 this.hideModal(document.getElementById('login-modal'));
                 this.showNotification('로그인 성공!', 'success');
+                // 스코어 입력 화면으로 자동 이동
+                this.switchToScoreInputTab();
             } else {
                 this.showNotification(result.error || '로그인에 실패했습니다.', 'error');
             }
