@@ -4,14 +4,15 @@ class GolfScoreApp {
     constructor() {
         this.currentTab = 'score-input';
         this.rounds = [];
+        this.currentUser = null;
         this.init();
     }
 
     init() {
         this.setupEventListeners();
         this.generateHoleInputs();
-        this.loadRounds();
         this.setupTabSwitching();
+        this.checkAuthStatus();
     }
 
     setupEventListeners() {
@@ -40,6 +41,46 @@ class GolfScoreApp {
         document.getElementById('notification-close').addEventListener('click', () => {
             this.hideNotification();
         });
+
+        // 로그인 관련 이벤트
+        document.getElementById('login-btn').addEventListener('click', () => {
+            this.showLoginModal();
+        });
+
+        document.getElementById('register-btn').addEventListener('click', () => {
+            this.showRegisterModal();
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            this.logout();
+        });
+
+        // 모달 이벤트
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleLogin();
+        });
+
+        document.getElementById('register-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleRegister();
+        });
+
+        // 모달 닫기
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.hideModal(e.target.closest('.modal'));
+            });
+        });
+
+        // 모달 배경 클릭으로 닫기
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideModal(modal);
+                }
+            });
+        });
     }
 
     setupTabSwitching() {
@@ -63,8 +104,6 @@ class GolfScoreApp {
                 // 탭별 초기화
                 if (targetTab === 'rounds-history') {
                     this.loadRounds();
-                } else if (targetTab === 'statistics') {
-                    this.loadPlayers();
                 }
             });
         });
@@ -224,8 +263,201 @@ class GolfScoreApp {
         document.getElementById(`hole-${holeNumber}-total`).value = total;
     }
 
+    // ===== 인증 관련 메서드 =====
+    
+    async checkAuthStatus() {
+        try {
+            const response = await fetch('/api/auth/check');
+            const result = await response.json();
+            
+            if (result.authenticated) {
+                this.currentUser = result.user;
+                this.updateUIForLoggedInUser();
+            } else {
+                this.updateUIForLoggedOutUser();
+            }
+        } catch (error) {
+            console.error('인증 상태 확인 오류:', error);
+            this.updateUIForLoggedOutUser();
+        }
+    }
+
+    updateUIForLoggedInUser() {
+        document.getElementById('user-info').style.display = 'flex';
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('username-display').textContent = this.currentUser.username;
+        
+        // 로그인한 사용자만 스코어 입력 가능
+        this.loadRounds();
+    }
+
+    updateUIForLoggedOutUser() {
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('login-section').style.display = 'flex';
+        this.currentUser = null;
+        
+        // 로그인하지 않은 사용자는 로그인 요구 메시지 표시
+        this.showLoginRequiredMessage();
+    }
+
+    showLoginRequiredMessage() {
+        const scoreInput = document.getElementById('score-input');
+        const existingMessage = document.getElementById('login-required-message');
+        
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        const message = document.createElement('div');
+        message.id = 'login-required-message';
+        message.className = 'card';
+        message.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-lock" style="font-size: 3rem; color: #6c757d; margin-bottom: 20px;"></i>
+                <h3>로그인이 필요합니다</h3>
+                <p>스코어를 입력하고 관리하려면 먼저 로그인해주세요.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="app.showLoginModal()">로그인</button>
+                    <button class="btn btn-secondary" onclick="app.showRegisterModal()">회원가입</button>
+                </div>
+            </div>
+        `;
+        
+        scoreInput.innerHTML = '';
+        scoreInput.appendChild(message);
+    }
+
+    showLoginModal() {
+        document.getElementById('login-modal').classList.add('show');
+        document.getElementById('login-username').focus();
+    }
+
+    showRegisterModal() {
+        document.getElementById('register-modal').classList.add('show');
+        document.getElementById('register-username').focus();
+    }
+
+    hideModal(modal) {
+        modal.classList.remove('show');
+        // 폼 초기화
+        modal.querySelector('form').reset();
+    }
+
+    async handleLogin() {
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        if (!username || !password) {
+            this.showNotification('사용자명과 비밀번호를 입력해주세요.', 'error');
+            return;
+        }
+
+        this.showLoading(true);
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                this.currentUser = result.user;
+                this.updateUIForLoggedInUser();
+                this.hideModal(document.getElementById('login-modal'));
+                this.showNotification('로그인 성공!', 'success');
+            } else {
+                this.showNotification(result.error || '로그인에 실패했습니다.', 'error');
+            }
+        } catch (error) {
+            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
+            console.error('Error:', error);
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    async handleRegister() {
+        const username = document.getElementById('register-username').value.trim();
+        const email = document.getElementById('register-email').value.trim();
+        const password = document.getElementById('register-password').value;
+        const passwordConfirm = document.getElementById('register-password-confirm').value;
+
+        if (!username || !email || !password || !passwordConfirm) {
+            this.showNotification('모든 필드를 입력해주세요.', 'error');
+            return;
+        }
+
+        if (password !== passwordConfirm) {
+            this.showNotification('비밀번호가 일치하지 않습니다.', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            this.showNotification('비밀번호는 6자 이상이어야 합니다.', 'error');
+            return;
+        }
+
+        this.showLoading(true);
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                this.hideModal(document.getElementById('register-modal'));
+                this.showNotification('회원가입이 완료되었습니다! 로그인해주세요.', 'success');
+                this.showLoginModal();
+            } else {
+                this.showNotification(result.error || '회원가입에 실패했습니다.', 'error');
+            }
+        } catch (error) {
+            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
+            console.error('Error:', error);
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    async logout() {
+        try {
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                this.currentUser = null;
+                this.updateUIForLoggedOutUser();
+                this.showNotification('로그아웃되었습니다.', 'success');
+            } else {
+                this.showNotification('로그아웃 중 오류가 발생했습니다.', 'error');
+            }
+        } catch (error) {
+            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
+            console.error('Error:', error);
+        }
+    }
+
+    // ===== 기존 메서드들 =====
+
     async submitScore() {
-        const playerName = document.getElementById('player-name').value;
+        if (!this.currentUser) {
+            this.showNotification('로그인이 필요합니다.', 'error');
+            this.showLoginModal();
+            return;
+        }
+
         const courseName = document.getElementById('course-name').value;
         const detailedScores = [];
 
@@ -272,7 +504,6 @@ class GolfScoreApp {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    player_name: playerName,
                     course_name: courseName,
                     detailed_scores: detailedScores
                 })
@@ -297,7 +528,6 @@ class GolfScoreApp {
 
     clearScores() {
         // 폼 초기화
-        document.getElementById('player-name').value = '';
         document.getElementById('course-name').value = '';
         
         // 모든 홀 상세 스코어를 초기화
@@ -319,6 +549,10 @@ class GolfScoreApp {
     }
 
     async loadRounds() {
+        if (!this.currentUser) {
+            return;
+        }
+
         this.showLoading(true);
 
         try {
@@ -379,32 +613,18 @@ class GolfScoreApp {
               `홀별 스코어:\n${scores}`);
     }
 
-    async loadPlayers() {
-        // 라운드 기록에서 고유한 플레이어 목록 추출
-        const players = [...new Set(this.rounds.map(round => round.player_name))];
-        const select = document.getElementById('stats-player');
-        
-        select.innerHTML = '<option value="">플레이어를 선택하세요</option>';
-        players.forEach(player => {
-            const option = document.createElement('option');
-            option.value = player;
-            option.textContent = player;
-            select.appendChild(option);
-        });
-    }
 
     async getPlayerStatistics() {
-        const playerName = document.getElementById('stats-player').value;
-        
-        if (!playerName) {
-            this.showNotification('플레이어를 선택해주세요.', 'warning');
+        if (!this.currentUser) {
+            this.showNotification('로그인이 필요합니다.', 'error');
+            this.showLoginModal();
             return;
         }
 
         this.showLoading(true);
 
         try {
-            const response = await fetch(`/api/statistics/${encodeURIComponent(playerName)}`);
+            const response = await fetch('/api/statistics');
             const result = await response.json();
 
             if (response.ok) {
@@ -429,7 +649,7 @@ class GolfScoreApp {
         }
 
         resultsDiv.innerHTML = `
-            <h3>${stats.player_name} 통계</h3>
+            <h3>내 통계</h3>
             <div class="stat-item">
                 <span class="stat-label">총 라운드 수</span>
                 <span class="stat-value">${stats.total_rounds}회</span>
