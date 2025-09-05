@@ -16,8 +16,7 @@ CORS(app)
 # 세션 보안을 위한 시크릿 키
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-change-in-production')
 
-# Google Sheets 스프레드시트 ID (환경변수에서 가져오기)
-SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID')
+# Google Sheets 스프레드시트 ID는 함수 내에서 가져오기
 
 # Manager 인스턴스 생성
 golf_manager = None
@@ -27,12 +26,13 @@ def init_golf_manager():
     """GolfScoreManager 초기화"""
     global golf_manager
     try:
-        # 환경변수 검증
-        if not SPREADSHEET_ID:
+        # 환경변수에서 스프레드시트 ID 가져오기
+        spreadsheet_id = os.getenv('GOOGLE_SPREADSHEET_ID')
+        if not spreadsheet_id:
             print("❌ GOOGLE_SPREADSHEET_ID 환경변수가 설정되지 않았습니다.")
             return False
         
-        golf_manager = GolfScoreManager(SPREADSHEET_ID)
+        golf_manager = GolfScoreManager(spreadsheet_id)
         return True
     except Exception as e:
         print(f"GolfScoreManager 초기화 오류: {e}")
@@ -42,10 +42,15 @@ def init_user_manager():
     """UserManager 초기화"""
     global user_manager
     try:
+        # 환경변수 검증
+        if not os.getenv('GOOGLE_USERS_SHEET_ID'):
+            print("❌ GOOGLE_USERS_SHEET_ID 환경변수가 설정되지 않았습니다.")
+            return False
+        
         user_manager = UserManager()
         return True
     except Exception as e:
-        print(f"UserManager 초기화 오류: {e}")
+        print(f"❌ UserManager 초기화 오류: {e}")
         return False
 
 def require_auth(f):

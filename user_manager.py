@@ -26,6 +26,11 @@ class UserManager:
     
     def __init__(self):
         self.service = None
+        
+        # 환경변수 검증
+        if not USERS_SHEET_ID:
+            raise ValueError("GOOGLE_USERS_SHEET_ID 환경변수가 설정되지 않았습니다.")
+        
         self._authenticate()
         self._ensure_users_headers()
     
