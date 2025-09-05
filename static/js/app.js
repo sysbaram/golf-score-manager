@@ -267,7 +267,9 @@ class GolfScoreApp {
     
     async checkAuthStatus() {
         try {
-            const response = await fetch('/api/auth/check');
+            const response = await fetch('/api/auth/check', {
+                credentials: 'include'
+            });
             const result = await response.json();
             
             if (result.authenticated) {
@@ -360,6 +362,7 @@ class GolfScoreApp {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({ username, password })
             });
 
@@ -405,15 +408,20 @@ class GolfScoreApp {
         this.showLoading(true);
 
         try {
+            console.log('회원가입 요청 시작:', { username, email });
+            
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({ username, email, password })
             });
 
+            console.log('회원가입 응답 상태:', response.status);
             const result = await response.json();
+            console.log('회원가입 응답 데이터:', result);
 
             if (response.ok) {
                 this.hideModal(document.getElementById('register-modal'));
@@ -433,7 +441,8 @@ class GolfScoreApp {
     async logout() {
         try {
             const response = await fetch('/api/auth/logout', {
-                method: 'POST'
+                method: 'POST',
+                credentials: 'include'
             });
 
             if (response.ok) {

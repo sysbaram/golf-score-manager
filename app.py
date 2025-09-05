@@ -11,7 +11,8 @@ from golf_score_manager import GolfScoreManager
 from user_manager import UserManager
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'], 
+     supports_credentials=True)
 
 # 세션 보안을 위한 시크릿 키
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-change-in-production')
