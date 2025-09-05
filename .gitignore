@@ -45,3 +45,18 @@ Thumbs.db
 
 # Environment variables
 .env
+.env.local
+.env.production
+.env.staging
+
+# Security sensitive files
+*.key
+*.pem
+*.p12
+*.pfx
+config.json
+secrets.json
+
+# Google Sheets IDs and sensitive data
+spreadsheet_id.txt
+client_secrets.json

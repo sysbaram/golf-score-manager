@@ -96,14 +96,21 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 
 ## 🔒 보안 설정
 
+### ⚠️ 중요: 보안 주의사항
+- **Public 저장소**: 이 저장소는 공개되어 있으므로 민감한 정보를 코드에 포함하지 마세요
+- **환경변수 필수**: 모든 민감한 정보는 환경변수로 관리하세요
+- **Private 저장소 권장**: 프로덕션 환경에서는 Private 저장소 사용을 권장합니다
+
 ### 환경변수 사용
 - **로컬 개발**: `credentials.json`, `token.json` 파일 사용
 - **배포 환경**: 환경변수 사용 (보안 강화)
+- **필수 환경변수**: `GOOGLE_SPREADSHEET_ID`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 
 ### 보안 파일 제외
 - `credentials.json`: Google API 클라이언트 정보
 - `token.json`: OAuth 인증 토큰
 - `.env`: 환경변수 파일
+- **절대 커밋하지 말 것**: 민감한 정보가 포함된 파일들
 
 ## 📁 프로젝트 구조
 

@@ -13,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Google Sheets 스프레드시트 ID (환경변수에서 가져오기)
-SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID', '1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10')
+SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID')
 
 # GolfScoreManager 인스턴스 생성
 golf_manager = None
@@ -22,6 +22,11 @@ def init_golf_manager():
     """GolfScoreManager 초기화"""
     global golf_manager
     try:
+        # 환경변수 검증
+        if not SPREADSHEET_ID:
+            print("❌ GOOGLE_SPREADSHEET_ID 환경변수가 설정되지 않았습니다.")
+            return False
+        
         golf_manager = GolfScoreManager(SPREADSHEET_ID)
         return True
     except Exception as e:
