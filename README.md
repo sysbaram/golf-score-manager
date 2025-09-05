@@ -98,17 +98,21 @@ http://localhost:3000
 1. **New** → **Web Service**
 2. GitHub 저장소 연결: `sysbaram/golf-score-manager`
 3. **Build Command**: `pip install -r requirements.txt`
-4. **Start Command**: `python app.py`
+4. **Start Command**: `gunicorn app:app`
 
 ### 3. 환경변수 설정
 Render 대시보드에서 다음 환경변수 설정:
 ```
-GOOGLE_SPREADSHEET_ID=your_score_sheet_id
-GOOGLE_USERS_SHEET_ID=your_member_sheet_id
+GOOGLE_SPREADSHEET_ID=1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10
+GOOGLE_USERS_SHEET_ID=1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
-FLASK_SECRET_KEY=your_secret_key
+FLASK_SECRET_KEY=your-secret-key-change-in-production-12345
 ```
+
+**⚠️ 중요**: 
+- `GOOGLE_CLIENT_ID`와 `GOOGLE_CLIENT_SECRET`은 Google Cloud Console에서 생성한 OAuth 2.0 클라이언트 정보입니다
+- `FLASK_SECRET_KEY`는 프로덕션 환경에서 강력한 랜덤 키로 변경하세요
 
 ### 4. 배포 완료
 - 자동으로 배포가 시작됩니다
