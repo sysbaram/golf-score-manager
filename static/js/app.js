@@ -12,20 +12,12 @@ class GolfScoreApp {
         this.setupEventListeners();
         this.generateHoleInputs();
         this.setupTabSwitching();
+        this.setupScoreFormEventListeners(); // 초기 스코어 폼 이벤트 리스너 설정
         this.checkAuthStatus();
     }
 
     setupEventListeners() {
-        // 폼 제출
-        document.getElementById('score-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.submitScore();
-        });
-
-        // 초기화 버튼
-        document.getElementById('clear-scores').addEventListener('click', () => {
-            this.clearScores();
-        });
+        // 스코어 폼 이벤트 리스너는 setupScoreFormEventListeners에서 처리
 
         // 새로고침 버튼
         document.getElementById('refresh-rounds').addEventListener('click', () => {
@@ -292,6 +284,9 @@ class GolfScoreApp {
         // 로그인한 사용자만 스코어 입력 가능
         this.loadRounds();
         
+        // 스코어 입력 폼 복원
+        this.restoreScoreInputForm();
+        
         // 스코어 입력 화면으로 자동 이동
         this.switchToScoreInputTab();
     }
@@ -322,6 +317,87 @@ class GolfScoreApp {
             scoreTab.classList.add('active');
             scoreContent.classList.add('active');
             this.currentTab = 'score-input';
+        }
+    }
+
+    restoreScoreInputForm() {
+        const scoreInput = document.getElementById('score-input');
+        const existingMessage = document.getElementById('login-required-message');
+        
+        // 로그인 요구 메시지 제거
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // 스코어 입력 폼이 이미 있는지 확인
+        const existingForm = scoreInput.querySelector('#score-form');
+        if (!existingForm) {
+            // 스코어 입력 폼 복원
+            scoreInput.innerHTML = `
+                <div class="card">
+                    <h2><i class="fas fa-edit"></i> 새 라운드 기록</h2>
+                    <form id="score-form">
+                        <div class="form-group">
+                            <label for="course-name">코스 이름</label>
+                            <input type="text" id="course-name" name="course_name" required>
+                        </div>
+                        
+                        <div class="scores-grid">
+                            <h3>홀별 상세 스코어 입력</h3>
+                            <div class="detailed-scores-container">
+                                <div class="holes-row">
+                                    <div class="hole-group">
+                                        <h4>아웃코스 (1-9홀)</h4>
+                                        <div class="holes" id="holes-out">
+                                            <!-- 1-9홀 상세 입력 필드 -->
+                                        </div>
+                                    </div>
+                                    <div class="hole-group">
+                                        <h4>인코스 (10-18홀)</h4>
+                                        <div class="holes" id="holes-in">
+                                            <!-- 10-18홀 상세 입력 필드 -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" id="clear-scores" class="btn btn-secondary">
+                                <i class="fas fa-eraser"></i> 초기화
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 저장
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            // 이벤트 리스너 재설정
+            this.setupScoreFormEventListeners();
+            
+            // 홀 입력 필드 재생성
+            this.generateHoleInputs();
+        }
+    }
+
+    setupScoreFormEventListeners() {
+        // 폼 제출
+        const scoreForm = document.getElementById('score-form');
+        if (scoreForm) {
+            scoreForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitScore();
+            });
+        }
+
+        // 초기화 버튼
+        const clearScoresBtn = document.getElementById('clear-scores');
+        if (clearScoresBtn) {
+            clearScoresBtn.addEventListener('click', () => {
+                this.clearScores();
+            });
         }
     }
 
