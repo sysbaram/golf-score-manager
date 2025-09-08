@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>골프 스코어 관리 시스템</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-golf-ball-tee"></i> 골프 스코어 관리</h1>
+                <p>Google Sheets와 연동하는 스마트 스코어 관리 시스템</p>
+            </div>
+            <div class="user-section">
+                <div id="user-info" class="user-info" style="display: none;">
+                    <span id="welcome-message">안녕하세요, <strong id="username-display"></strong>님!</span>
+                    <button id="logout-btn" class="btn btn-outline">로그아웃</button>
+                </div>
+                <div id="login-section" class="login-section">
+                    <button id="login-btn" class="btn btn-primary">로그인</button>
+                    <button id="register-btn" class="btn btn-secondary">회원가입</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 네비게이션 -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="score-input">
+                <i class="fas fa-plus-circle"></i> 스코어 입력
+            </button>
+            <button class="nav-tab" data-tab="rounds-history">
+                <i class="fas fa-history"></i> 라운드 기록
+            </button>
+            <button class="nav-tab" data-tab="statistics">
+                <i class="fas fa-chart-bar"></i> 통계
+            </button>
+        </nav>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <!-- 스코어 입력 탭 -->
+            <div id="score-input" class="tab-content active">
+                <div class="card">
+                    <h2><i class="fas fa-edit"></i> 새 라운드 기록</h2>
+                    <form id="score-form">
+                        <div class="form-group">
+                            <label for="course-name">코스 이름</label>
+                            <input type="text" id="course-name" name="course_name" required>
+                        </div>
+                        
+                        <div class="scores-grid">
+                            <h3>홀별 상세 스코어 입력</h3>
+                            <div class="detailed-scores-container">
+                                <div class="holes-row">
+                                    <div class="hole-group">
+                                        <h4>아웃코스 (1-9홀)</h4>
+                                        <div class="holes" id="holes-out">
+                                            <!-- 1-9홀 상세 입력 필드 -->
+                                        </div>
+                                    </div>
+                                    <div class="hole-group">
+                                        <h4>인코스 (10-18홀)</h4>
+                                        <div class="holes" id="holes-in">
+                                            <!-- 10-18홀 상세 입력 필드 -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" id="clear-scores" class="btn btn-secondary">
+                                <i class="fas fa-eraser"></i> 초기화
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 저장
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 라운드 기록 탭 -->
+            <div id="rounds-history" class="tab-content">
+                <div class="card">
+                    <h2><i class="fas fa-list"></i> 라운드 기록</h2>
+                    <div class="table-container">
+                        <table id="rounds-table">
+                            <thead>
+                                <tr>
+                                    <th>날짜</th>
+                                    <th>플레이어</th>
+                                    <th>코스</th>
+                                    <th>총 스코어</th>
+                                    <th>핸디캡</th>
+                                    <th>상세보기</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rounds-tbody">
+                                <!-- 동적으로 생성됨 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button id="refresh-rounds" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> 새로고침
+                    </button>
+                </div>
+            </div>
+
+            <!-- 통계 탭 -->
+            <div id="statistics" class="tab-content">
+                <div class="card">
+                    <h2><i class="fas fa-chart-line"></i> 내 통계</h2>
+                    <div class="stats-form">
+                        <button id="get-stats" class="btn btn-primary">
+                            <i class="fas fa-chart-bar"></i> 통계 조회
+                        </button>
+                    </div>
+                    <div id="stats-results" class="stats-results">
+                        <!-- 통계 결과가 여기에 표시됨 -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 로딩 오버레이 -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-spinner">
+                <i class="fas fa-golf-ball-tee fa-spin"></i>
+                <p>처리 중...</p>
+            </div>
+        </div>
+
+        <!-- 알림 메시지 -->
+        <div id="notification" class="notification">
+            <span id="notification-message"></span>
+            <button id="notification-close">&times;</button>
+        </div>
+
+        <!-- 로그인 모달 -->
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-sign-in-alt"></i> 로그인</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">사용자명 또는 이메일</label>
+                        <input type="text" id="login-username" name="username" placeholder="사용자명 또는 이메일 주소" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">비밀번호</label>
+                        <input type="password" id="login-password" name="password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">취소</button>
+                        <button type="submit" class="btn btn-primary">로그인</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 회원가입 모달 -->
+        <div id="register-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-user-plus"></i> 회원가입</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-username">사용자명</label>
+                        <input type="text" id="register-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">이메일</label>
+                        <input type="email" id="register-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">비밀번호</label>
+                        <input type="password" id="register-password" name="password" required minlength="6">
+                        <small>비밀번호는 6자 이상이어야 합니다.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password-confirm">비밀번호 확인</label>
+                        <input type="password" id="register-password-confirm" name="password_confirm" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">취소</button>
+                        <button type="submit" class="btn btn-primary">회원가입</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
