@@ -155,9 +155,16 @@ class GolfScoreManager:
                 round_data['handicap']
             ]
             
-            # 홀별 총점 추가 (간단한 구조)
-            for score in round_data['scores']:
-                values.append(score)
+            # 홀별 상세 스코어 추가
+            for detailed_score in round_data['detailed_scores']:
+                values.extend([
+                    detailed_score['par'],
+                    detailed_score['driver'],
+                    detailed_score['wood_util'],
+                    detailed_score['iron'],
+                    detailed_score['putter'],
+                    detailed_score['total']
+                ])
             
             # 데이터 추가
             body = {'values': [values]}
@@ -189,13 +196,16 @@ class GolfScoreManager:
                 headers = [
                     '날짜', '플레이어', '코스', '총 스코어', '핸디캡'
                 ]
-                # 홀별 스코어 헤더 추가 (간단한 구조)
+                # 홀별 상세 스코어 헤더 추가
                 for i in range(18):
                     hole_num = i + 1
-                    headers.append(f'홀{hole_num}')
+                    headers.extend([
+                        f'홀{hole_num}_Par', f'홀{hole_num}_Driver', f'홀{hole_num}_Wood/Util', 
+                        f'홀{hole_num}_Iron', f'홀{hole_num}_Putter', f'홀{hole_num}_Total'
+                    ])
                 
-                # 헤더 행의 범위를 정확히 계산 (총 23개 컬럼: 5 + 18)
-                range_name = 'Score!A1:W1'  # 23개 컬럼 (A=1, W=23)
+                # 헤더 행의 범위를 정확히 계산 (총 113개 컬럼: 5 + 18*6)
+                range_name = 'Score!A1:DI1'  # 113개 컬럼 (A=1, DI=113)
                 
                 body = {'values': [headers]}
                 self.service.spreadsheets().values().update(
@@ -229,13 +239,37 @@ class GolfScoreManager:
             rounds = []
             for row in data_rows:
                 if len(row) >= 5:  # 최소 필수 데이터 확인
+                    # 상세 스코어 파싱 (5개 기본 + 18홀 * 6개 항목 = 113개)
+                    detailed_scores = []
+                    scores = []
+                    
+                    for i in range(18):
+                        start_idx = 5 + (i * 6)
+                        if start_idx + 5 < len(row):
+                            detailed_score = {
+                                'par': int(row[start_idx]) if row[start_idx].isdigit() else 4,
+                                'driver': int(row[start_idx + 1]) if row[start_idx + 1].isdigit() else 0,
+                                'wood_util': int(row[start_idx + 2]) if row[start_idx + 2].isdigit() else 0,
+                                'iron': int(row[start_idx + 3]) if row[start_idx + 3].isdigit() else 0,
+                                'putter': int(row[start_idx + 4]) if row[start_idx + 4].isdigit() else 0,
+                                'total': int(row[start_idx + 5]) if row[start_idx + 5].isdigit() else 0
+                            }
+                            detailed_scores.append(detailed_score)
+                            scores.append(detailed_score['total'])
+                        else:
+                            detailed_scores.append({
+                                'par': 4, 'driver': 0, 'wood_util': 0, 'iron': 0, 'putter': 0, 'total': 0
+                            })
+                            scores.append(0)
+                    
                     round_data = {
                         'date': row[0],
                         'player_name': row[1],
                         'course_name': row[2],
                         'total_score': int(row[3]) if row[3].isdigit() else 0,
                         'handicap': int(row[4]) if row[4].isdigit() else 0,
-                        'scores': [int(score) if score.isdigit() else 0 for score in row[5:23]]  # 홀 1-18
+                        'scores': scores,
+                        'detailed_scores': detailed_scores
                     }
                     rounds.append(round_data)
             
