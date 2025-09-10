@@ -606,7 +606,7 @@ class GolfScoreApp {
         }
 
         try {
-            const response = await fetch('/api/scores', {
+            const response = await fetch('/api/rounds', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -614,7 +614,7 @@ class GolfScoreApp {
                 credentials: 'include',
                 body: JSON.stringify({
                     course_name: courseName,
-                    scores: detailedScores
+                    detailed_scores: detailedScores
                 })
             });
 
@@ -661,7 +661,7 @@ class GolfScoreApp {
         }
 
         try {
-            const response = await fetch('/api/scores', {
+            const response = await fetch('/api/rounds', {
                 method: 'GET',
                 credentials: 'include'
             });
