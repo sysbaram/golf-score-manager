@@ -271,7 +271,6 @@
     </div>
 
     <!-- Google Sheets API -->
-    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad"></script>
     <script>
         // Google API 로딩 완료 후 초기화
         window.gapiOnLoad = function() {
@@ -280,6 +279,7 @@
             window.googleApiLoaded = true;
         };
     </script>
+    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad"></script>
     <script src="static/js/google-sheets-api.js"></script>
     <script src="static/js/app-github-pages.js"></script>
 </body>

@@ -24,7 +24,25 @@ class GolfScoreApp {
             console.log('✅ Google Sheets API 초기화 완료');
         } catch (error) {
             console.error('❌ 초기화 실패:', error);
-            this.showNotification('Google Sheets API 초기화에 실패했습니다.', 'error');
+            this.showNotification('Google Sheets API 초기화에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
+            
+            // 재시도 버튼 추가
+            this.addRetryButton();
+        }
+    }
+
+    addRetryButton() {
+        const retryBtn = document.createElement('button');
+        retryBtn.textContent = '재시도';
+        retryBtn.className = 'btn btn-primary';
+        retryBtn.style.marginTop = '1rem';
+        retryBtn.onclick = () => {
+            location.reload();
+        };
+        
+        const notification = document.getElementById('notification');
+        if (notification) {
+            notification.appendChild(retryBtn);
         }
     }
 
