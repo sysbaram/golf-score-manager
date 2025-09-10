@@ -453,36 +453,17 @@ class GolfScoreApp {
             return;
         }
 
-        this.showLoading(true);
-
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ username: usernameOrEmail, password })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                this.currentUser = result.user;
-                this.updateUIForLoggedInUser();
-                this.hideModal(document.getElementById('login-modal'));
-                this.showNotification('로그인 성공!', 'success');
-                // 스코어 입력 화면으로 자동 이동
-                this.switchToScoreInputTab();
-            } else {
-                this.showNotification(result.error || '로그인에 실패했습니다.', 'error');
-            }
-        } catch (error) {
-            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
-            console.error('Error:', error);
-        } finally {
-            this.showLoading(false);
-        }
+        // 데모 모드 안내
+        this.showNotification('🚧 데모 모드: 실제 로그인은 로컬 서버에서만 가능합니다. 데모용 가상 로그인을 진행합니다.', 'warning');
+        
+        // 데모용 가상 로그인 처리
+        setTimeout(() => {
+            this.currentUser = { username: usernameOrEmail, email: usernameOrEmail + '@demo.com' };
+            this.updateUIForLoggedInUser();
+            this.hideModal(document.getElementById('login-modal'));
+            this.showNotification('데모 모드: 가상 로그인 완료! (실제 데이터는 저장되지 않습니다)', 'success');
+            this.switchToScoreInputTab();
+        }, 1500);
     }
 
     async handleRegister() {
@@ -506,37 +487,16 @@ class GolfScoreApp {
             return;
         }
 
-        this.showLoading(true);
-
-        try {
-            console.log('회원가입 요청 시작:', { username, email });
-            
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ username, email, password })
-            });
-
-            console.log('회원가입 응답 상태:', response.status);
-            const result = await response.json();
-            console.log('회원가입 응답 데이터:', result);
-
-            if (response.ok) {
-                this.hideModal(document.getElementById('register-modal'));
-                this.showNotification('회원가입이 완료되었습니다! 로그인해주세요.', 'success');
-                this.showLoginModal();
-            } else {
-                this.showNotification(result.error || '회원가입에 실패했습니다.', 'error');
-            }
-        } catch (error) {
-            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
-            console.error('Error:', error);
-        } finally {
-            this.showLoading(false);
-        }
+        // 데모 모드 안내
+        this.showNotification('🚧 데모 모드: 실제 회원가입은 로컬 서버에서만 가능합니다. 로컬에서 실행해보세요!', 'warning');
+        
+        // 데모용 가상 로그인 처리
+        setTimeout(() => {
+            this.currentUser = { username: username, email: email };
+            this.updateUIForLoggedInUser();
+            this.hideModal(document.getElementById('register-modal'));
+            this.showNotification('데모 모드: 가상 로그인 완료! (실제 데이터는 저장되지 않습니다)', 'success');
+        }, 1500);
     }
 
     async logout() {

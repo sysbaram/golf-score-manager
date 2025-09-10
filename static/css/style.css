@@ -181,6 +181,36 @@ body {
     color: var(--accent);
 }
 
+/* 데모 모드 안내 */
+.demo-notice {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+    color: var(--text-white);
+    padding: 12px 20px;
+    border-radius: var(--radius-lg);
+    margin: 20px auto;
+    max-width: 600px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    animation: pulse 2s infinite;
+}
+
+.demo-notice i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
 /* 사용자 섹션 */
 .user-section {
     position: absolute;
