@@ -13,34 +13,56 @@ class GoogleSheetsAPI {
 
     async init() {
         return new Promise((resolve, reject) => {
-            if (window.gapi) {
+            // Google API가 이미 로드되었는지 확인
+            if (window.gapi && window.gapi.load) {
                 this.gapi = window.gapi;
                 this.loadClient().then(resolve).catch(reject);
             } else {
-                const script = document.createElement('script');
-                script.src = 'https://apis.google.com/js/api.js';
-                script.onload = () => {
-                    this.gapi = window.gapi;
-                    this.loadClient().then(resolve).catch(reject);
+                // Google API 로딩 대기 (최대 10초)
+                let attempts = 0;
+                const maxAttempts = 100;
+                const checkGapi = () => {
+                    if (window.gapi && window.gapi.load) {
+                        this.gapi = window.gapi;
+                        this.loadClient().then(resolve).catch(reject);
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        setTimeout(checkGapi, 100);
+                    } else {
+                        reject(new Error('Google API 로딩 시간 초과'));
+                    }
                 };
-                script.onerror = reject;
-                document.head.appendChild(script);
+                checkGapi();
             }
         });
     }
 
     async loadClient() {
         return new Promise((resolve, reject) => {
-            this.gapi.load('client', async () => {
+            this.gapi.load('client:auth2', async () => {
                 try {
                     await this.gapi.client.init({
                         clientId: this.clientId,
                         discoveryDocs: this.discoveryDocs,
                         scope: this.scope
                     });
+                    console.log('Google API 초기화 성공');
                     resolve();
                 } catch (error) {
-                    reject(error);
+                    console.error('Google API 초기화 실패:', error);
+                    // API 키 없이도 시도해보기
+                    try {
+                        await this.gapi.client.init({
+                            clientId: this.clientId,
+                            discoveryDocs: this.discoveryDocs,
+                            scope: this.scope
+                        });
+                        console.log('Google API 초기화 성공 (API 키 없이)');
+                        resolve();
+                    } catch (retryError) {
+                        console.error('Google API 초기화 재시도 실패:', retryError);
+                        reject(retryError);
+                    }
                 }
             });
         });

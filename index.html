@@ -273,13 +273,11 @@
     <!-- Google Sheets API -->
     <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad"></script>
     <script>
-        // Google OAuth 설정
+        // Google API 로딩 완료 후 초기화
         window.gapiOnLoad = function() {
-            gapi.load('auth2', function() {
-                gapi.auth2.init({
-                    client_id: '38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.com'
-                });
-            });
+            console.log('Google API 로딩 완료');
+            // Google API가 로드되었음을 알림
+            window.googleApiLoaded = true;
         };
     </script>
     <script src="static/js/google-sheets-api.js"></script>
