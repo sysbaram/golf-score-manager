@@ -1,3 +1,44 @@
+{% comment %} # overview
+[필드 스코어 세부 기록을 위한 웹 애플리케이션으로]
+[Google Sheets와 연동하여 스코어를 관리합니다.]
+
+# core features
+- google sheet 연동하여 사용자 정보와 세부 스코어 저장/관리
+- github pages 호스팅
+- github action 통해 배포
+- 모바일 및 데스크톱 반응형 디자인
+
+# technical architecture
+- backend: python, flask
+- frontend: html, css, javascript
+- api: google sheets api
+- authentication: oauth 2.0
+- styling: font awesome, responsive css
+- database: google sheets
+- hosting: github pages
+- deployment: github action
+- error tracking: google cloud error reporting
+- security: google cloud security
+
+
+
+    
+# user experience
+개인별 로그인 기능
+- 코스별 스코어 입력 기능
+- 홀별 상세 스코어 입력 기능
+- 홀별 Par3, Par4, Par5 선택 기능
+- Driver, Wood/Util, Iron, Putter 4가지 항목 선택 기능
+- Iron 다중 선택 기능
+- 홀별 상세 스코어 자동 계산 기능
+- 모바일 및 데스크톱 반응형 디자인 기능
+- 세부 스코어는 Google Sheets 연동을 통해 저장/관리합니다.
+- 시트 분리 기능(Score 시트, Member 시트)
+- 시트별 헤더 관리 기능
+- 데이터 구조 기능 {% endcomment %}
+
+
+
 # Smart Score PRD (Product Requirements Document)
 
 ## 1. 개요
@@ -20,7 +61,7 @@
 
 ### 2.3 데이터 분석
 - **개인 통계**: 평균 스코어, 핸디캡 계산
-- **라운드 기록**: 날짜별, 코스별 스코어 히스토리
+- **라운드 기록**: 날짜별, 코스별 스코어 히스토리, 핸디캡 계산, regular-on, 2put 체크
 - **성과 추적**: 스코어 개선 트렌드 분석
 
 ## 3. 기술 스택
@@ -47,8 +88,8 @@
 
 ### 3.5 배포 및 호스팅
 - **로컬 개발**: Flask 개발 서버
-- **Render**: 프로덕션 배포 (PaaS)
-- **GitHub Pages**: 정적 호스팅 (비활성화)
+{% comment %} - **Render**: 프로덕션 배포 (PaaS) {% endcomment %}
+- **GitHub Pages**: 정적 호스팅
 - **Git**: 버전 관리 및 배포
 
 ## 4. 사용자 스토리
@@ -186,15 +227,16 @@
 - **데이터베이스**: Google Sheets API
 
 ### 10.2 프로덕션 환경
-- **Render**: PaaS 배포
-- **Gunicorn**: WSGI 서버
-- **환경변수**: Render 환경변수 설정
-- **도메인**: https://golf-score-manager.onrender.com
+{% comment %} - **Render**: PaaS 배포 {% endcomment %}
+{% comment %} - **Gunicorn**: WSGI 서버 {% endcomment %}
+{% comment %} - **환경변수**: Render 환경변수 설정{% endcomment %}
+- github pages 호스팅   
+- **도메인**: https://sysbaram.github.io/golf-score-manager/
 
 ### 10.3 모니터링
-- **로그 수집**: Flask 로그 시스템
+{% comment %} - **로그 수집**: Flask 로그 시스템
 - **오류 추적**: 예외 처리 및 로깅
-- **성능 모니터링**: 응답 시간 추적
+- **성능 모니터링**: 응답 시간 추적 {% endcomment %}
 
 ## 11. 향후 확장 계획
 ### 11.1 단기 계획 (3개월)

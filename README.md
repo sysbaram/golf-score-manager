@@ -23,6 +23,19 @@ Google Sheets와 연동하는 스마트 골프 스코어 관리 웹 애플리케
 - **헤더 관리**: 각 시트의 첫 번째 행에 상세 항목 헤더 자동 생성
 - **데이터 구조**: 18홀 × 6개 항목 (Par, Driver, Wood/Util, Iron, Putter, Total)
 
+## 🌐 GitHub Pages 데모
+
+**현대적인 디자인으로 완전히 새로워진 웹 애플리케이션을 바로 체험해보세요!**
+
+🔗 **라이브 데모**: [https://sysbaram.github.io/golf-score-manager/](https://sysbaram.github.io/golf-score-manager/)
+
+### ✨ 새로운 디자인 특징
+- **현대적 UI/UX**: 글래스모피즘과 그라데이션 효과
+- **반응형 디자인**: 모바일, 태블릿, 데스크톱 완벽 지원
+- **PWA 지원**: 앱처럼 설치 가능한 웹 애플리케이션
+- **부드러운 애니메이션**: CSS 트랜지션과 호버 효과
+- **개선된 타이포그래피**: Inter 폰트로 가독성 향상
+
 ## 🚀 설치 및 실행
 
 ### 1. 저장소 클론

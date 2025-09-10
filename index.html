@@ -4,28 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>골프 스코어 관리 시스템</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Google Sheets와 연동하는 현대적인 골프 스코어 관리 시스템. 상세한 홀별 기록과 통계 분석을 제공합니다.">
+    <meta name="keywords" content="골프, 스코어, 관리, 통계, Google Sheets, 라운드">
+    <meta name="author" content="Golf Score Manager">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sysbaram.github.io/golf-score-manager/">
+    <meta property="og:title" content="골프 스코어 관리 시스템">
+    <meta property="og:description" content="Google Sheets와 연동하는 현대적인 골프 스코어 관리 시스템">
+    <meta property="og:image" content="https://sysbaram.github.io/golf-score-manager/assets/preview.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://sysbaram.github.io/golf-score-manager/">
+    <meta property="twitter:title" content="골프 스코어 관리 시스템">
+    <meta property="twitter:description" content="Google Sheets와 연동하는 현대적인 골프 스코어 관리 시스템">
+    <meta property="twitter:image" content="https://sysbaram.github.io/golf-score-manager/assets/preview.png">
+    
+    <title>골프 스코어 관리 시스템 | 현대적인 스코어 추적</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- PWA 관련 -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    
+    <!-- 성능 최적화 -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
 </head>
 <body>
     <div class="container">
         <!-- 헤더 -->
         <header class="header">
             <div class="header-content">
-                <h1><i class="fas fa-golf-ball-tee"></i> 골프 스코어 관리</h1>
-                <p>Google Sheets와 연동하는 스마트 스코어 관리 시스템</p>
+                <h1>
+                    <i class="fas fa-golf-ball-tee"></i> 
+                    골프 스코어 관리
+                </h1>
+                <p>Google Sheets와 연동하는 현대적인 스마트 스코어 관리 시스템</p>
+                <div class="header-features">
+                    <span class="feature-badge">
+                        <i class="fas fa-chart-line"></i> 상세 통계
+                    </span>
+                    <span class="feature-badge">
+                        <i class="fas fa-mobile-alt"></i> 모바일 최적화
+                    </span>
+                    <span class="feature-badge">
+                        <i class="fas fa-cloud"></i> 클라우드 동기화
+                    </span>
+                </div>
             </div>
             <div class="user-section">
                 <div id="user-info" class="user-info" style="display: none;">
-                    <span id="welcome-message">안녕하세요, <strong id="username-display"></strong>님!</span>
-                    <button id="logout-btn" class="btn btn-outline">로그아웃</button>
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="welcome-message">안녕하세요, <strong id="username-display"></strong>님!</span>
+                        <small class="user-status">온라인</small>
+                    </div>
+                    <button id="logout-btn" class="btn btn-outline">
+                        <i class="fas fa-sign-out-alt"></i> 로그아웃
+                    </button>
                 </div>
                 <div id="login-section" class="login-section">
-                    <button id="login-btn" class="btn btn-primary">로그인</button>
-                    <button id="register-btn" class="btn btn-secondary">회원가입</button>
+                    <button id="login-btn" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> 로그인
+                    </button>
+                    <button id="register-btn" class="btn btn-outline">
+                        <i class="fas fa-user-plus"></i> 회원가입
+                    </button>
                 </div>
             </div>
         </header>
@@ -202,6 +257,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="static/js/app.js"></script>
 </body>
 </html>
