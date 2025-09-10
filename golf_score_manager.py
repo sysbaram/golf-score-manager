@@ -18,7 +18,7 @@ from googleapiclient.errors import HttpError
 # Google Sheets API 설정
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID')
-SCORE_RANGE_NAME = 'Score!A1:Z1000'  # 스코어 데이터를 저장할 시트 범위
+SCORE_RANGE_NAME = 'Score!A1:DI1000'  # 스코어 데이터를 저장할 시트 범위 (113개 컬럼)
 
 class GolfScoreManager:
     """골프 스코어 관리 클래스"""
@@ -186,7 +186,7 @@ class GolfScoreManager:
             # Score 시트의 첫 번째 행 읽기
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Score!A1:Z1'
+                range='Score!A1:DI1'
             ).execute()
             
             values = result.get('values', [])
