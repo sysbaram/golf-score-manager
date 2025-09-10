@@ -50,6 +50,23 @@ python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 ```
 
+### 3. 로컬 서버 실행 (간편 방법)
+```bash
+# 실행 스크립트 사용 (권장)
+./run_local.sh
+
+# 또는 수동 실행
+source venv/bin/activate
+export GOOGLE_SPREADSHEET_ID=demo_score_sheet_id
+export GOOGLE_USERS_SHEET_ID=demo_member_sheet_id
+export GOOGLE_CLIENT_ID=demo_client_id
+export GOOGLE_CLIENT_SECRET=demo_client_secret
+export FLASK_SECRET_KEY=demo_secret_key_12345
+python app.py
+```
+
+**로컬 서버 주소**: http://localhost:8080
+
 ### 3. 의존성 설치
 ```bash
 pip install -r requirements.txt
