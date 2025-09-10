@@ -7,12 +7,13 @@ echo "🚀 골프 스코어 관리 시스템 로컬 서버 시작..."
 # 가상환경 활성화
 source venv/bin/activate
 
-# 환경변수 설정 (데모 모드)
-export GOOGLE_SPREADSHEET_ID=demo_score_sheet_id
-export GOOGLE_USERS_SHEET_ID=demo_member_sheet_id
-export GOOGLE_CLIENT_ID=demo_client_id
-export GOOGLE_CLIENT_SECRET=demo_client_secret
-export FLASK_SECRET_KEY=demo_secret_key_12345
+# 환경변수 설정
+# 실제 Google Sheets ID를 입력하세요 (GOOGLE_SHEETS_SETUP.md 참조)
+export GOOGLE_SPREADSHEET_ID=${GOOGLE_SPREADSHEET_ID:-demo_score_sheet_id}
+export GOOGLE_USERS_SHEET_ID=${GOOGLE_USERS_SHEET_ID:-demo_member_sheet_id}
+export GOOGLE_CLIENT_ID=38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.com
+export GOOGLE_CLIENT_SECRET=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
+export FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-demo_secret_key_12345}
 
 echo "✅ 환경변수 설정 완료"
 echo "🌐 서버 시작: http://localhost:8080"

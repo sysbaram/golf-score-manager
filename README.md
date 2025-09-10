@@ -50,22 +50,33 @@ python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 ```
 
-### 3. 로컬 서버 실행 (간편 방법)
+### 3. Google Sheets 연동 설정
+```bash
+# 자동 설정 스크립트 사용 (권장)
+./setup_google_sheets.sh
+
+# 또는 수동 설정
+# 1. Google Sheets 생성 및 ID 확인
+# 2. 환경변수 설정
+export GOOGLE_SPREADSHEET_ID=your_actual_sheet_id
+export GOOGLE_USERS_SHEET_ID=your_actual_sheet_id
+```
+
+### 4. 로컬 서버 실행
 ```bash
 # 실행 스크립트 사용 (권장)
 ./run_local.sh
 
 # 또는 수동 실행
 source venv/bin/activate
-export GOOGLE_SPREADSHEET_ID=demo_score_sheet_id
-export GOOGLE_USERS_SHEET_ID=demo_member_sheet_id
-export GOOGLE_CLIENT_ID=demo_client_id
-export GOOGLE_CLIENT_SECRET=demo_client_secret
-export FLASK_SECRET_KEY=demo_secret_key_12345
+source .env  # 환경변수 로드
 python app.py
 ```
 
 **로컬 서버 주소**: http://localhost:8080
+
+### 📋 Google Sheets 연동 상세 가이드
+자세한 설정 방법은 [GOOGLE_SHEETS_SETUP.md](GOOGLE_SHEETS_SETUP.md)를 참조하세요.
 
 ### 3. 의존성 설치
 ```bash
