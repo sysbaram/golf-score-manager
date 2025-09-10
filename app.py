@@ -110,7 +110,7 @@ def login():
                 return jsonify({'error': 'UserManager 초기화 실패'}), 500
         
         data = request.get_json()
-        username_or_email = data.get('username', '').strip()
+        username_or_email = data.get('username_or_email', '').strip()
         password = data.get('password', '').strip()
         
         if not username_or_email or not password:
@@ -159,6 +159,24 @@ def get_current_user():
         })
     except Exception as e:
         return jsonify({'error': f'사용자 정보 조회 중 오류가 발생했습니다: {str(e)}'}), 500
+
+@app.route('/api/auth/status', methods=['GET'])
+def check_auth_status():
+    """인증 상태 확인"""
+    try:
+        if 'user_id' in session:
+            return jsonify({
+                'authenticated': True,
+                'user': {
+                    'user_id': session['user_id'],
+                    'username': session['username'],
+                    'email': session['email']
+                }
+            })
+        else:
+            return jsonify({'authenticated': False})
+    except Exception as e:
+        return jsonify({'error': f'인증 상태 확인 중 오류가 발생했습니다: {str(e)}'}), 500
 
 @app.route('/api/auth/check', methods=['GET'])
 def check_auth():
