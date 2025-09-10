@@ -473,14 +473,14 @@ class GolfScoreApp {
 
             const data = await response.json();
 
-            if (response.ok) {
+            if (response.ok && data.success) {
                 this.currentUser = data.user;
                 this.updateUIForLoggedInUser();
                 this.hideModal(document.getElementById('login-modal'));
                 this.showNotification('로그인 성공!', 'success');
                 this.switchToScoreInputTab();
             } else {
-                this.showNotification(data.error || '로그인에 실패했습니다.', 'error');
+                this.showNotification(data.message || data.error || '로그인에 실패했습니다.', 'error');
             }
         } catch (error) {
             console.error('로그인 오류:', error);
@@ -525,13 +525,13 @@ class GolfScoreApp {
 
             const data = await response.json();
 
-            if (response.ok) {
+            if (response.ok && data.success) {
                 this.currentUser = data.user;
                 this.updateUIForLoggedInUser();
                 this.hideModal(document.getElementById('register-modal'));
                 this.showNotification('회원가입 성공!', 'success');
             } else {
-                this.showNotification(data.error || '회원가입에 실패했습니다.', 'error');
+                this.showNotification(data.message || data.error || '회원가입에 실패했습니다.', 'error');
             }
         } catch (error) {
             console.error('회원가입 오류:', error);
