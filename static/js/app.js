@@ -258,22 +258,9 @@ class GolfScoreApp {
     // ===== 인증 관련 메서드 =====
     
     async checkAuthStatus() {
-        try {
-            const response = await fetch('/api/auth/check', {
-                credentials: 'include'
-            });
-            const result = await response.json();
-            
-            if (result.authenticated) {
-                this.currentUser = result.user;
-                this.updateUIForLoggedInUser();
-            } else {
-                this.updateUIForLoggedOutUser();
-            }
-        } catch (error) {
-            console.error('인증 상태 확인 오류:', error);
-            this.updateUIForLoggedOutUser();
-        }
+        // 데모 모드: API 호출 없이 로그아웃 상태로 시작
+        console.log('데모 모드: 인증 상태 확인 건너뛰기');
+        this.updateUIForLoggedOutUser();
     }
 
     updateUIForLoggedInUser() {
@@ -500,23 +487,10 @@ class GolfScoreApp {
     }
 
     async logout() {
-        try {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                this.currentUser = null;
-                this.updateUIForLoggedOutUser();
-                this.showNotification('로그아웃되었습니다.', 'success');
-            } else {
-                this.showNotification('로그아웃 중 오류가 발생했습니다.', 'error');
-            }
-        } catch (error) {
-            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
-            console.error('Error:', error);
-        }
+        // 데모 모드: 가상 로그아웃 처리
+        this.currentUser = null;
+        this.updateUIForLoggedOutUser();
+        this.showNotification('데모 모드: 가상 로그아웃 완료!', 'success');
     }
 
     // ===== 기존 메서드들 =====
@@ -565,35 +539,15 @@ class GolfScoreApp {
             });
         }
 
-        this.showLoading(true);
-
-        try {
-            const response = await fetch('/api/rounds', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    course_name: courseName,
-                    detailed_scores: detailedScores
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                this.showNotification('라운드가 성공적으로 저장되었습니다!', 'success');
-                this.clearScores();
-                this.loadRounds(); // 라운드 기록 새로고침
-            } else {
-                this.showNotification(result.error || '저장 중 오류가 발생했습니다.', 'error');
-            }
-        } catch (error) {
-            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
-            console.error('Error:', error);
-        } finally {
-            this.showLoading(false);
-        }
+        // 데모 모드: 가상 저장 처리
+        this.showNotification('🚧 데모 모드: 스코어가 가상으로 저장되었습니다! (실제 저장되지 않음)', 'warning');
+        
+        // 가상 저장 시뮬레이션
+        setTimeout(() => {
+            this.showNotification('데모 모드: 스코어 입력 완료! 실제 저장은 로컬 서버에서 가능합니다.', 'success');
+            this.clearScores();
+            this.loadRounds(); // 라운드 기록 새로고침
+        }, 1500);
     }
 
     clearScores() {
@@ -623,24 +577,26 @@ class GolfScoreApp {
             return;
         }
 
-        this.showLoading(true);
-
-        try {
-            const response = await fetch('/api/rounds');
-            const result = await response.json();
-
-            if (response.ok) {
-                this.rounds = result.rounds;
-                this.displayRounds();
-            } else {
-                this.showNotification(result.error || '라운드 기록을 불러올 수 없습니다.', 'error');
+        // 데모 모드: 가상 라운드 데이터 표시
+        this.rounds = [
+            {
+                date: '2024-01-15',
+                player_name: this.currentUser.username,
+                course_name: '데모 골프장',
+                total_score: 85,
+                handicap: 12,
+                scores: [4,5,3,4,5,4,3,4,5,4,5,3,4,5,4,3,4,5]
+            },
+            {
+                date: '2024-01-10',
+                player_name: this.currentUser.username,
+                course_name: '샘플 코스',
+                total_score: 92,
+                handicap: 15,
+                scores: [5,6,4,5,6,5,4,5,6,5,6,4,5,6,5,4,5,6]
             }
-        } catch (error) {
-            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
-            console.error('Error:', error);
-        } finally {
-            this.showLoading(false);
-        }
+        ];
+        this.displayRounds();
     }
 
     displayRounds() {
@@ -691,23 +647,16 @@ class GolfScoreApp {
             return;
         }
 
-        this.showLoading(true);
-
-        try {
-            const response = await fetch('/api/statistics');
-            const result = await response.json();
-
-            if (response.ok) {
-                this.displayStatistics(result);
-            } else {
-                this.showNotification(result.error || '통계를 불러올 수 없습니다.', 'error');
-            }
-        } catch (error) {
-            this.showNotification('네트워크 오류가 발생했습니다.', 'error');
-            console.error('Error:', error);
-        } finally {
-            this.showLoading(false);
-        }
+        // 데모 모드: 가상 통계 데이터 표시
+        const demoStats = {
+            total_rounds: 5,
+            average_score: 88,
+            best_score: 82,
+            worst_score: 95,
+            recent_5_rounds_avg: 86
+        };
+        
+        this.displayStatistics(demoStats);
     }
 
     displayStatistics(stats) {
