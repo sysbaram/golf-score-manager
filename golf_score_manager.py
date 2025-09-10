@@ -155,16 +155,9 @@ class GolfScoreManager:
                 round_data['handicap']
             ]
             
-            # 홀별 상세 스코어 추가
-            for detailed_score in round_data['detailed_scores']:
-                values.extend([
-                    detailed_score['par'],
-                    detailed_score['driver'],
-                    detailed_score['wood_util'],
-                    detailed_score['iron'],
-                    detailed_score['putter'],
-                    detailed_score['total']
-                ])
+            # 홀별 총점 추가 (간단한 구조)
+            for score in round_data['scores']:
+                values.append(score)
             
             # 데이터 추가
             body = {'values': [values]}
@@ -196,26 +189,13 @@ class GolfScoreManager:
                 headers = [
                     '날짜', '플레이어', '코스', '총 스코어', '핸디캡'
                 ]
-                # 홀별 상세 스코어 헤더 추가
+                # 홀별 스코어 헤더 추가 (간단한 구조)
                 for i in range(18):
                     hole_num = i + 1
-                    headers.extend([
-                        f'홀{hole_num}_Par', f'홀{hole_num}_Driver', f'홀{hole_num}_Wood/Util', 
-                        f'홀{hole_num}_Iron', f'홀{hole_num}_Putter', f'홀{hole_num}_Total'
-                    ])
+                    headers.append(f'홀{hole_num}')
                 
-                # 헤더 행의 범위를 정확히 계산 (총 113개 컬럼: 5 + 18*6)
-                # Excel 컬럼 번호를 문자로 변환하는 함수
-                def num_to_col_letters(num):
-                    result = ""
-                    while num > 0:
-                        num -= 1
-                        result = chr(65 + (num % 26)) + result
-                        num //= 26
-                    return result
-                
-                end_column = num_to_col_letters(len(headers))
-                range_name = f'Score!A1:{end_column}1'
+                # 헤더 행의 범위를 정확히 계산 (총 23개 컬럼: 5 + 18)
+                range_name = 'Score!A1:W1'  # 23개 컬럼 (A=1, W=23)
                 
                 body = {'values': [headers]}
                 self.service.spreadsheets().values().update(
