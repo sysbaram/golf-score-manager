@@ -228,6 +228,10 @@
                         <button type="button" class="btn btn-secondary modal-close">취소</button>
                         <button type="submit" class="btn btn-primary">로그인</button>
                     </div>
+                    <div class="divider">또는</div>
+                    <button type="button" id="google-login-btn" class="btn btn-google">
+                        <i class="fab fa-google"></i> Google로 로그인
+                    </button>
                 </form>
             </div>
         </div>
@@ -266,6 +270,19 @@
         </div>
     </div>
 
-    <script src="static/js/app.js"></script>
+    <!-- Google Sheets API -->
+    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad"></script>
+    <script>
+        // Google OAuth 설정
+        window.gapiOnLoad = function() {
+            gapi.load('auth2', function() {
+                gapi.auth2.init({
+                    client_id: '38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.com'
+                });
+            });
+        };
+    </script>
+    <script src="static/js/google-sheets-api.js"></script>
+    <script src="static/js/app-github-pages.js"></script>
 </body>
 </html>
