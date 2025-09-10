@@ -11,8 +11,15 @@ class GolfScoreApp {
 
     async init() {
         try {
+            console.log('🚀 앱 초기화 시작...');
+            
             // Google Sheets API 초기화
             this.googleSheetsAPI = window.googleSheetsAPI;
+            if (!this.googleSheetsAPI) {
+                throw new Error('GoogleSheetsAPI 클래스가 로드되지 않았습니다.');
+            }
+            
+            console.log('📡 Google Sheets API 초기화 중...');
             await this.googleSheetsAPI.init();
             
             this.setupEventListeners();
@@ -24,7 +31,18 @@ class GolfScoreApp {
             console.log('✅ Google Sheets API 초기화 완료');
         } catch (error) {
             console.error('❌ 초기화 실패:', error);
-            this.showNotification('Google Sheets API 초기화에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
+            console.error('에러 상세:', error.stack);
+            
+            let errorMessage = 'Google Sheets API 초기화에 실패했습니다.';
+            if (error.message.includes('iframe')) {
+                errorMessage = '브라우저 보안 설정으로 인해 Google API를 로드할 수 없습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
+            } else if (error.message.includes('network')) {
+                errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = 'Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
+            }
+            
+            this.showNotification(errorMessage, 'error');
             
             // 재시도 버튼 추가
             this.addRetryButton();
@@ -564,5 +582,16 @@ class GolfScoreApp {
 
 // 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM 로드 완료, 앱 초기화 시작...');
     window.golfApp = new GolfScoreApp();
+});
+
+// Google API 로딩 완료 후 재초기화 시도
+window.addEventListener('load', () => {
+    if (window.googleApiLoaded && window.golfApp) {
+        console.log('Google API 로딩 완료 후 앱 재초기화...');
+        setTimeout(() => {
+            window.golfApp.init();
+        }, 500);
+    }
 });

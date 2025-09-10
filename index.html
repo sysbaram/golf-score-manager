@@ -7,6 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#667eea">
+    
+    <!-- iframe 오류 방지 -->
+    <meta http-equiv="Content-Security-Policy" content="frame-src 'self' https://accounts.google.com https://apis.google.com;">
     <meta name="description" content="Google Sheets와 연동하는 현대적인 골프 스코어 관리 시스템. 상세한 홀별 기록과 통계 분석을 제공합니다.">
     <meta name="keywords" content="골프, 스코어, 관리, 통계, Google Sheets, 라운드">
     <meta name="author" content="Golf Score Manager">
@@ -277,6 +280,14 @@
             console.log('Google API 로딩 완료');
             // Google API가 로드되었음을 알림
             window.googleApiLoaded = true;
+            
+            // 약간의 지연 후 앱 초기화
+            setTimeout(() => {
+                if (window.golfApp) {
+                    console.log('앱 재초기화 시도...');
+                    window.golfApp.init();
+                }
+            }, 1000);
         };
     </script>
     <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad"></script>

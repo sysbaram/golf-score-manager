@@ -45,18 +45,41 @@ class GoogleSheetsAPI {
 
     async loadClient() {
         return new Promise((resolve, reject) => {
+            console.log('Google API 클라이언트 로딩 중...');
+            
             this.gapi.load('client:auth2', async () => {
                 try {
-                    await this.gapi.client.init({
+                    console.log('Google API 클라이언트 초기화 중...');
+                    
+                    // iframe 오류 방지를 위한 설정
+                    const initConfig = {
                         clientId: this.clientId,
                         discoveryDocs: this.discoveryDocs,
-                        scope: this.scope
-                    });
+                        scope: this.scope,
+                        ux_mode: 'popup', // iframe 대신 popup 사용
+                        redirect_uri: window.location.origin
+                    };
+                    
+                    await this.gapi.client.init(initConfig);
                     console.log('✅ Google API 초기화 성공');
                     resolve();
                 } catch (error) {
                     console.error('❌ Google API 초기화 실패:', error);
-                    reject(new Error(`Google API 초기화 실패: ${error.message}`));
+                    
+                    // 재시도 로직
+                    try {
+                        console.log('Google API 재시도 중...');
+                        await this.gapi.client.init({
+                            clientId: this.clientId,
+                            discoveryDocs: this.discoveryDocs,
+                            scope: this.scope
+                        });
+                        console.log('✅ Google API 재시도 성공');
+                        resolve();
+                    } catch (retryError) {
+                        console.error('❌ Google API 재시도 실패:', retryError);
+                        reject(new Error(`Google API 초기화 실패: ${retryError.message}`));
+                    }
                 }
             });
         });
