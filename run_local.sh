@@ -19,7 +19,7 @@ echo "✅ 환경변수 설정 완료"
 echo "🌐 서버 시작: http://localhost:8080"
 echo "📱 GitHub Pages 데모: https://sysbaram.github.io/golf-score-manager/"
 echo ""
-echo "⚠️  데모 모드로 실행됩니다. 실제 Google Sheets 연동을 위해서는 유효한 API 키가 필요합니다."
+echo "✅ Google Sheets API 연동 활성화"
 echo "🛑 서버를 중지하려면 Ctrl+C를 누르세요."
 echo ""
 
