@@ -250,13 +250,16 @@ class GoogleSheetsAPI {
             });
 
             const users = response.result.values || [];
-            return users.map(row => ({
-                username: row[0],
-                email: row[1],
-                password: row[2],
-                google_id: row[3],
-                google_name: row[4],
-                created_at: row[5]
+            // 헤더 행 제거 (첫 번째 행이 헤더인 경우)
+            const dataRows = users.length > 1 ? users.slice(1) : users;
+            
+            return dataRows.map(row => ({
+                username: row[0] || '',
+                email: row[1] || '',
+                password: row[2] || '',
+                google_id: row[3] || '',
+                google_name: row[4] || '',
+                created_at: row[5] || ''
             }));
         } catch (error) {
             console.error('사용자 목록 조회 실패:', error);
@@ -300,8 +303,8 @@ class GoogleSheetsAPI {
         }
     }
 
-    // 스코어 저장
-    async saveScore(courseName, detailedScores) {
+    // 스코어 저장 (간단한 방식)
+    async saveScore(scoreData) {
         try {
             const user = this.getCurrentUser();
             if (!user) {
@@ -309,39 +312,30 @@ class GoogleSheetsAPI {
             }
 
             const today = new Date().toISOString().split('T')[0];
-            const totalScore = detailedScores.reduce((sum, score) => sum + score.total, 0);
+            const username = user.name || 'Unknown User';
+            const email = user.email || 'unknown@example.com';
             
-            // 스코어 데이터 준비
-            const scoreData = [
-                today,
-                user.name,
-                courseName,
-                totalScore,
-                0 // 핸디캡
+            // 간단한 스코어 데이터 구성
+            const scoreRow = [
+                today,                                    // A: 날짜
+                username,                                 // B: 사용자명
+                email,                                    // C: 이메일
+                scoreData.course || '',                   // D: 골프장명
+                scoreData.total_score || 0,               // E: 총 스코어
+                ...(scoreData.detailed_scores || Array(18).fill(0)) // F-W: 18홀 스코어
             ];
-
-            // 상세 스코어 추가
-            detailedScores.forEach(score => {
-                scoreData.push(
-                    score.par,
-                    score.driver,
-                    score.wood_util,
-                    score.iron,
-                    score.putter,
-                    score.total
-                );
-            });
 
             // Score 시트에 데이터 추가
             const response = await this.gapi.client.sheets.spreadsheets.values.append({
                 spreadsheetId: this.spreadsheetId,
-                range: 'Score!A:DI',
+                range: 'Score!A:W',
                 valueInputOption: 'USER_ENTERED',
                 resource: {
-                    values: [scoreData]
+                    values: [scoreRow]
                 }
             });
 
+            console.log('✅ 스코어 저장 성공:', response.result);
             return { success: true, message: '스코어가 성공적으로 저장되었습니다.' };
         } catch (error) {
             console.error('스코어 저장 실패:', error);
@@ -349,7 +343,7 @@ class GoogleSheetsAPI {
         }
     }
 
-    // 스코어 조회
+    // 스코어 조회 (간단한 방식)
     async getScores() {
         try {
             const user = this.getCurrentUser();
@@ -359,45 +353,32 @@ class GoogleSheetsAPI {
 
             const response = await this.gapi.client.sheets.spreadsheets.values.get({
                 spreadsheetId: this.spreadsheetId,
-                range: 'Score!A:DI'
+                range: 'Score!A:W'
             });
 
             const rows = response.result.values || [];
             if (rows.length <= 1) return []; // 헤더만 있는 경우
 
             const scores = [];
-            const headers = rows[0];
-            const dataRows = rows.slice(1);
+            const dataRows = rows.slice(1); // 헤더 제거
 
-            dataRows.forEach(row => {
+            dataRows.forEach((row, index) => {
                 if (row.length >= 5) {
-                    const detailedScores = [];
-                    for (let i = 0; i < 18; i++) {
-                        const startIdx = 5 + (i * 6);
-                        if (startIdx + 5 < row.length) {
-                            detailedScores.push({
-                                par: parseInt(row[startIdx]) || 4,
-                                driver: parseInt(row[startIdx + 1]) || 0,
-                                wood_util: parseInt(row[startIdx + 2]) || 0,
-                                iron: parseInt(row[startIdx + 3]) || 0,
-                                putter: parseInt(row[startIdx + 4]) || 0,
-                                total: parseInt(row[startIdx + 5]) || 0
-                            });
-                        }
-                    }
-
+                    const detailedScores = row.slice(5, 23) || []; // F-W 컬럼 (18홀 스코어)
+                    
                     scores.push({
-                        date: row[0],
-                        player_name: row[1],
-                        course_name: row[2],
-                        total_score: parseInt(row[3]) || 0,
-                        handicap: parseInt(row[4]) || 0,
-                        scores: detailedScores.map(s => s.total),
-                        detailed_scores: detailedScores
+                        id: `score_${index + 1}`,
+                        date: row[0] || '',
+                        player_name: row[1] || '',
+                        email: row[2] || '',
+                        course_name: row[3] || '',
+                        total_score: parseInt(row[4]) || 0,
+                        detailed_scores: detailedScores.map(score => parseInt(score) || 0)
                     });
                 }
             });
 
+            console.log('✅ 스코어 조회 성공:', scores.length, '개');
             return scores;
         } catch (error) {
             console.error('스코어 조회 실패:', error);

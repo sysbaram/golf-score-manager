@@ -594,7 +594,17 @@ class GolfScoreApp {
                 });
             }
 
-            const result = await this.googleSheetsAPI.saveScore(courseName, detailedScores);
+            // 총 스코어 계산
+            const totalScore = detailedScores.reduce((sum, score) => sum + score.total, 0);
+            
+            // Google Sheets API 형식에 맞게 데이터 구성
+            const scoreData = {
+                course: courseName,
+                total_score: totalScore,
+                detailed_scores: detailedScores.map(score => score.total)
+            };
+
+            const result = await this.googleSheetsAPI.saveScore(scoreData);
             
             if (result.success) {
                 this.showNotification(result.message, 'success');
@@ -652,17 +662,17 @@ class GolfScoreApp {
         container.innerHTML = this.rounds.map(round => `
             <div class="round-item">
                 <div class="round-header">
-                    <h3>${round.course_name}</h3>
-                    <span class="round-date">${round.date}</span>
+                    <h3>${round.course_name || 'Unknown Course'}</h3>
+                    <span class="round-date">${round.date || 'Unknown Date'}</span>
                 </div>
                 <div class="round-score">
-                    <span class="total-score">${round.total_score}타</span>
-                    <span class="handicap">핸디캡: ${round.handicap}</span>
+                    <span class="total-score">${round.total_score || 0}타</span>
+                    <span class="handicap">핸디캡: ${round.handicap || 0}</span>
                 </div>
                 <div class="round-details">
                     <div class="hole-scores">
-                        ${round.scores.map((score, index) => `
-                            <span class="hole-score ${score < round.scores[Math.min(...round.scores.map((s, i) => s < 0 ? 999 : s))] ? 'birdie' : score > round.scores[Math.max(...round.scores.map((s, i) => s > 0 ? s : -999))] ? 'bogey' : ''}">
+                        ${(round.detailed_scores || []).map((score, index) => `
+                            <span class="hole-score">
                                 ${index + 1}홀: ${score}타
                             </span>
                         `).join('')}
