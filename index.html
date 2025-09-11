@@ -273,20 +273,28 @@
     <script>
         // Google API 로딩 완료 후 초기화
         window.gapiOnLoad = function() {
-            console.log('Google API 로딩 완료');
+            console.log('✅ Google API 로딩 완료');
             // Google API가 로드되었음을 알림
             window.googleApiLoaded = true;
             
             // 약간의 지연 후 앱 초기화
             setTimeout(() => {
                 if (window.golfApp) {
-                    console.log('앱 재초기화 시도...');
+                    console.log('🔄 앱 재초기화 시도...');
                     window.golfApp.init();
                 }
-            }, 1000);
+            }, 500);
+        };
+        
+        // Google API 로딩 실패 시 처리
+        window.gapiOnError = function(error) {
+            console.error('❌ Google API 로딩 실패:', error);
+            if (window.golfApp) {
+                window.golfApp.showNotification('Google API 로딩에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
+            }
         };
     </script>
-    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad"></script>
+    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError"></script>
     <script src="static/js/google-sheets-api.js"></script>
     <script src="static/js/app-github-pages.js"></script>
 </body>

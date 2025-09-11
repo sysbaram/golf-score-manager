@@ -55,12 +55,37 @@ class GolfScoreApp {
         retryBtn.className = 'btn btn-primary';
         retryBtn.style.marginTop = '1rem';
         retryBtn.onclick = () => {
-            location.reload();
+            this.retryInitialization();
         };
         
         const notification = document.getElementById('notification');
         if (notification) {
             notification.appendChild(retryBtn);
+        }
+    }
+
+    async retryInitialization() {
+        try {
+            console.log('🔄 API 초기화 재시도 중...');
+            this.showNotification('API 초기화를 재시도하고 있습니다...', 'info');
+            
+            // Google Sheets API 재초기화
+            if (this.googleSheetsAPI) {
+                await this.googleSheetsAPI.init();
+                this.setupEventListeners();
+                this.generateHoleInputs();
+                this.setupTabSwitching();
+                this.setupScoreFormEventListeners();
+                this.checkAuthStatus();
+                
+                this.showNotification('API 초기화가 성공적으로 완료되었습니다!', 'success');
+                console.log('✅ API 재초기화 성공');
+            } else {
+                throw new Error('GoogleSheetsAPI가 초기화되지 않았습니다.');
+            }
+        } catch (error) {
+            console.error('❌ API 재초기화 실패:', error);
+            this.showNotification('API 재초기화에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
         }
     }
 

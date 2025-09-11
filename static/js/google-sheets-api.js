@@ -13,29 +13,32 @@ class GoogleSheetsAPI {
 
     async init() {
         return new Promise((resolve, reject) => {
-            console.log('Google Sheets API 초기화 시작...');
+            console.log('🚀 Google Sheets API 초기화 시작...');
             
             // Google API가 이미 로드되었는지 확인
             if (window.gapi && window.gapi.load) {
-                console.log('Google API 이미 로드됨');
+                console.log('✅ Google API 이미 로드됨');
                 this.gapi = window.gapi;
                 this.loadClient().then(resolve).catch(reject);
             } else {
-                console.log('Google API 로딩 대기 중...');
-                // Google API 로딩 대기 (최대 15초)
+                console.log('⏳ Google API 로딩 대기 중...');
+                // Google API 로딩 대기 (최대 20초)
                 let attempts = 0;
-                const maxAttempts = 150;
+                const maxAttempts = 200;
                 const checkGapi = () => {
                     if (window.gapi && window.gapi.load) {
-                        console.log('Google API 로딩 완료');
+                        console.log('✅ Google API 로딩 완료');
                         this.gapi = window.gapi;
                         this.loadClient().then(resolve).catch(reject);
                     } else if (attempts < maxAttempts) {
                         attempts++;
+                        if (attempts % 50 === 0) {
+                            console.log(`⏳ Google API 로딩 대기 중... (${attempts}/${maxAttempts})`);
+                        }
                         setTimeout(checkGapi, 100);
                     } else {
-                        console.error('Google API 로딩 시간 초과');
-                        reject(new Error('Google API 로딩 시간 초과. 네트워크 연결을 확인해주세요.'));
+                        console.error('❌ Google API 로딩 시간 초과');
+                        reject(new Error('Google API 로딩 시간 초과. 네트워크 연결을 확인하고 페이지를 새로고침해주세요.'));
                     }
                 };
                 checkGapi();
@@ -45,11 +48,11 @@ class GoogleSheetsAPI {
 
     async loadClient() {
         return new Promise((resolve, reject) => {
-            console.log('Google API 클라이언트 로딩 중...');
+            console.log('📡 Google API 클라이언트 로딩 중...');
             
             this.gapi.load('client:auth2', async () => {
                 try {
-                    console.log('Google API 클라이언트 초기화 중...');
+                    console.log('🔧 Google API 클라이언트 초기화 중...');
                     
                     // iframe 오류 방지를 위한 설정
                     const initConfig = {
@@ -66,9 +69,9 @@ class GoogleSheetsAPI {
                 } catch (error) {
                     console.error('❌ Google API 초기화 실패:', error);
                     
-                    // 재시도 로직
+                    // 재시도 로직 (더 간단한 설정으로)
                     try {
-                        console.log('Google API 재시도 중...');
+                        console.log('🔄 Google API 재시도 중...');
                         await this.gapi.client.init({
                             clientId: this.clientId,
                             discoveryDocs: this.discoveryDocs,
@@ -78,7 +81,20 @@ class GoogleSheetsAPI {
                         resolve();
                     } catch (retryError) {
                         console.error('❌ Google API 재시도 실패:', retryError);
-                        reject(new Error(`Google API 초기화 실패: ${retryError.message}`));
+                        
+                        // 최종 재시도 (기본 설정만)
+                        try {
+                            console.log('🔄 Google API 최종 재시도 중...');
+                            await this.gapi.client.init({
+                                clientId: this.clientId,
+                                scope: this.scope
+                            });
+                            console.log('✅ Google API 최종 재시도 성공');
+                            resolve();
+                        } catch (finalError) {
+                            console.error('❌ Google API 최종 재시도 실패:', finalError);
+                            reject(new Error(`Google API 초기화 실패: ${finalError.message}. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.`));
+                        }
                     }
                 }
             });
