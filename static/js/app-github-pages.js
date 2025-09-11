@@ -12,52 +12,54 @@ class GolfScoreApp {
     async init() {
         try {
             console.log('🚀 앱 초기화 시작...');
-            
+
             // Google Sheets API 초기화
             this.googleSheetsAPI = window.googleSheetsAPI;
             if (!this.googleSheetsAPI) {
                 throw new Error('GoogleSheetsAPI 클래스가 로드되지 않았습니다.');
             }
-            
+
             console.log('📡 Google Sheets API 초기화 중...');
             await this.googleSheetsAPI.init();
-            
+
             this.setupEventListeners();
             this.generateHoleInputs();
             this.setupTabSwitching();
             this.setupScoreFormEventListeners();
             this.checkAuthStatus();
-            
+
             console.log('✅ Google Sheets API 초기화 완료');
         } catch (error) {
             console.error('❌ 초기화 실패:', error);
             console.error('에러 상세:', error.stack);
+
+            let errorMessage = 'Google Sheets API 초기화에 실패했습니다.';
             
-                let errorMessage = 'Google Sheets API 초기화에 실패했습니다.';
-                
-                // GitHub Pages 환경 감지
-                const isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
-                                      window.location.hostname.includes('github.io');
-                
-                if (isGitHubPages) {
-                    if (error.message.includes('iframe')) {
-                        errorMessage = 'GitHub Pages에서 iframe 보안 정책으로 인해 Google API를 로드할 수 없습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
-                    } else if (error.message.includes('network')) {
-                        errorMessage = 'GitHub Pages에서 네트워크 연결 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
-                    } else if (error.message.includes('timeout')) {
-                        errorMessage = 'GitHub Pages에서 Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
-                    } else {
-                        errorMessage = 'GitHub Pages에서 Google Sheets API 초기화에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
-                    }
+            // GitHub Pages 환경 감지
+            const isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
+                                  window.location.hostname.includes('github.io');
+            
+            if (isGitHubPages) {
+                if (error.message.includes('iframe')) {
+                    errorMessage = 'GitHub Pages에서 iframe 보안 정책으로 인해 Google API를 로드할 수 없습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
+                } else if (error.message.includes('network')) {
+                    errorMessage = 'GitHub Pages에서 네트워크 연결 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                } else if (error.message.includes('timeout')) {
+                    errorMessage = 'GitHub Pages에서 Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
+                } else if (error.message.includes('gapi')) {
+                    errorMessage = 'GitHub Pages에서 Google API를 로드할 수 없습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
                 } else {
-                    if (error.message.includes('iframe')) {
-                        errorMessage = '브라우저 보안 설정으로 인해 Google API를 로드할 수 없습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
-                    } else if (error.message.includes('network')) {
-                        errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
-                    } else if (error.message.includes('timeout')) {
-                        errorMessage = 'Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
-                    }
+                    errorMessage = 'GitHub Pages에서 Google Sheets API 초기화에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
                 }
+            } else {
+                if (error.message.includes('iframe')) {
+                    errorMessage = '브라우저 보안 설정으로 인해 Google API를 로드할 수 없습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
+                } else if (error.message.includes('network')) {
+                    errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
+                } else if (error.message.includes('timeout')) {
+                    errorMessage = 'Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
+                }
+            }
             
             this.showNotification(errorMessage, 'error');
             
@@ -67,17 +69,32 @@ class GolfScoreApp {
     }
 
     addRetryButton() {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.marginTop = '1rem';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.5rem';
+        buttonContainer.style.justifyContent = 'center';
+        
         const retryBtn = document.createElement('button');
         retryBtn.textContent = '재시도';
         retryBtn.className = 'btn btn-primary';
-        retryBtn.style.marginTop = '1rem';
         retryBtn.onclick = () => {
             this.retryInitialization();
         };
         
+        const fallbackBtn = document.createElement('button');
+        fallbackBtn.textContent = '데모 모드';
+        fallbackBtn.className = 'btn btn-secondary';
+        fallbackBtn.onclick = () => {
+            this.enableFallbackMode();
+        };
+        
+        buttonContainer.appendChild(retryBtn);
+        buttonContainer.appendChild(fallbackBtn);
+        
         const notification = document.getElementById('notification');
         if (notification) {
-            notification.appendChild(retryBtn);
+            notification.appendChild(buttonContainer);
         }
     }
 
@@ -102,8 +119,65 @@ class GolfScoreApp {
             }
         } catch (error) {
             console.error('❌ API 재초기화 실패:', error);
-            this.showNotification('API 재초기화에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
+            this.showNotification('API 재초기화에 실패했습니다. 데모 모드를 사용하거나 페이지를 새로고침해주세요.', 'error');
         }
+    }
+
+    enableFallbackMode() {
+        console.log('🔄 데모 모드 활성화...');
+        this.showNotification('데모 모드로 전환합니다. 데이터는 실제로 저장되지 않습니다.', 'info');
+        
+        // 데모 모드 플래그 설정
+        this.isDemoMode = true;
+        
+        // Google Sheets API 대신 데모 API 사용
+        this.googleSheetsAPI = {
+            init: () => Promise.resolve(),
+            signIn: () => Promise.resolve({ id: 'demo', name: '데모 사용자', email: 'demo@example.com' }),
+            signOut: () => Promise.resolve(),
+            getCurrentUser: () => ({ id: 'demo', name: '데모 사용자', email: 'demo@example.com' }),
+            registerUser: () => Promise.resolve({ success: true, user: { username: 'demo', email: 'demo@example.com' } }),
+            loginUser: () => Promise.resolve({ success: true, user: { username: 'demo', email: 'demo@example.com' } }),
+            saveScore: (scoreData) => {
+                console.log('📊 데모 모드: 스코어 저장 시뮬레이션', scoreData);
+                return Promise.resolve({ success: true });
+            },
+            loadRounds: () => {
+                console.log('📊 데모 모드: 라운드 목록 시뮬레이션');
+                return Promise.resolve([
+                    {
+                        id: 'demo-1',
+                        date: new Date().toISOString().split('T')[0],
+                        course: '데모 골프장',
+                        total_score: 72,
+                        detailed_scores: Array(18).fill(4)
+                    }
+                ]);
+            },
+            getPlayerStatistics: () => {
+                console.log('📊 데모 모드: 통계 시뮬레이션');
+                return Promise.resolve({
+                    total_rounds: 1,
+                    average_score: 72,
+                    best_score: 72,
+                    worst_score: 72
+                });
+            }
+        };
+        
+        // 앱 초기화
+        this.setupEventListeners();
+        this.generateHoleInputs();
+        this.setupTabSwitching();
+        this.setupScoreFormEventListeners();
+        this.checkAuthStatus();
+        
+        // 데모 사용자로 자동 로그인
+        this.currentUser = { username: 'demo', email: 'demo@example.com' };
+        this.updateUIForLoggedInUser();
+        
+        console.log('✅ 데모 모드 활성화 완료');
+        this.showNotification('데모 모드가 활성화되었습니다. 모든 기능을 체험해보세요!', 'success');
     }
 
     setupEventListeners() {

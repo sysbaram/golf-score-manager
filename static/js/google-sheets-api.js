@@ -64,16 +64,21 @@ class GoogleSheetsAPI {
                     const initConfig = {
                         clientId: this.clientId,
                         discoveryDocs: this.discoveryDocs,
-                        scope: this.scope,
-                        ux_mode: this.isGitHubPages ? 'redirect' : 'popup', // GitHub Pages에서는 redirect 사용
-                        redirect_uri: window.location.origin
+                        scope: this.scope
                     };
                     
                     if (this.isGitHubPages) {
                         console.log('🔧 GitHub Pages 전용 설정 적용');
-                        // GitHub Pages에서는 추가 보안 설정
+                        // GitHub Pages에서는 최소한의 설정만 사용
+                        initConfig.ux_mode = 'redirect';
+                        initConfig.redirect_uri = window.location.origin;
                         initConfig.prompt = 'select_account';
                         initConfig.fetch_basic_profile = true;
+                        initConfig.include_granted_scopes = true;
+                    } else {
+                        // 로컬 환경에서는 popup 사용
+                        initConfig.ux_mode = 'popup';
+                        initConfig.redirect_uri = window.location.origin;
                     }
                     
                     await this.gapi.client.init(initConfig);
@@ -123,7 +128,8 @@ class GoogleSheetsAPI {
                 console.log('🔧 GitHub Pages 로그인 설정 적용');
                 const options = {
                     prompt: 'select_account',
-                    ux_mode: 'redirect'
+                    ux_mode: 'redirect',
+                    redirect_uri: window.location.origin
                 };
                 const user = await authInstance.signIn(options);
                 this.isSignedIn = true;
@@ -135,6 +141,18 @@ class GoogleSheetsAPI {
             }
         } catch (error) {
             console.error('로그인 실패:', error);
+            
+            // GitHub Pages에서 특별한 에러 처리
+            if (this.isGitHubPages) {
+                if (error.error === 'popup_closed_by_user') {
+                    throw new Error('로그인이 취소되었습니다. 다시 시도해주세요.');
+                } else if (error.error === 'access_denied') {
+                    throw new Error('Google 계정 접근이 거부되었습니다. 권한을 허용해주세요.');
+                } else if (error.error === 'immediate_failed') {
+                    throw new Error('자동 로그인에 실패했습니다. 수동으로 로그인해주세요.');
+                }
+            }
+            
             throw error;
         }
     }

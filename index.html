@@ -269,7 +269,7 @@
         </div>
     </div>
 
-    <!-- Google Sheets API - GitHub Pages 최적화 -->
+    <!-- Google Sheets API - GitHub Pages 완전 최적화 -->
     <script>
         // GitHub Pages 환경 감지
         const isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
@@ -277,13 +277,17 @@
         
         console.log('🌐 환경 감지:', isGitHubPages ? 'GitHub Pages' : '로컬');
         
+        // Google API 로딩 상태 관리
+        let googleApiLoadAttempts = 0;
+        const maxLoadAttempts = 3;
+        
         // Google API 로딩 완료 후 초기화
         window.gapiOnLoad = function() {
             console.log('✅ Google API 로딩 완료');
             window.googleApiLoaded = true;
             
             // GitHub Pages에서는 더 긴 지연 시간 적용
-            const delay = isGitHubPages ? 2000 : 500;
+            const delay = isGitHubPages ? 3000 : 1000;
             setTimeout(() => {
                 if (window.golfApp) {
                     console.log('🔄 앱 재초기화 시도...');
@@ -295,34 +299,63 @@
         // Google API 로딩 실패 시 처리
         window.gapiOnError = function(error) {
             console.error('❌ Google API 로딩 실패:', error);
-            if (window.golfApp) {
-                const errorMsg = isGitHubPages ? 
-                    'GitHub Pages에서 Google API 로딩에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.' :
-                    'Google API 로딩에 실패했습니다. 페이지를 새로고침해주세요.';
-                window.golfApp.showNotification(errorMsg, 'error');
+            googleApiLoadAttempts++;
+            
+            if (googleApiLoadAttempts < maxLoadAttempts) {
+                console.log(`🔄 Google API 재로딩 시도 ${googleApiLoadAttempts}/${maxLoadAttempts}`);
+                setTimeout(() => {
+                    loadGoogleAPI();
+                }, 2000 * googleApiLoadAttempts);
+            } else {
+                if (window.golfApp) {
+                    const errorMsg = isGitHubPages ? 
+                        'GitHub Pages에서 Google API 로딩에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.' :
+                        'Google API 로딩에 실패했습니다. 페이지를 새로고침해주세요.';
+                    window.golfApp.showNotification(errorMsg, 'error');
+                }
             }
         };
+        
+        // Google API 동적 로딩 함수
+        function loadGoogleAPI() {
+            console.log('📡 Google API 동적 로딩 시작...');
+            
+            // 기존 스크립트 제거
+            const existingScript = document.querySelector('script[src*="apis.google.com"]');
+            if (existingScript) {
+                existingScript.remove();
+            }
+            
+            // 새 스크립트 생성
+            const script = document.createElement('script');
+            script.src = 'https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError';
+            script.async = true;
+            script.defer = true;
+            script.onload = () => console.log('✅ Google API 스크립트 로드 완료');
+            script.onerror = () => console.error('❌ Google API 스크립트 로드 실패');
+            
+            document.head.appendChild(script);
+        }
         
         // GitHub Pages 전용 초기화 로직
         if (isGitHubPages) {
             console.log('🔧 GitHub Pages 전용 설정 적용');
             
-            // 추가 지연 후 Google API 로드
-            setTimeout(() => {
-                if (!window.gapi) {
-                    console.log('📡 Google API 수동 로드 시도');
-                    const script = document.createElement('script');
-                    script.src = 'https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError';
-                    script.async = true;
-                    script.defer = true;
-                    document.head.appendChild(script);
-                }
-            }, 1000);
+            // 페이지 로드 완료 후 Google API 로드
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(loadGoogleAPI, 1000);
+                });
+            } else {
+                setTimeout(loadGoogleAPI, 1000);
+            }
+        } else {
+            // 로컬 환경에서는 즉시 로드
+            loadGoogleAPI();
         }
     </script>
     
-    <!-- Google API 스크립트 로드 -->
-    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError" async defer></script>
+    <!-- 앱 스크립트들 -->
     <script src="static/js/google-sheets-api.js"></script>
     <script src="static/js/app-github-pages.js"></script>
 </body>
