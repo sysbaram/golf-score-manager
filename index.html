@@ -8,8 +8,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#667eea">
     
-    <!-- iframe 오류 방지 -->
-    <meta http-equiv="Content-Security-Policy" content="frame-src 'self' https://accounts.google.com https://apis.google.com;">
+    <!-- GitHub Pages 보안 정책 대응 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https://accounts.google.com https://apis.google.com;">
     <meta name="description" content="Google Sheets와 연동하는 현대적인 골프 스코어 관리 시스템. 상세한 홀별 기록과 통계 분석을 제공합니다.">
     <meta name="keywords" content="골프, 스코어, 관리, 통계, Google Sheets, 라운드">
     <meta name="author" content="Golf Score Manager">
@@ -269,32 +269,60 @@
         </div>
     </div>
 
-    <!-- Google Sheets API -->
+    <!-- Google Sheets API - GitHub Pages 최적화 -->
     <script>
+        // GitHub Pages 환경 감지
+        const isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
+                              window.location.hostname.includes('github.io');
+        
+        console.log('🌐 환경 감지:', isGitHubPages ? 'GitHub Pages' : '로컬');
+        
         // Google API 로딩 완료 후 초기화
         window.gapiOnLoad = function() {
             console.log('✅ Google API 로딩 완료');
-            // Google API가 로드되었음을 알림
             window.googleApiLoaded = true;
             
-            // 약간의 지연 후 앱 초기화
+            // GitHub Pages에서는 더 긴 지연 시간 적용
+            const delay = isGitHubPages ? 2000 : 500;
             setTimeout(() => {
                 if (window.golfApp) {
                     console.log('🔄 앱 재초기화 시도...');
                     window.golfApp.init();
                 }
-            }, 500);
+            }, delay);
         };
         
         // Google API 로딩 실패 시 처리
         window.gapiOnError = function(error) {
             console.error('❌ Google API 로딩 실패:', error);
             if (window.golfApp) {
-                window.golfApp.showNotification('Google API 로딩에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
+                const errorMsg = isGitHubPages ? 
+                    'GitHub Pages에서 Google API 로딩에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.' :
+                    'Google API 로딩에 실패했습니다. 페이지를 새로고침해주세요.';
+                window.golfApp.showNotification(errorMsg, 'error');
             }
         };
+        
+        // GitHub Pages 전용 초기화 로직
+        if (isGitHubPages) {
+            console.log('🔧 GitHub Pages 전용 설정 적용');
+            
+            // 추가 지연 후 Google API 로드
+            setTimeout(() => {
+                if (!window.gapi) {
+                    console.log('📡 Google API 수동 로드 시도');
+                    const script = document.createElement('script');
+                    script.src = 'https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError';
+                    script.async = true;
+                    script.defer = true;
+                    document.head.appendChild(script);
+                }
+            }, 1000);
+        }
     </script>
-    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError"></script>
+    
+    <!-- Google API 스크립트 로드 -->
+    <script src="https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError" async defer></script>
     <script src="static/js/google-sheets-api.js"></script>
     <script src="static/js/app-github-pages.js"></script>
 </body>

@@ -9,6 +9,12 @@ class GoogleSheetsAPI {
         this.clientId = '38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.com';
         this.scope = 'https://www.googleapis.com/auth/spreadsheets';
         this.discoveryDocs = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
+        
+        // GitHub Pages 환경 감지
+        this.isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
+                             window.location.hostname.includes('github.io');
+        
+        console.log('🌐 GoogleSheetsAPI 환경:', this.isGitHubPages ? 'GitHub Pages' : '로컬');
     }
 
     async init() {
@@ -54,14 +60,21 @@ class GoogleSheetsAPI {
                 try {
                     console.log('🔧 Google API 클라이언트 초기화 중...');
                     
-                    // iframe 오류 방지를 위한 설정
+                    // GitHub Pages 환경에 최적화된 설정
                     const initConfig = {
                         clientId: this.clientId,
                         discoveryDocs: this.discoveryDocs,
                         scope: this.scope,
-                        ux_mode: 'popup', // iframe 대신 popup 사용
+                        ux_mode: this.isGitHubPages ? 'redirect' : 'popup', // GitHub Pages에서는 redirect 사용
                         redirect_uri: window.location.origin
                     };
+                    
+                    if (this.isGitHubPages) {
+                        console.log('🔧 GitHub Pages 전용 설정 적용');
+                        // GitHub Pages에서는 추가 보안 설정
+                        initConfig.prompt = 'select_account';
+                        initConfig.fetch_basic_profile = true;
+                    }
                     
                     await this.gapi.client.init(initConfig);
                     console.log('✅ Google API 초기화 성공');
@@ -104,9 +117,22 @@ class GoogleSheetsAPI {
     async signIn() {
         try {
             const authInstance = this.gapi.auth2.getAuthInstance();
-            const user = await authInstance.signIn();
-            this.isSignedIn = true;
-            return user;
+            
+            // GitHub Pages에서는 특별한 설정 적용
+            if (this.isGitHubPages) {
+                console.log('🔧 GitHub Pages 로그인 설정 적용');
+                const options = {
+                    prompt: 'select_account',
+                    ux_mode: 'redirect'
+                };
+                const user = await authInstance.signIn(options);
+                this.isSignedIn = true;
+                return user;
+            } else {
+                const user = await authInstance.signIn();
+                this.isSignedIn = true;
+                return user;
+            }
         } catch (error) {
             console.error('로그인 실패:', error);
             throw error;
