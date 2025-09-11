@@ -83,7 +83,7 @@ class GolfScoreApp {
         };
         
         const fallbackBtn = document.createElement('button');
-        fallbackBtn.textContent = '데모 모드';
+        fallbackBtn.textContent = '오프라인 모드';
         fallbackBtn.className = 'btn btn-secondary';
         fallbackBtn.onclick = () => {
             this.enableFallbackMode();
@@ -124,43 +124,77 @@ class GolfScoreApp {
     }
 
     enableFallbackMode() {
-        console.log('🔄 데모 모드 활성화...');
-        this.showNotification('데모 모드로 전환합니다. 데이터는 실제로 저장되지 않습니다.', 'info');
+        console.log('🔄 오프라인 모드 활성화...');
+        this.showNotification('오프라인 모드로 전환합니다. 데이터는 로컬에 저장됩니다.', 'info');
         
-        // 데모 모드 플래그 설정
+        // 오프라인 모드 플래그 설정
         this.isDemoMode = true;
+        this.isOfflineMode = true;
         
-        // Google Sheets API 대신 데모 API 사용
+        // 로컬 스토리지 키
+        this.storageKey = 'golf_score_manager_data';
+        
+        // Google Sheets API 대신 로컬 스토리지 API 사용
         this.googleSheetsAPI = {
             init: () => Promise.resolve(),
-            signIn: () => Promise.resolve({ id: 'demo', name: '데모 사용자', email: 'demo@example.com' }),
+            signIn: () => Promise.resolve({ id: 'offline', name: '오프라인 사용자', email: 'offline@example.com' }),
             signOut: () => Promise.resolve(),
-            getCurrentUser: () => ({ id: 'demo', name: '데모 사용자', email: 'demo@example.com' }),
-            registerUser: () => Promise.resolve({ success: true, user: { username: 'demo', email: 'demo@example.com' } }),
-            loginUser: () => Promise.resolve({ success: true, user: { username: 'demo', email: 'demo@example.com' } }),
+            getCurrentUser: () => ({ id: 'offline', name: '오프라인 사용자', email: 'offline@example.com' }),
+            registerUser: (username, email, password) => {
+                const users = this.getLocalData('users') || [];
+                const newUser = { username, email, password, created_at: new Date().toISOString() };
+                users.push(newUser);
+                this.saveLocalData('users', users);
+                return Promise.resolve({ success: true, user: newUser });
+            },
+            loginUser: (usernameOrEmail, password) => {
+                const users = this.getLocalData('users') || [];
+                const user = users.find(u => u.username === usernameOrEmail || u.email === usernameOrEmail);
+                if (user && user.password === password) {
+                    return Promise.resolve({ success: true, user: { username: user.username, email: user.email } });
+                }
+                return Promise.resolve({ success: false, error: '사용자를 찾을 수 없습니다.' });
+            },
             saveScore: (scoreData) => {
-                console.log('📊 데모 모드: 스코어 저장 시뮬레이션', scoreData);
+                console.log('📊 오프라인 모드: 스코어 저장', scoreData);
+                const scores = this.getLocalData('scores') || [];
+                const newScore = {
+                    id: 'score_' + Date.now(),
+                    ...scoreData,
+                    saved_at: new Date().toISOString()
+                };
+                scores.push(newScore);
+                this.saveLocalData('scores', scores);
                 return Promise.resolve({ success: true });
             },
             loadRounds: () => {
-                console.log('📊 데모 모드: 라운드 목록 시뮬레이션');
-                return Promise.resolve([
-                    {
-                        id: 'demo-1',
-                        date: new Date().toISOString().split('T')[0],
-                        course: '데모 골프장',
-                        total_score: 72,
-                        detailed_scores: Array(18).fill(4)
-                    }
-                ]);
+                console.log('📊 오프라인 모드: 라운드 목록 로드');
+                const scores = this.getLocalData('scores') || [];
+                return Promise.resolve(scores);
             },
             getPlayerStatistics: () => {
-                console.log('📊 데모 모드: 통계 시뮬레이션');
+                console.log('📊 오프라인 모드: 통계 계산');
+                const scores = this.getLocalData('scores') || [];
+                if (scores.length === 0) {
+                    return Promise.resolve({
+                        total_rounds: 0,
+                        average_score: 0,
+                        best_score: 0,
+                        worst_score: 0
+                    });
+                }
+                
+                const totalScores = scores.map(s => s.total_score).filter(s => s > 0);
+                const totalRounds = totalScores.length;
+                const averageScore = totalRounds > 0 ? Math.round(totalScores.reduce((a, b) => a + b, 0) / totalRounds) : 0;
+                const bestScore = totalRounds > 0 ? Math.min(...totalScores) : 0;
+                const worstScore = totalRounds > 0 ? Math.max(...totalScores) : 0;
+                
                 return Promise.resolve({
-                    total_rounds: 1,
-                    average_score: 72,
-                    best_score: 72,
-                    worst_score: 72
+                    total_rounds: totalRounds,
+                    average_score: averageScore,
+                    best_score: bestScore,
+                    worst_score: worstScore
                 });
             }
         };
@@ -172,12 +206,33 @@ class GolfScoreApp {
         this.setupScoreFormEventListeners();
         this.checkAuthStatus();
         
-        // 데모 사용자로 자동 로그인
-        this.currentUser = { username: 'demo', email: 'demo@example.com' };
+        // 오프라인 사용자로 자동 로그인
+        this.currentUser = { username: 'offline', email: 'offline@example.com' };
         this.updateUIForLoggedInUser();
         
-        console.log('✅ 데모 모드 활성화 완료');
-        this.showNotification('데모 모드가 활성화되었습니다. 모든 기능을 체험해보세요!', 'success');
+        console.log('✅ 오프라인 모드 활성화 완료');
+        this.showNotification('오프라인 모드가 활성화되었습니다. 데이터는 브라우저에 저장됩니다!', 'success');
+    }
+    
+    // 로컬 스토리지 헬퍼 메서드
+    getLocalData(key) {
+        try {
+            const data = localStorage.getItem(`${this.storageKey}_${key}`);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error('로컬 데이터 읽기 실패:', error);
+            return null;
+        }
+    }
+    
+    saveLocalData(key, data) {
+        try {
+            localStorage.setItem(`${this.storageKey}_${key}`, JSON.stringify(data));
+            return true;
+        } catch (error) {
+            console.error('로컬 데이터 저장 실패:', error);
+            return false;
+        }
     }
 
     setupEventListeners() {
