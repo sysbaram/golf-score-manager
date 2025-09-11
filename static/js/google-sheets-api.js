@@ -100,7 +100,7 @@ class GoogleSheetsAPI {
     async signOut() {
         try {
             const authInstance = this.gapi.auth2.getAuthInstance();
-            await authInstance.signIn();
+            await authInstance.signOut();
             this.isSignedIn = false;
         } catch (error) {
             console.error('로그아웃 실패:', error);
@@ -132,6 +132,19 @@ class GoogleSheetsAPI {
             const user = this.getCurrentUser();
             if (!user) {
                 throw new Error('Google 계정으로 로그인해주세요.');
+            }
+
+            // 먼저 사용자명 중복 확인
+            const existingUsers = await this.getUsers();
+            const isUsernameExists = existingUsers.some(u => u.username === username);
+            const isEmailExists = existingUsers.some(u => u.email === email);
+
+            if (isUsernameExists) {
+                throw new Error('이미 존재하는 사용자명입니다.');
+            }
+
+            if (isEmailExists) {
+                throw new Error('이미 존재하는 이메일입니다.');
             }
 
             const userData = {
@@ -168,6 +181,29 @@ class GoogleSheetsAPI {
         }
     }
 
+    // 사용자 목록 조회
+    async getUsers() {
+        try {
+            const response = await this.gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: this.usersSheetId,
+                range: 'Users!A:F'
+            });
+
+            const users = response.result.values || [];
+            return users.map(row => ({
+                username: row[0],
+                email: row[1],
+                password: row[2],
+                google_id: row[3],
+                google_name: row[4],
+                created_at: row[5]
+            }));
+        } catch (error) {
+            console.error('사용자 목록 조회 실패:', error);
+            return [];
+        }
+    }
+
     // 사용자 로그인
     async loginUser(usernameOrEmail, password) {
         try {
@@ -177,26 +213,25 @@ class GoogleSheetsAPI {
             }
 
             // Users 시트에서 사용자 정보 조회
-            const response = await this.gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: this.usersSheetId,
-                range: 'Users!A:F'
-            });
-
-            const users = response.result.values || [];
-            const foundUser = users.find(row => 
-                row[0] === usernameOrEmail || row[1] === usernameOrEmail
+            const users = await this.getUsers();
+            const foundUser = users.find(u => 
+                u.username === usernameOrEmail || u.email === usernameOrEmail
             );
 
-            if (!foundUser || foundUser[2] !== password) {
-                throw new Error('사용자명 또는 비밀번호가 올바르지 않습니다.');
+            if (!foundUser) {
+                throw new Error('사용자를 찾을 수 없습니다.');
+            }
+
+            if (foundUser.password !== password) {
+                throw new Error('비밀번호가 올바르지 않습니다.');
             }
 
             return { 
                 success: true, 
                 user: {
-                    user_id: foundUser[0],
-                    username: foundUser[0],
-                    email: foundUser[1]
+                    user_id: foundUser.username,
+                    username: foundUser.username,
+                    email: foundUser.email
                 }
             };
         } catch (error) {

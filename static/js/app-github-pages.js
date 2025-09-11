@@ -280,10 +280,16 @@ class GolfScoreApp {
                 return;
             }
 
-            // 먼저 Google 계정으로 로그인
+            // Google 계정으로 로그인
             await this.googleSheetsAPI.signIn();
             
-            // 사용자 인증
+            // Google 사용자 정보 가져오기
+            const googleUser = this.googleSheetsAPI.getCurrentUser();
+            if (!googleUser) {
+                throw new Error('Google 로그인에 실패했습니다.');
+            }
+
+            // 사용자 인증 (Google Sheets에서 확인)
             const result = await this.googleSheetsAPI.loginUser(usernameOrEmail, password);
             
             if (result.success) {
@@ -297,7 +303,7 @@ class GolfScoreApp {
             }
         } catch (error) {
             console.error('로그인 실패:', error);
-            this.showNotification('로그인 중 오류가 발생했습니다.', 'error');
+            this.showNotification('로그인 중 오류가 발생했습니다: ' + error.message, 'error');
         }
     }
 
@@ -318,9 +324,15 @@ class GolfScoreApp {
                 return;
             }
 
-            // 먼저 Google 계정으로 로그인
+            // Google 계정으로 로그인
             await this.googleSheetsAPI.signIn();
             
+            // Google 사용자 정보 가져오기
+            const googleUser = this.googleSheetsAPI.getCurrentUser();
+            if (!googleUser) {
+                throw new Error('Google 로그인에 실패했습니다.');
+            }
+
             // 사용자 등록
             const result = await this.googleSheetsAPI.registerUser(username, email, password);
             
@@ -334,7 +346,7 @@ class GolfScoreApp {
             }
         } catch (error) {
             console.error('회원가입 실패:', error);
-            this.showNotification('회원가입 중 오류가 발생했습니다.', 'error');
+            this.showNotification('회원가입 중 오류가 발생했습니다: ' + error.message, 'error');
         }
     }
 
