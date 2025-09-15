@@ -96,25 +96,30 @@ class GolfScoreApp {
     }
 
     async waitForGoogleAPIAndInit() {
-        console.log('⏳ Google API 로딩 대기 중...');
+        console.log('⏳ Google API 및 GoogleSheetsAPI 클래스 대기 중...');
         
         const checkAndInit = async () => {
             this.initializationAttempts++;
             
             if (window.googleSheetsAPI && window.gapi) {
-                console.log('✅ Google API 준비 완료, 앱 초기화 시작');
+                console.log('✅ Google API 및 GoogleSheetsAPI 클래스 준비 완료');
                 this.showLoadingStatus('Google Sheets API 연결 중...');
                 await this.init();
-            } else if (this.initializationAttempts < this.maxInitializationAttempts) {
-                console.log(`⏳ Google API 대기 중... (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
-                this.showLoadingStatus(`Google API 로딩 중... (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
-                setTimeout(checkAndInit, 1000);
             } else {
-                console.log('❌ Google API 로딩 시간 초과, 오프라인 모드 활성화');
-                this.showLoadingStatus('Google API 연결 실패, 오프라인 모드로 전환 중...');
-                setTimeout(() => {
-                    this.enableFallbackMode();
-                }, 500); // 1초 → 0.5초로 단축
+                const gapiStatus = window.gapi ? '✅' : '❌';
+                const apiClassStatus = window.googleSheetsAPI ? '✅' : '❌';
+                console.log(`⏳ 대기 중... gapi: ${gapiStatus}, GoogleSheetsAPI: ${apiClassStatus} (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
+                
+                if (this.initializationAttempts < this.maxInitializationAttempts) {
+                    this.showLoadingStatus(`API 로딩 중... gapi: ${gapiStatus}, API클래스: ${apiClassStatus} (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
+                    setTimeout(checkAndInit, 1000);
+                } else {
+                    console.log('❌ API 로딩 시간 초과, 오프라인 모드 활성화');
+                    this.showLoadingStatus('API 연결 실패, 오프라인 모드로 전환 중...');
+                    setTimeout(() => {
+                        this.enableFallbackMode();
+                    }, 500);
+                }
             }
         };
         

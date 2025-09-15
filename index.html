@@ -35,17 +35,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- PWA 관련 -->
-<<<<<<< HEAD
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-=======
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
->>>>>>> ec94e10975e853f38ecbfda29cffbdbc4b23f1dd
     
     <!-- 성능 최적화 -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//apis.google.com">
+    
+    <!-- Google API 정적 로딩 (GitHub Pages 최적화) -->
+    <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
     <div class="container">
@@ -269,7 +268,7 @@
         </div>
     </div>
 
-    <!-- Google Sheets API - GitHub Pages 완전 최적화 -->
+    <!-- Google API 정적 로딩 초기화 -->
     <script>
         // GitHub Pages 환경 감지
         const isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
@@ -277,91 +276,52 @@
         
         console.log('🌐 환경 감지:', isGitHubPages ? 'GitHub Pages' : '로컬');
         
-        // Google API 로딩 상태 관리
-        let googleApiLoadAttempts = 0;
-        const maxLoadAttempts = 3; // 5번 → 3번으로 단축
-        let fallbackModeEnabled = false;
-        
-        // Google API 로딩 완료 후 초기화
-        window.gapiOnLoad = function() {
-            console.log('✅ Google API 로딩 완료');
-            window.googleApiLoaded = true;
+        // Google API 초기화 대기
+        function waitForGoogleAPI() {
+            console.log('⏳ Google API 로딩 대기 중...');
             
-            // GitHub Pages에서는 적절한 지연 시간 적용
-            const delay = isGitHubPages ? 2000 : 500; // 5초 → 2초로 단축
-            setTimeout(() => {
-                if (window.golfApp && !fallbackModeEnabled) {
-                    console.log('🔄 앱 재초기화 시도...');
-                    window.golfApp.init();
-                }
-            }, delay);
-        };
-        
-        // Google API 로딩 실패 시 처리
-        window.gapiOnError = function(error) {
-            console.error('❌ Google API 로딩 실패:', error);
-            googleApiLoadAttempts++;
+            let attempts = 0;
+            const maxAttempts = 50; // 5초 대기
             
-            if (googleApiLoadAttempts < maxLoadAttempts) {
-                console.log(`🔄 Google API 재로딩 시도 ${googleApiLoadAttempts}/${maxLoadAttempts}`);
-                setTimeout(() => {
-                    loadGoogleAPI();
-                }, 2000 * googleApiLoadAttempts); // 3초 → 2초로 단축
-            } else {
-                console.log('❌ Google API 로딩 최종 실패 - 대체 방안 활성화');
-                if (window.golfApp && !fallbackModeEnabled) {
-                    fallbackModeEnabled = true;
-                    console.log('🔄 자동 오프라인 모드 전환 시작');
-                    window.golfApp.enableFallbackMode();
-                }
-            }
-        };
-        
-        // Google API 간단한 로딩 함수
-        function loadGoogleAPI() {
-            console.log('📡 Google API 로딩 시작...');
-            
-            // 기존 스크립트 제거
-            const existingScripts = document.querySelectorAll('script[src*="apis.google.com"], script[src*="gstatic.com"]');
-            existingScripts.forEach(script => script.remove());
-            
-            // 간단한 Google API 로딩
-            const script = document.createElement('script');
-            script.src = 'https://apis.google.com/js/api.js';
-            script.async = true;
-            script.defer = true;
-            
-            script.onload = () => {
-                console.log('✅ Google API 스크립트 로드 완료');
-                // Google API 로드 완료 후 초기화
-                setTimeout(() => {
-                    if (window.gapi && window.gapi.load) {
-                        console.log('✅ Google API 사용 가능');
-                        window.gapiOnLoad();
+            const checkGapi = () => {
+                attempts++;
+                
+                if (window.gapi) {
+                    console.log('✅ Google API 로드 완료');
+                    // 앱이 준비되면 초기화
+                    if (window.golfApp) {
+                        console.log('🔄 앱 초기화 시작...');
+                        window.golfApp.init();
                     } else {
-                        console.error('❌ Google API 사용 불가');
-                        window.gapiOnError(new Error('Google API not available'));
+                        console.log('⏳ 앱 로딩 대기 중...');
+                        setTimeout(() => {
+                            if (window.golfApp) {
+                                window.golfApp.init();
+                            }
+                        }, 1000);
                     }
-                }, 1000);
+                } else if (attempts < maxAttempts) {
+                    if (attempts % 10 === 0) {
+                        console.log(`⏳ Google API 대기 중... (${attempts}/${maxAttempts})`);
+                    }
+                    setTimeout(checkGapi, 100);
+                } else {
+                    console.error('❌ Google API 로딩 시간 초과');
+                    if (window.golfApp) {
+                        console.log('🔄 오프라인 모드로 전환...');
+                        window.golfApp.enableFallbackMode();
+                    }
+                }
             };
             
-            script.onerror = () => {
-                console.error('❌ Google API 스크립트 로드 실패');
-                window.gapiOnError(new Error('Failed to load Google API script'));
-            };
-            
-            document.head.appendChild(script);
+            checkGapi();
         }
         
-        // 즉시 Google API 로딩 시작 (환경 구분 없이)
-        console.log('🔧 Google API 로딩 즉시 시작');
-        
+        // 페이지 로드 완료 후 Google API 대기 시작
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(loadGoogleAPI, 100); // 2초 → 0.1초로 단축
-            });
+            document.addEventListener('DOMContentLoaded', waitForGoogleAPI);
         } else {
-            setTimeout(loadGoogleAPI, 100); // 즉시 시작
+            waitForGoogleAPI();
         }
     </script>
     
