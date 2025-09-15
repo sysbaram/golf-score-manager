@@ -198,13 +198,19 @@ class GoogleSheetsAPI {
     // 사용자 등록
     async registerUser(username, email, password) {
         try {
+            console.log('📝 registerUser 시작:', { username, email });
+            
             const user = this.getCurrentUser();
             if (!user) {
                 throw new Error('Google 계정으로 로그인해주세요.');
             }
+            console.log('👤 현재 Google 사용자:', user);
 
             // 먼저 사용자명 중복 확인
+            console.log('🔍 기존 사용자 확인 중...');
             const existingUsers = await this.getUsers();
+            console.log('📊 기존 사용자 수:', existingUsers.length);
+            
             const isUsernameExists = existingUsers.some(u => u.username === username);
             const isEmailExists = existingUsers.some(u => u.email === email);
 
@@ -227,6 +233,10 @@ class GoogleSheetsAPI {
             };
 
             // Users 시트에 사용자 정보 추가
+            console.log('📝 Google Sheets에 사용자 정보 추가 중...');
+            console.log('📊 Spreadsheet ID:', this.usersSheetId);
+            console.log('📊 사용자 데이터:', userData);
+            
             const response = await this.gapi.client.sheets.spreadsheets.values.append({
                 spreadsheetId: this.usersSheetId,
                 range: 'Users!A:F',
@@ -243,6 +253,7 @@ class GoogleSheetsAPI {
                 }
             });
 
+            console.log('✅ Google Sheets 응답:', response);
             return { success: true, user: userData };
         } catch (error) {
             console.error('사용자 등록 실패:', error);
