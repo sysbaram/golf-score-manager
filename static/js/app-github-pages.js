@@ -155,6 +155,12 @@ class GolfScoreApp {
     }
 
     async init() {
+        console.log('🚀 init() 메서드 호출됨');
+        console.log('📊 init() 시작 시 상태:');
+        console.log('  - isInitialized:', this.isInitialized);
+        console.log('  - window.gapi:', !!window.gapi);
+        console.log('  - window.googleSheetsAPI:', !!window.googleSheetsAPI);
+        
         if (this.isInitialized) {
             console.log('⚠️ 이미 초기화됨, 중복 초기화 방지');
             return;
@@ -163,21 +169,36 @@ class GolfScoreApp {
         try {
             console.log('🚀 Google Sheets API 초기화 시작...');
 
-            // Google Sheets API 초기화
+            // Google Sheets API 클래스 확인
+            console.log('🔍 GoogleSheetsAPI 클래스 확인 중...');
             this.googleSheetsAPI = window.googleSheetsAPI;
             if (!this.googleSheetsAPI) {
+                console.error('❌ GoogleSheetsAPI 클래스가 로드되지 않았습니다');
                 throw new Error('GoogleSheetsAPI 클래스가 로드되지 않았습니다.');
             }
+            console.log('✅ GoogleSheetsAPI 클래스 확인 완료');
 
-            console.log('📡 Google Sheets API 연결 중...');
+            // Google API 확인
+            console.log('🔍 Google API (gapi) 확인 중...');
+            if (!window.gapi) {
+                console.error('❌ Google API (gapi)가 로드되지 않았습니다');
+                throw new Error('Google API (gapi)가 로드되지 않았습니다.');
+            }
+            console.log('✅ Google API (gapi) 확인 완료');
+
+            console.log('📡 Google Sheets API 초기화 시작...');
             await this.googleSheetsAPI.init();
+            console.log('✅ Google Sheets API 초기화 완료');
 
             // Google API 관련 이벤트 리스너 추가
+            console.log('🔧 Google API 이벤트 리스너 설정...');
             this.setupGoogleAPIEventListeners();
+            
+            console.log('🔐 인증 상태 확인...');
             this.checkAuthStatus();
             
             this.isInitialized = true;
-            console.log('✅ Google Sheets API 초기화 완료');
+            console.log('✅ 전체 초기화 완료! isInitialized =', this.isInitialized);
             
             // 로딩 상태 숨기기
             this.hideLoadingStatus();
@@ -187,7 +208,11 @@ class GolfScoreApp {
             
         } catch (error) {
             console.error('❌ 초기화 실패:', error);
-            console.error('에러 상세:', error.stack);
+            console.error('❌ 에러 상세:', error.stack);
+            console.log('📊 실패 시 상태:');
+            console.log('  - isInitialized:', this.isInitialized);
+            console.log('  - window.gapi:', !!window.gapi);
+            console.log('  - window.googleSheetsAPI:', !!window.googleSheetsAPI);
 
             let errorMessage = 'Google Sheets API 초기화에 실패했습니다.';
             
@@ -204,6 +229,8 @@ class GolfScoreApp {
                     errorMessage = 'GitHub Pages에서 Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
                 } else if (error.message.includes('gapi')) {
                     errorMessage = 'GitHub Pages에서 Google API를 로드할 수 없습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
+                } else if (error.message.includes('GoogleSheetsAPI')) {
+                    errorMessage = 'GitHub Pages에서 Google Sheets API 클래스를 로드할 수 없습니다. 페이지를 새로고침해주세요.';
                 } else {
                     errorMessage = 'GitHub Pages에서 Google Sheets API 초기화에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
                 }
@@ -214,6 +241,8 @@ class GolfScoreApp {
                     errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
                 } else if (error.message.includes('timeout')) {
                     errorMessage = 'Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
+                } else if (error.message.includes('GoogleSheetsAPI')) {
+                    errorMessage = 'Google Sheets API 클래스를 로드할 수 없습니다. 페이지를 새로고침해주세요.';
                 }
             }
             
@@ -439,7 +468,15 @@ class GolfScoreApp {
             const loginBtn = document.getElementById('login-btn');
             if (loginBtn) {
                 loginBtn.addEventListener('click', (e) => {
-                    console.log('🔐 로그인 버튼 클릭, isInitialized:', this.isInitialized);
+                    console.log('🔐 로그인 버튼 클릭');
+                    console.log('📊 현재 상태:');
+                    console.log('  - isInitialized:', this.isInitialized);
+                    console.log('  - googleSheetsAPI:', !!this.googleSheetsAPI);
+                    console.log('  - window.gapi:', !!window.gapi);
+                    console.log('  - window.googleSheetsAPI:', !!window.googleSheetsAPI);
+                    console.log('  - initializationAttempts:', this.initializationAttempts);
+                    console.log('  - maxInitializationAttempts:', this.maxInitializationAttempts);
+                    
                     e.preventDefault();
                     try {
                         if (this.isInitialized) {
@@ -447,6 +484,8 @@ class GolfScoreApp {
                             this.showLoginModal();
                         } else {
                             console.log('⏳ API 초기화 중, 대기 메시지 표시');
+                            console.log('🔄 강제로 초기화 재시도...');
+                            this.waitForGoogleAPIAndInit(); // 강제 재시도
                             this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
                         }
                     } catch (error) {
