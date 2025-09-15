@@ -111,10 +111,10 @@ class GolfScoreApp {
                 setTimeout(checkAndInit, 1000);
             } else {
                 console.log('❌ Google API 로딩 시간 초과, 오프라인 모드 활성화');
-                this.showLoadingStatus('Google API 로딩 실패, 오프라인 모드로 전환 중...');
+                this.showLoadingStatus('Google API 연결 실패, 오프라인 모드로 전환 중...');
                 setTimeout(() => {
                     this.enableFallbackMode();
-                }, 1000);
+                }, 500); // 1초 → 0.5초로 단축
             }
         };
         
@@ -339,7 +339,7 @@ class GolfScoreApp {
         // 로딩 상태 숨기기
         this.hideLoadingStatus();
         
-        this.showNotification('오프라인 모드가 활성화되었습니다. 데이터는 브라우저에 저장됩니다!', 'success');
+        this.showNotification('오프라인 모드로 전환되었습니다. 모든 기능을 정상적으로 사용할 수 있습니다!', 'success');
     }
     
     // 로컬 스토리지 헬퍼 메서드

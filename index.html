@@ -75,7 +75,7 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="user-details">
-                        <span id="welcome-message">안녕하세요, <strong id="username-display"></strong>님!</span>
+                    <span id="welcome-message">안녕하세요, <strong id="username-display"></strong>님!</span>
                         <small class="user-status">온라인</small>
                     </div>
                     <button id="logout-btn" class="btn btn-outline">
@@ -279,7 +279,7 @@
         
         // Google API 로딩 상태 관리
         let googleApiLoadAttempts = 0;
-        const maxLoadAttempts = 5;
+        const maxLoadAttempts = 3; // 5번 → 3번으로 단축
         let fallbackModeEnabled = false;
         
         // Google API 로딩 완료 후 초기화
@@ -306,7 +306,7 @@
                 console.log(`🔄 Google API 재로딩 시도 ${googleApiLoadAttempts}/${maxLoadAttempts}`);
                 setTimeout(() => {
                     loadGoogleAPI();
-                }, 3000 * googleApiLoadAttempts);
+                }, 2000 * googleApiLoadAttempts); // 3초 → 2초로 단축
             } else {
                 console.log('❌ Google API 로딩 최종 실패 - 대체 방안 활성화');
                 if (window.golfApp && !fallbackModeEnabled) {

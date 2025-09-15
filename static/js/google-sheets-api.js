@@ -28,9 +28,9 @@ class GoogleSheetsAPI {
                 this.loadClient().then(resolve).catch(reject);
             } else {
                 console.log('⏳ Google API 로딩 대기 중...');
-                // Google API 로딩 대기 (최대 20초)
+                // Google API 로딩 대기 (최대 10초)
                 let attempts = 0;
-                const maxAttempts = 200;
+                const maxAttempts = 100;
                 const checkGapi = () => {
                     if (window.gapi && window.gapi.load) {
                         console.log('✅ Google API 로딩 완료');
@@ -38,13 +38,13 @@ class GoogleSheetsAPI {
                         this.loadClient().then(resolve).catch(reject);
                     } else if (attempts < maxAttempts) {
                         attempts++;
-                        if (attempts % 50 === 0) {
+                        if (attempts % 25 === 0) {
                             console.log(`⏳ Google API 로딩 대기 중... (${attempts}/${maxAttempts})`);
                         }
                         setTimeout(checkGapi, 100);
                     } else {
                         console.error('❌ Google API 로딩 시간 초과');
-                        reject(new Error('Google API 로딩 시간 초과. 네트워크 연결을 확인하고 페이지를 새로고침해주세요.'));
+                        reject(new Error('Google API 로딩 시간 초과. GitHub Pages에서 Google API를 로드할 수 없습니다.'));
                     }
                 };
                 checkGapi();
