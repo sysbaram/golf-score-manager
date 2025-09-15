@@ -8,7 +8,7 @@ class GolfScoreApp {
         this.googleSheetsAPI = null;
         this.isInitialized = false;
         this.initializationAttempts = 0;
-        this.maxInitializationAttempts = 10;
+        this.maxInitializationAttempts = 5; // 10초 → 5초로 단축
         
         // 기본 UI 설정만 먼저 수행
         this.setupBasicUI();
@@ -50,11 +50,41 @@ class GolfScoreApp {
                     border-radius: 0 0 10px 10px;
                     margin-bottom: 1rem;
                     animation: pulse 2s infinite;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
                 `;
                 header.appendChild(loadingDiv);
             }
-            loadingDiv.textContent = message;
-            loadingDiv.style.display = 'block';
+            
+            // 메시지와 버튼을 포함한 내용 구성
+            loadingDiv.innerHTML = `
+                <span>${message}</span>
+                <button id="skip-to-offline" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    color: white;
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 5px;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" 
+                   onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                    오프라인 모드로 계속
+                </button>
+            `;
+            
+            // 오프라인 모드 버튼 이벤트 리스너
+            const skipButton = document.getElementById('skip-to-offline');
+            if (skipButton) {
+                skipButton.addEventListener('click', () => {
+                    console.log('🔄 사용자가 수동으로 오프라인 모드 선택');
+                    this.enableFallbackMode();
+                });
+            }
+            
+            loadingDiv.style.display = 'flex';
         }
     }
 
@@ -89,7 +119,7 @@ class GolfScoreApp {
         };
         
         // 즉시 확인 후 대기
-        setTimeout(checkAndInit, 500);
+        setTimeout(checkAndInit, 100); // 더 빠른 초기 확인
     }
 
     async init() {

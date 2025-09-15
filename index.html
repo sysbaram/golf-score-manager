@@ -311,6 +311,7 @@
                 console.log('❌ Google API 로딩 최종 실패 - 대체 방안 활성화');
                 if (window.golfApp && !fallbackModeEnabled) {
                     fallbackModeEnabled = true;
+                    console.log('🔄 자동 오프라인 모드 전환 시작');
                     window.golfApp.enableFallbackMode();
                 }
             }
