@@ -926,10 +926,28 @@ class GolfScoreApp {
                 console.log('🔄 GitHub Pages 환경에서 OAuth 문제로 인해 직접 데모 모드로 전환합니다...');
                 this.showNotification('GitHub Pages 환경에서 Google OAuth 제한으로 인해 로컬 스토리지 데모 모드로 진행합니다.', 'info');
                 
+                // 디버깅을 위한 로컬 스토리지 상태 확인
+                console.log('🔍 현재 로컬 스토리지 상태:');
+                console.log('  - localStorage 크기:', Object.keys(localStorage).length);
+                console.log('  - 모든 키:', Object.keys(localStorage));
+                
+                // 임시로 로컬 스토리지 초기화 (중복 검사 문제 해결)
+                console.log('🔧 로컬 스토리지 초기화 중...');
+                localStorage.clear();
+                console.log('✅ 로컬 스토리지 초기화 완료');
+                
                 // 로컬 스토리지에서 기존 사용자 확인
+                console.log('🔍 로컬 스토리지 사용자 확인 중...');
                 const existingUsers = this.getLocalData('users') || [];
+                console.log('📊 기존 사용자 목록:', existingUsers);
+                console.log('📝 입력된 사용자명:', username);
+                console.log('📝 입력된 이메일:', email);
+                
                 const isUsernameExists = existingUsers.some(u => u.username === username);
                 const isEmailExists = existingUsers.some(u => u.email === email);
+                
+                console.log('🔍 사용자명 중복 여부:', isUsernameExists);
+                console.log('🔍 이메일 중복 여부:', isEmailExists);
                 
                 if (isUsernameExists) {
                     this.showNotification('이미 존재하는 사용자명입니다.', 'error');
