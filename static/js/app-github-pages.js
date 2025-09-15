@@ -917,18 +917,70 @@ class GolfScoreApp {
                 throw new Error('Google Sheets API가 초기화되지 않았습니다.');
             }
 
-            // Google 계정으로 로그인
+            // Google 계정으로 로그인 (GitHub Pages에서는 임시로 데모 모드 강제)
             console.log('📡 Google 계정 로그인 시도...');
+            
+            // GitHub Pages에서 OAuth 문제가 지속되므로 임시로 데모 모드 강제
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            if (isGitHubPages) {
+                console.log('🔄 GitHub Pages 환경에서 OAuth 문제로 인해 직접 데모 모드로 전환합니다...');
+                this.showNotification('GitHub Pages 환경에서 Google OAuth 제한으로 인해 로컬 스토리지 데모 모드로 진행합니다.', 'info');
+                
+                // 로컬 스토리지에서 기존 사용자 확인
+                const existingUsers = this.getLocalData('users') || [];
+                const isUsernameExists = existingUsers.some(u => u.username === username);
+                const isEmailExists = existingUsers.some(u => u.email === email);
+                
+                if (isUsernameExists) {
+                    this.showNotification('이미 존재하는 사용자명입니다.', 'error');
+                    return;
+                }
+                
+                if (isEmailExists) {
+                    this.showNotification('이미 존재하는 이메일입니다.', 'error');
+                    return;
+                }
+                
+                // 새 사용자 생성
+                const newUser = {
+                    username: username,
+                    email: email,
+                    password: password,
+                    id: 'demo_' + Date.now(),
+                    created_at: new Date().toISOString()
+                };
+                
+                // 로컬 스토리지에 저장
+                existingUsers.push(newUser);
+                this.saveLocalData('users', existingUsers);
+                
+                // 로그인 상태로 설정
+                this.currentUser = newUser;
+                this.updateUIForLoggedInUser();
+                this.hideModal(document.getElementById('register-modal'));
+                this.showNotification('로컬 스토리지 데모 모드로 회원가입 완료!', 'success');
+                
+                console.log('✅ 로컬 스토리지 데모 회원가입 완료:', newUser);
+                return;
+            }
+            
             try {
                 await this.googleSheetsAPI.signIn();
                 console.log('✅ Google 로그인 성공');
             } catch (signInError) {
                 console.error('❌ Google 로그인 실패:', signInError);
                 
-                // invalid_client 오류인 경우 로컬 스토리지 데모 모드로 전환
-                if (signInError.message.includes('invalid_client') || 
-                    signInError.message.includes('no registered origin') ||
-                    signInError.message.includes('401')) {
+                // OAuth 인증 오류인 경우 로컬 스토리지 데모 모드로 전환
+                const errorStr = signInError.message + ' ' + signInError.toString();
+                console.log('🔍 오류 문자열 분석:', errorStr);
+                
+                if (errorStr.includes('OAuth 인증 오류') ||
+                    errorStr.includes('invalid_client') || 
+                    errorStr.includes('unauthorized_client') ||
+                    errorStr.includes('no registered origin') ||
+                    errorStr.includes('401') ||
+                    errorStr.includes('popup_closed_by_user') ||
+                    errorStr.includes('access_denied')) {
                     console.log('🔄 Google OAuth 설정 문제로 인해 로컬 스토리지 데모 모드로 전환합니다...');
                     this.showNotification('Google OAuth 설정 문제가 있어 로컬 스토리지 데모 모드로 진행합니다.', 'warning');
                     

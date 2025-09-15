@@ -151,19 +151,39 @@ class GoogleSheetsAPI {
             }
         } catch (error) {
             console.error('로그인 실패:', error);
+            console.error('오류 상세 정보:', {
+                error: error.error,
+                details: error.details,
+                message: error.message,
+                status: error.status
+            });
+            
+            // OAuth 관련 오류들을 더 포괄적으로 처리
+            const errorStr = JSON.stringify(error) + ' ' + (error.message || '') + ' ' + (error.error || '');
+            
+            if (errorStr.includes('invalid_client') || 
+                errorStr.includes('unauthorized_client') ||
+                errorStr.includes('401') ||
+                errorStr.includes('no registered origin') ||
+                errorStr.includes('popup_closed_by_user') ||
+                errorStr.includes('access_denied')) {
+                
+                console.error('🚫 OAuth 인증 오류 감지 - 상세 정보:', errorStr);
+                throw new Error('OAuth 인증 오류: ' + (error.message || error.error || 'invalid_client'));
+            }
             
             // GitHub Pages에서 특별한 에러 처리
             if (this.isGitHubPages) {
                 if (error.error === 'popup_closed_by_user') {
-                    throw new Error('로그인이 취소되었습니다. 다시 시도해주세요.');
+                    throw new Error('OAuth 인증 오류: 로그인이 취소되었습니다.');
                 } else if (error.error === 'access_denied') {
-                    throw new Error('Google 계정 접근이 거부되었습니다. 권한을 허용해주세요.');
+                    throw new Error('OAuth 인증 오류: Google 계정 접근이 거부되었습니다.');
                 } else if (error.error === 'immediate_failed') {
-                    throw new Error('자동 로그인에 실패했습니다. 수동으로 로그인해주세요.');
+                    throw new Error('OAuth 인증 오류: 자동 로그인에 실패했습니다.');
                 }
             }
             
-            throw error;
+            throw new Error('OAuth 인증 오류: ' + (error.message || error.error || '알 수 없는 오류'));
         }
     }
 
