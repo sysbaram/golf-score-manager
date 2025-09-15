@@ -198,14 +198,14 @@ class GolfScoreApp {
         try {
             console.log('🚀 Google Sheets API 초기화 시작...');
 
-            // Google Sheets API 클래스 확인
-            console.log('🔍 GoogleSheetsAPI 클래스 확인 중...');
-            this.googleSheetsAPI = window.googleSheetsAPI;
-            if (!this.googleSheetsAPI) {
+            // Google Sheets API 클래스 생성
+            console.log('🔍 GoogleSheetsAPI 클래스 생성 중...');
+            if (typeof GoogleSheetsAPI === 'undefined') {
                 console.error('❌ GoogleSheetsAPI 클래스가 로드되지 않았습니다');
                 throw new Error('GoogleSheetsAPI 클래스가 로드되지 않았습니다.');
             }
-            console.log('✅ GoogleSheetsAPI 클래스 확인 완료');
+            this.googleSheetsAPI = new GoogleSheetsAPI();
+            console.log('✅ GoogleSheetsAPI 클래스 생성 완료');
 
             // Google API 확인
             console.log('🔍 Google API (gapi) 확인 중...');
@@ -501,13 +501,21 @@ class GolfScoreApp {
                     
                     e.preventDefault();
                     try {
-                        if (this.isInitialized) {
+                        if (this.isInitialized && this.googleSheetsAPI) {
                             console.log('✅ API 초기화 완료, 로그인 모달 표시');
                             this.showLoginModal();
+                        } else if (window.gapi && typeof GoogleSheetsAPI !== 'undefined') {
+                            console.log('🔄 API는 로드되었지만 초기화되지 않음, 즉시 초기화 시도');
+                            // 즉시 초기화 시도
+                            this.init().then(() => {
+                                console.log('✅ 즉시 초기화 완료, 로그인 모달 표시');
+                                this.showLoginModal();
+                            }).catch((error) => {
+                                console.error('❌ 즉시 초기화 실패:', error);
+                                this.showNotification('API 초기화에 실패했습니다. 오프라인 모드를 사용해주세요.', 'error');
+                            });
                         } else {
-                            console.log('⏳ API 초기화 중, 대기 메시지 표시');
-                            console.log('🔄 강제로 초기화 재시도...');
-                            this.waitForGoogleAPIAndInit(); // 강제 재시도
+                            console.log('⏳ API 로딩 중, 대기 메시지 표시');
                             this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
                         }
                     } catch (error) {
@@ -527,11 +535,21 @@ class GolfScoreApp {
                     console.log('📝 회원가입 버튼 클릭, isInitialized:', this.isInitialized);
                     e.preventDefault();
                     try {
-                        if (this.isInitialized) {
+                        if (this.isInitialized && this.googleSheetsAPI) {
                             console.log('✅ API 초기화 완료, 회원가입 모달 표시');
                             this.showRegisterModal();
+                        } else if (window.gapi && typeof GoogleSheetsAPI !== 'undefined') {
+                            console.log('🔄 API는 로드되었지만 초기화되지 않음, 즉시 초기화 시도');
+                            // 즉시 초기화 시도
+                            this.init().then(() => {
+                                console.log('✅ 즉시 초기화 완료, 회원가입 모달 표시');
+                                this.showRegisterModal();
+                            }).catch((error) => {
+                                console.error('❌ 즉시 초기화 실패:', error);
+                                this.showNotification('API 초기화에 실패했습니다. 오프라인 모드를 사용해주세요.', 'error');
+                            });
                         } else {
-                            console.log('⏳ API 초기화 중, 대기 메시지 표시');
+                            console.log('⏳ API 로딩 중, 대기 메시지 표시');
                             this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
                         }
                     } catch (error) {
