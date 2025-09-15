@@ -244,44 +244,31 @@ class GolfScoreApp {
             console.log('  - window.googleSheetsAPI:', !!window.googleSheetsAPI);
 
             let errorMessage = 'Google Sheets API 초기화에 실패했습니다.';
+            let showRetry = true;
             
-            // GitHub Pages 환경 감지
-            const isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
-                                  window.location.hostname.includes('github.io');
-            
-            if (isGitHubPages) {
-                if (error.message.includes('iframe')) {
-                    errorMessage = 'GitHub Pages에서 iframe 보안 정책으로 인해 Google API를 로드할 수 없습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
-                } else if (error.message.includes('network')) {
-                    errorMessage = 'GitHub Pages에서 네트워크 연결 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
-                } else if (error.message.includes('timeout')) {
-                    errorMessage = 'GitHub Pages에서 Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
-                } else if (error.message.includes('gapi')) {
-                    errorMessage = 'GitHub Pages에서 Google API를 로드할 수 없습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
-                } else if (error.message.includes('GoogleSheetsAPI')) {
-                    errorMessage = 'GitHub Pages에서 Google Sheets API 클래스를 로드할 수 없습니다. 페이지를 새로고침해주세요.';
-                } else if (error.message.includes('CORS')) {
-                    errorMessage = 'GitHub Pages CORS 정책으로 인해 Google API에 접근할 수 없습니다. 오프라인 모드로 전환합니다.';
-                    // CORS 오류 시 자동으로 오프라인 모드 전환
-                    setTimeout(() => {
-                        this.enableFallbackMode();
-                    }, 1000);
-                } else {
-                    errorMessage = 'GitHub Pages에서 Google Sheets API 초기화에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
-                }
+            // 오류 유형별 처리
+            if (error.message.includes('CORS')) {
+                errorMessage = 'CORS 오류: GitHub Pages에서 Google API 접근이 제한됩니다. 오프라인 모드를 사용해주세요.';
+                showRetry = false; // CORS 오류는 재시도해도 해결되지 않음
+                // CORS 오류 시 자동으로 오프라인 모드 전환
+                setTimeout(() => {
+                    this.enableFallbackMode();
+                }, 2000);
+            } else if (error.message.includes('네트워크') || error.message.includes('network')) {
+                errorMessage = '네트워크 연결 문제입니다. 인터넷 연결을 확인하고 재시도해주세요.';
+                showRetry = true;
+            } else if (error.message.includes('시간 초과') || error.message.includes('timeout')) {
+                errorMessage = 'Google API 로딩 시간이 초과되었습니다. 재시도하거나 오프라인 모드를 사용해주세요.';
+                showRetry = true;
+            } else if (error.message.includes('스크립트가 로드되지 않았습니다')) {
+                errorMessage = 'Google API 스크립트 로딩에 실패했습니다. 네트워크 연결을 확인하고 재시도해주세요.';
+                showRetry = true;
             } else {
-                if (error.message.includes('iframe')) {
-                    errorMessage = '브라우저 보안 설정으로 인해 Google API를 로드할 수 없습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
-                } else if (error.message.includes('network')) {
-                    errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
-                } else if (error.message.includes('timeout')) {
-                    errorMessage = 'Google API 로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
-                } else if (error.message.includes('GoogleSheetsAPI')) {
-                    errorMessage = 'Google Sheets API 클래스를 로드할 수 없습니다. 페이지를 새로고침해주세요.';
-                }
+                errorMessage = `API 초기화 실패: ${error.message}. 재시도하거나 오프라인 모드를 사용해주세요.`;
+                showRetry = true;
             }
             
-            this.showNotification(errorMessage, 'error');
+            this.showLoadingStatus(errorMessage, showRetry);
             
             // 재시도 버튼 추가
             this.addRetryButton();

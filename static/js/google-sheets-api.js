@@ -67,105 +67,62 @@ class GoogleSheetsAPI {
                 try {
                     console.log('🔧 Google API 클라이언트 초기화 중...');
                     
-                    // GitHub Pages 최적화된 설정
+                    // 간단한 기본 설정만 사용
                     const initConfig = {
                         clientId: this.clientId,
                         scope: this.scope
                     };
                     
-                    // Discovery Docs는 CORS 문제를 일으킬 수 있으므로 조건부 추가
-                    if (!this.isGitHubPages) {
-                        initConfig.discoveryDocs = this.discoveryDocs;
-                    }
-                    
-                    if (this.isGitHubPages) {
-                        console.log('🔧 GitHub Pages 최적화 설정 적용');
-                        // GitHub Pages에서 안정적인 설정
-                        initConfig.ux_mode = 'redirect';
-                        initConfig.redirect_uri = window.location.origin + window.location.pathname;
-                        initConfig.immediate = false;
-                        initConfig.cookie_policy = 'single_host_origin';
-                    } else {
-                        // 로컬 환경 설정
-                        initConfig.ux_mode = 'popup';
-                        initConfig.redirect_uri = window.location.origin;
-                        initConfig.discoveryDocs = this.discoveryDocs;
-                    }
-                    
                     console.log('🔧 초기화 설정:', initConfig);
                     await this.gapi.client.init(initConfig);
                     
-                    // Sheets API 수동 로드 (Discovery Docs 대신)
-                    if (this.isGitHubPages) {
-                        console.log('📊 Sheets API 수동 로드 중...');
+                    // Sheets API 로드 시도 (오류 발생 시 무시)
+                    try {
+                        console.log('📊 Sheets API 로드 중...');
                         await this.gapi.client.load('sheets', 'v4');
+                        console.log('✅ Sheets API 로드 성공');
+                    } catch (sheetsError) {
+                        console.warn('⚠️ Sheets API 로드 실패 (계속 진행):', sheetsError.message);
+                        // Sheets API 로드 실패해도 계속 진행
                     }
                     
                     console.log('✅ Google API 초기화 성공');
                     resolve();
+                    
                 } catch (error) {
                     console.error('❌ Google API 초기화 실패:', error);
-                    console.error('❌ 오류 상세:', error.stack);
                     
-                    // CORS 관련 오류 감지 및 처리
+                    // 오류 분석
                     const errorMessage = error.message || error.toString();
+                    console.error('❌ 오류 분석:', {
+                        message: errorMessage,
+                        status: error.status,
+                        code: error.code
+                    });
+                    
+                    // CORS 관련 오류 감지
                     if (errorMessage.includes('CORS') || 
                         errorMessage.includes('Cross-Origin') ||
                         errorMessage.includes('blocked') ||
                         errorMessage.includes('response header') ||
                         error.status === 0) {
-                        console.error('🚫 CORS 오류 감지');
-                        reject(new Error('CORS: GitHub Pages에서 Google API 접근이 차단되었습니다. 브라우저 설정을 확인하거나 다른 브라우저를 시도해주세요.'));
+                        console.error('🚫 CORS 오류 감지 - 오프라인 모드 권장');
+                        reject(new Error('CORS 오류: GitHub Pages에서 Google API 접근이 제한됩니다. 오프라인 모드를 사용해주세요.'));
                         return;
                     }
                     
-                    // 재시도 로직 (더 간단한 설정으로)
-                    try {
-                        console.log('🔄 Google API 최소 설정으로 재시도 중...');
-                        await this.gapi.client.init({
-                            clientId: this.clientId,
-                            scope: this.scope
-                        });
-                        console.log('✅ Google API 재시도 성공');
-                        resolve();
-                    } catch (retryError) {
-                        console.error('❌ Google API 재시도 실패:', retryError);
-                        
-                        // 재시도에서도 CORS 오류 확인
-                        const retryErrorMessage = retryError.message || retryError.toString();
-                        if (retryErrorMessage.includes('CORS') || 
-                            retryErrorMessage.includes('Cross-Origin') ||
-                            retryErrorMessage.includes('blocked') ||
-                            retryErrorMessage.includes('response header') ||
-                            retryError.status === 0) {
-                            reject(new Error('CORS: GitHub Pages 환경에서 Google API에 접근할 수 없습니다. 오프라인 모드를 사용해주세요.'));
-                            return;
-                        }
-                        
-                        // 최종 재시도 (기본 설정만)
-                        try {
-                            console.log('🔄 Google API 최종 재시도 중...');
-                            await this.gapi.client.init({
-                                clientId: this.clientId
-                            });
-                            console.log('✅ Google API 최종 재시도 성공');
-                            resolve();
-                        } catch (finalError) {
-                            console.error('❌ Google API 최종 재시도 실패:', finalError);
-                            
-                            // 최종 오류에서도 CORS 확인
-                            const finalErrorMessage = finalError.message || finalError.toString();
-                            if (finalErrorMessage.includes('CORS') || 
-                                finalErrorMessage.includes('Cross-Origin') ||
-                                finalErrorMessage.includes('blocked') ||
-                                finalErrorMessage.includes('response header') ||
-                                finalError.status === 0) {
-                                reject(new Error('CORS: GitHub Pages에서 Google API를 사용할 수 없습니다. 오프라인 모드로 전환합니다.'));
-                            } else {
-                                reject(new Error(`Google API 초기화 실패: ${finalError.message}. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.`));
-                            }
-                        }
+                    // 네트워크 오류 감지
+                    if (errorMessage.includes('network') || 
+                        errorMessage.includes('fetch') ||
+                        errorMessage.includes('timeout')) {
+                        console.error('🌐 네트워크 오류 감지');
+                        reject(new Error('네트워크 연결 문제입니다. 인터넷 연결을 확인하고 다시 시도해주세요.'));
+                        return;
                     }
+                    
+                    // 기타 오류 - 재시도 없이 바로 실패 처리
+                    console.error('❌ Google API 초기화 완전 실패');
+                    reject(new Error(`Google API 초기화 실패: ${errorMessage}. 오프라인 모드를 사용해주세요.`));
                 }
             });
         });
