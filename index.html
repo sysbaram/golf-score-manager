@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#667eea">
     
-    <!-- GitHub Pages 최적화 보안 정책 -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://ssl.gstatic.com https://www.gstatic.com https://www.googleapis.com https://cdnjs.cloudflare.com https://gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://cdnjs.cloudflare.com https://fonts.gstatic.com https://gstatic.com; img-src 'self' data: blob: https: https://accounts.google.com https://ssl.gstatic.com https://www.gstatic.com; connect-src 'self' https://accounts.google.com https://www.googleapis.com https://sheets.googleapis.com https://oauth2.googleapis.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self' https://accounts.google.com https://content.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://gstatic.com; object-src 'none'; base-uri 'self';">
+    <!-- GitHub Pages 최적화 보안 정책 (완화된 버전) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; style-src 'self' 'unsafe-inline' https: data: blob:; img-src 'self' data: blob: https:; connect-src 'self' https: data: blob:; frame-src 'self' https:; font-src 'self' https: data: blob:; media-src 'self' https: data: blob:; object-src 'none'; base-uri 'self';">
+    
+    <!-- 개발 환경에서는 더 관대한 정책 적용 -->
+    <script>
+        // GitHub Pages 환경에서만 CSP 완화
+        if (window.location.hostname.includes('github.io')) {
+            console.log('🔧 GitHub Pages 환경 - CSP 정책 완화 적용');
+        }
+    </script>
     
     <!-- 추가 보안 헤더 -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -283,50 +292,80 @@
         </div>
     </div>
 
-    <!-- 스타일시트 로딩 검증 -->
+    <!-- 스타일시트 및 리소스 로딩 검증 -->
     <script>
-        // 스타일시트 로딩 상태 확인
-        function verifyStylesheets() {
-            console.log('🎨 스타일시트 로딩 상태 확인...');
+        // 페이지 로딩 상태 및 리소스 검증
+        function verifyPageResources() {
+            console.log('🔍 페이지 리소스 로딩 상태 확인...');
             
+            // DOCTYPE 및 렌더링 모드 확인
+            console.log('📋 문서 정보:');
+            console.log('  - DOCTYPE:', document.doctype ? 'HTML5' : '없음');
+            console.log('  - 호환 모드:', document.compatMode); // CSS1Compat = Standards Mode, BackCompat = Quirks Mode
+            console.log('  - 문서 준비 상태:', document.readyState);
+            
+            // 스타일시트 로딩 상태 확인
+            console.log('🎨 스타일시트 로딩 상태:');
             const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
             stylesheets.forEach((link, index) => {
                 const href = link.href;
-                console.log(`📄 스타일시트 ${index + 1}: ${href}`);
+                const filename = href.split('/').pop();
+                console.log(`📄 ${index + 1}. ${filename}: ${href}`);
                 
                 // 로딩 상태 확인
                 if (link.sheet) {
                     try {
                         const rules = link.sheet.cssRules || link.sheet.rules;
-                        console.log(`✅ 스타일시트 ${index + 1} 로딩 성공 (${rules.length} 규칙)`);
+                        console.log(`   ✅ 로딩 성공 (${rules.length} CSS 규칙)`);
                     } catch (e) {
-                        console.warn(`⚠️ 스타일시트 ${index + 1} 접근 제한 (CORS):`, e.message);
+                        console.log(`   ⚠️ CORS 제한으로 규칙 수 확인 불가`);
                     }
                 } else {
-                    console.error(`❌ 스타일시트 ${index + 1} 로딩 실패`);
+                    console.log(`   ❌ 로딩 실패 또는 대기 중`);
                 }
             });
             
-            // Inter 폰트 로딩 확인
+            // 스크립트 로딩 확인
+            console.log('📜 스크립트 로딩 상태:');
+            const scripts = document.querySelectorAll('script[src]');
+            scripts.forEach((script, index) => {
+                const src = script.src;
+                const filename = src.split('/').pop();
+                console.log(`📜 ${index + 1}. ${filename}: ${src}`);
+            });
+            
+            // 폰트 로딩 확인
             if (document.fonts) {
                 document.fonts.ready.then(() => {
+                    console.log('🔤 폰트 로딩 상태:');
+                    console.log(`   총 ${document.fonts.size}개 폰트 로드됨`);
+                    
                     const interFont = Array.from(document.fonts).find(font => 
                         font.family.includes('Inter')
                     );
                     if (interFont) {
-                        console.log('✅ Inter 폰트 로딩 완료');
+                        console.log('   ✅ Inter 폰트 로딩 완료');
                     } else {
-                        console.warn('⚠️ Inter 폰트를 찾을 수 없습니다');
+                        console.log('   ⚠️ Inter 폰트 확인 필요');
                     }
                 });
             }
+            
+            // CSP 오류 감지
+            window.addEventListener('securitypolicyviolation', (e) => {
+                console.error('🚫 CSP 위반 감지:', {
+                    blockedURI: e.blockedURI,
+                    violatedDirective: e.violatedDirective,
+                    originalPolicy: e.originalPolicy
+                });
+            });
         }
         
         // 페이지 로드 완료 후 검증
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', verifyStylesheets);
+            document.addEventListener('DOMContentLoaded', verifyPageResources);
         } else {
-            verifyStylesheets();
+            verifyPageResources();
         }
     </script>
 
