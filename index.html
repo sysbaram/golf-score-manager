@@ -9,7 +9,12 @@
     <meta name="theme-color" content="#667eea">
     
     <!-- GitHub Pages 최적화 보안 정책 -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://ssl.gstatic.com https://www.gstatic.com https://www.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://accounts.google.com https://www.googleapis.com https://sheets.googleapis.com https://oauth2.googleapis.com https://cdnjs.cloudflare.com; frame-src 'self' https://accounts.google.com https://content.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://ssl.gstatic.com https://www.gstatic.com https://www.googleapis.com https://cdnjs.cloudflare.com https://gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://cdnjs.cloudflare.com https://fonts.gstatic.com https://gstatic.com; img-src 'self' data: blob: https: https://accounts.google.com https://ssl.gstatic.com https://www.gstatic.com; connect-src 'self' https://accounts.google.com https://www.googleapis.com https://sheets.googleapis.com https://oauth2.googleapis.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self' https://accounts.google.com https://content.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://gstatic.com; object-src 'none'; base-uri 'self';">
+    
+    <!-- 추가 보안 헤더 -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
     <!-- CORS 및 보안 헤더 -->
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -124,7 +129,7 @@
                     <form id="score-form">
                         <div class="form-group">
                             <label for="course-name">코스 이름</label>
-                            <input type="text" id="course-name" name="course_name" required>
+                            <input type="text" id="course-name" name="course_name" autocomplete="off" required>
                         </div>
                         
                         <div class="scores-grid">
@@ -226,11 +231,11 @@
                 <form id="login-form">
                     <div class="form-group">
                         <label for="login-username">사용자명 또는 이메일</label>
-                        <input type="text" id="login-username" name="username" placeholder="사용자명 또는 이메일 주소" required>
+                        <input type="text" id="login-username" name="username" placeholder="사용자명 또는 이메일 주소" autocomplete="username" required>
                     </div>
                     <div class="form-group">
                         <label for="login-password">비밀번호</label>
-                        <input type="password" id="login-password" name="password" required>
+                        <input type="password" id="login-password" name="password" autocomplete="current-password" required>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary modal-close">취소</button>
@@ -254,20 +259,20 @@
                 <form id="register-form">
                     <div class="form-group">
                         <label for="register-username">사용자명</label>
-                        <input type="text" id="register-username" name="username" required>
+                        <input type="text" id="register-username" name="username" autocomplete="username" required>
                     </div>
                     <div class="form-group">
                         <label for="register-email">이메일</label>
-                        <input type="email" id="register-email" name="email" required>
+                        <input type="email" id="register-email" name="email" autocomplete="email" required>
                     </div>
                     <div class="form-group">
                         <label for="register-password">비밀번호</label>
-                        <input type="password" id="register-password" name="password" required minlength="6">
+                        <input type="password" id="register-password" name="password" autocomplete="new-password" required minlength="6">
                         <small>비밀번호는 6자 이상이어야 합니다.</small>
                     </div>
                     <div class="form-group">
                         <label for="register-password-confirm">비밀번호 확인</label>
-                        <input type="password" id="register-password-confirm" name="password_confirm" required>
+                        <input type="password" id="register-password-confirm" name="password_confirm" autocomplete="new-password" required>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary modal-close">취소</button>

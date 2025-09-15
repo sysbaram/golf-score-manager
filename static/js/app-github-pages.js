@@ -719,27 +719,27 @@ class GolfScoreApp {
                 <div class="score-inputs">
                     <div class="input-group">
                         <label>Par</label>
-                        <input type="number" id="par-${i}" min="3" max="5" value="4" class="par-input">
+                        <input type="number" id="par-${i}" min="3" max="5" value="4" class="par-input" autocomplete="off">
                     </div>
                     <div class="input-group">
                         <label>Driver</label>
-                        <input type="number" id="driver-${i}" min="0" max="10" value="0" class="driver-input">
+                        <input type="number" id="driver-${i}" min="0" max="10" value="0" class="driver-input" autocomplete="off">
                     </div>
                     <div class="input-group">
                         <label>Wood/Util</label>
-                        <input type="number" id="wood-${i}" min="0" max="10" value="0" class="wood-input">
+                        <input type="number" id="wood-${i}" min="0" max="10" value="0" class="wood-input" autocomplete="off">
                     </div>
                     <div class="input-group">
                         <label>Iron</label>
-                        <input type="number" id="iron-${i}" min="0" max="10" value="0" class="iron-input">
+                        <input type="number" id="iron-${i}" min="0" max="10" value="0" class="iron-input" autocomplete="off">
                     </div>
                     <div class="input-group">
                         <label>Putter</label>
-                        <input type="number" id="putter-${i}" min="0" max="10" value="0" class="putter-input">
+                        <input type="number" id="putter-${i}" min="0" max="10" value="0" class="putter-input" autocomplete="off">
                     </div>
                     <div class="input-group total-group">
                         <label>Total</label>
-                        <input type="number" id="total-${i}" min="1" max="20" value="4" class="total-input" readonly>
+                        <input type="number" id="total-${i}" min="1" max="20" value="4" class="total-input" autocomplete="off" readonly>
                     </div>
                 </div>
             `;
