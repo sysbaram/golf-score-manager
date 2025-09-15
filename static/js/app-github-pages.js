@@ -1451,7 +1451,16 @@ function setupFallbackEventListeners() {
         loginBtn.onclick = function(e) {
             console.log('🔐 안전장치 - 로그인 버튼 클릭됨!');
             e.preventDefault();
-            alert('로그인 버튼이 클릭되었습니다! (안전장치 모드)');
+            
+            // 로그인 모달 표시
+            const loginModal = document.getElementById('login-modal');
+            if (loginModal) {
+                console.log('✅ 로그인 모달 표시');
+                loginModal.style.display = 'flex';
+            } else {
+                console.error('❌ 로그인 모달을 찾을 수 없음');
+                alert('로그인 모달을 찾을 수 없습니다.');
+            }
             return false;
         };
         console.log('✅ 안전장치 - 로그인 버튼 onclick 설정 완료');
@@ -1461,11 +1470,49 @@ function setupFallbackEventListeners() {
         registerBtn.onclick = function(e) {
             console.log('📝 안전장치 - 회원가입 버튼 클릭됨!');
             e.preventDefault();
-            alert('회원가입 버튼이 클릭되었습니다! (안전장치 모드)');
+            
+            // 회원가입 모달 표시
+            const registerModal = document.getElementById('register-modal');
+            if (registerModal) {
+                console.log('✅ 회원가입 모달 표시');
+                registerModal.style.display = 'flex';
+            } else {
+                console.error('❌ 회원가입 모달을 찾을 수 없음');
+                alert('회원가입 모달을 찾을 수 없습니다.');
+            }
             return false;
         };
         console.log('✅ 안전장치 - 회원가입 버튼 onclick 설정 완료');
     }
+    
+    // 모달 닫기 기능 설정
+    console.log('🔧 모달 닫기 기능 설정...');
+    
+    // 모든 모달 닫기 버튼에 이벤트 추가
+    const closeButtons = document.querySelectorAll('.modal-close');
+    closeButtons.forEach(btn => {
+        btn.onclick = function(e) {
+            console.log('❌ 모달 닫기 버튼 클릭');
+            const modal = e.target.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+                console.log('✅ 모달 닫기 완료');
+            }
+        };
+    });
+    
+    // 모달 배경 클릭으로 닫기
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                console.log('🖱️ 모달 배경 클릭 - 모달 닫기');
+                modal.style.display = 'none';
+            }
+        };
+    });
+    
+    console.log('✅ 모달 닫기 기능 설정 완료');
 }
 
 // DOM 상태에 관계없이 즉시 시도
