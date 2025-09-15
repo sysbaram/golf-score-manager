@@ -1219,11 +1219,35 @@ class GolfScoreApp {
         // 기존 로딩 상태 숨기기
         this.hideLoadingStatus();
         
-        // 로딩 상태 표시
-        this.showLoadingStatus('Google Sheets API 재연결 중...');
-        
-        // 재시도 시작
-        await this.waitForGoogleAPIAndInit();
+        // Google API 로딩 상태 확인
+        if (!window.gapi) {
+            console.log('⚠️ Google API 스크립트가 로드되지 않음 - 스크립트 재로딩 시도');
+            this.showLoadingStatus('Google API 스크립트 재로딩 중...');
+            
+            // Google API 스크립트 강제 재로딩
+            if (window.loadGoogleApiAlternative) {
+                window.googleApiLoadAttempts = 0;
+                window.loadGoogleApiAlternative();
+            } else {
+                // 수동으로 스크립트 로딩
+                const script = document.createElement('script');
+                script.src = 'https://apis.google.com/js/api.js';
+                script.async = true;
+                script.onload = () => {
+                    console.log('✅ Google API 스크립트 재로딩 성공');
+                    this.waitForGoogleAPIAndInit();
+                };
+                script.onerror = () => {
+                    console.error('❌ Google API 스크립트 재로딩 실패');
+                    this.showLoadingStatus('Google API 로딩에 실패했습니다. 네트워크 연결을 확인하거나 오프라인 모드를 사용해주세요.', true);
+                };
+                document.head.appendChild(script);
+            }
+        } else {
+            console.log('✅ Google API 스크립트 존재 - 초기화 재시도');
+            this.showLoadingStatus('Google Sheets API 재연결 중...');
+            await this.waitForGoogleAPIAndInit();
+        }
     }
 }
 

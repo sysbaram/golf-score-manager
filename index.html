@@ -61,8 +61,52 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="//apis.google.com">
     
-    <!-- Google API 정적 로딩 (GitHub Pages 최적화) -->
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <!-- Google API 다중 로딩 전략 (GitHub Pages 최적화) -->
+    <script>
+        // Google API 로딩 상태 추적
+        window.googleApiLoadAttempts = 0;
+        window.googleApiLoaded = false;
+        
+        // 성공 콜백
+        window.onGoogleApiLoad = function() {
+            console.log('✅ Google API 로딩 성공');
+            window.googleApiLoaded = true;
+            if (window.golfApp && !window.golfApp.isInitialized) {
+                console.log('🔄 앱 재초기화 시도...');
+                window.golfApp.retryGoogleAPIConnection();
+            }
+        };
+        
+        // 실패 콜백
+        window.onGoogleApiError = function(error) {
+            console.error('❌ Google API 로딩 실패:', error);
+            window.googleApiLoadAttempts++;
+            
+            if (window.googleApiLoadAttempts < 3) {
+                console.log(`🔄 Google API 재시도 ${window.googleApiLoadAttempts}/3`);
+                setTimeout(loadGoogleApiAlternative, 2000);
+            } else {
+                console.log('❌ Google API 로딩 완전 실패 - 오프라인 모드 권장');
+                if (window.golfApp) {
+                    window.golfApp.showLoadingStatus('Google API 로딩에 실패했습니다. 오프라인 모드를 사용해주세요.', true);
+                }
+            }
+        };
+        
+        // 대안 로딩 방법
+        function loadGoogleApiAlternative() {
+            const script = document.createElement('script');
+            script.src = 'https://apis.google.com/js/api.js';
+            script.async = true;
+            script.defer = true;
+            script.onload = window.onGoogleApiLoad;
+            script.onerror = window.onGoogleApiError;
+            document.head.appendChild(script);
+        }
+        
+        // 초기 로딩 시도
+        loadGoogleApiAlternative();
+    </script>
 </head>
 <body>
     <div class="container">

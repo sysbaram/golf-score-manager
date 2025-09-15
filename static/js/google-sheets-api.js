@@ -21,6 +21,13 @@ class GoogleSheetsAPI {
         return new Promise((resolve, reject) => {
             console.log('🚀 Google Sheets API 초기화 시작...');
             
+            // Google API 로딩 상태 확인
+            if (!window.gapi) {
+                console.error('❌ Google API 스크립트가 로드되지 않았습니다.');
+                reject(new Error('Google API 스크립트가 로드되지 않았습니다. 네트워크 연결을 확인하거나 페이지를 새로고침해주세요.'));
+                return;
+            }
+            
             // Google API가 이미 로드되었는지 확인
             if (window.gapi && window.gapi.load) {
                 console.log('✅ Google API 이미 로드됨');
@@ -28,9 +35,9 @@ class GoogleSheetsAPI {
                 this.loadClient().then(resolve).catch(reject);
             } else {
                 console.log('⏳ Google API 로딩 대기 중...');
-                // Google API 로딩 대기 (최대 10초)
+                // Google API 로딩 대기 (최대 5초로 단축)
                 let attempts = 0;
-                const maxAttempts = 100;
+                const maxAttempts = 50;
                 const checkGapi = () => {
                     if (window.gapi && window.gapi.load) {
                         console.log('✅ Google API 로딩 완료');
@@ -38,13 +45,13 @@ class GoogleSheetsAPI {
                         this.loadClient().then(resolve).catch(reject);
                     } else if (attempts < maxAttempts) {
                         attempts++;
-                        if (attempts % 25 === 0) {
+                        if (attempts % 10 === 0) {
                             console.log(`⏳ Google API 로딩 대기 중... (${attempts}/${maxAttempts})`);
                         }
                         setTimeout(checkGapi, 100);
                     } else {
                         console.error('❌ Google API 로딩 시간 초과');
-                        reject(new Error('Google API 로딩 시간 초과. GitHub Pages에서 Google API를 로드할 수 없습니다.'));
+                        reject(new Error('Google API 로딩 시간 초과. 네트워크 연결을 확인하거나 페이지를 새로고침해주세요.'));
                     }
                 };
                 checkGapi();
