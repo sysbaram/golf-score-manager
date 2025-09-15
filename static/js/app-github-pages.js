@@ -917,67 +917,102 @@ class GolfScoreApp {
                 throw new Error('Google Sheets API가 초기화되지 않았습니다.');
             }
 
-            // Google 계정으로 로그인 (GitHub Pages에서는 임시로 데모 모드 강제)
-            console.log('📡 Google 계정 로그인 시도...');
-            
-            // GitHub Pages에서 OAuth 문제가 지속되므로 임시로 데모 모드 강제
-            const isGitHubPages = window.location.hostname.includes('github.io');
-            if (isGitHubPages) {
-                console.log('🔄 GitHub Pages 환경에서 OAuth 문제로 인해 직접 데모 모드로 전환합니다...');
-                this.showNotification('GitHub Pages 환경에서 Google OAuth 제한으로 인해 로컬 스토리지 데모 모드로 진행합니다.', 'info');
+            // Google Sheets API 연동을 먼저 시도
+            console.log('🔄 Google Sheets API 연동 시도...');
                 
-                // 디버깅을 위한 로컬 스토리지 상태 확인
-                console.log('🔍 현재 로컬 스토리지 상태:');
-                console.log('  - localStorage 크기:', Object.keys(localStorage).length);
-                console.log('  - 모든 키:', Object.keys(localStorage));
-                
-                // 임시로 로컬 스토리지 초기화 (중복 검사 문제 해결)
-                console.log('🔧 로컬 스토리지 초기화 중...');
-                localStorage.clear();
-                console.log('✅ 로컬 스토리지 초기화 완료');
-                
-                // 로컬 스토리지에서 기존 사용자 확인
-                console.log('🔍 로컬 스토리지 사용자 확인 중...');
-                const existingUsers = this.getLocalData('users') || [];
-                console.log('📊 기존 사용자 목록:', existingUsers);
-                console.log('📝 입력된 사용자명:', username);
-                console.log('📝 입력된 이메일:', email);
-                
-                const isUsernameExists = existingUsers.some(u => u.username === username);
-                const isEmailExists = existingUsers.some(u => u.email === email);
-                
-                console.log('🔍 사용자명 중복 여부:', isUsernameExists);
-                console.log('🔍 이메일 중복 여부:', isEmailExists);
-                
-                if (isUsernameExists) {
-                    this.showNotification('이미 존재하는 사용자명입니다.', 'error');
-                    return;
-                }
-                
-                if (isEmailExists) {
-                    this.showNotification('이미 존재하는 이메일입니다.', 'error');
-                    return;
-                }
-                
-                // 새 사용자 생성
-                const newUser = {
-                    username: username,
-                    email: email,
-                    password: password,
-                    id: 'demo_' + Date.now(),
-                    created_at: new Date().toISOString()
-                };
-                
-                // 로컬 스토리지에 저장
-                existingUsers.push(newUser);
-                this.saveLocalData('users', existingUsers);
-                
+                // 먼저 Google Sheets API 연동을 시도
+                try {
+                    console.log('🔄 Google Sheets API 연동 시도...');
+                    await this.googleSheetsAPI.signIn();
+                    console.log('✅ Google 로그인 성공');
+                    
+                    // Google 사용자 정보 가져오기
+                    console.log('👤 Google 사용자 정보 가져오기...');
+                    const googleUser = this.googleSheetsAPI.getCurrentUser();
+                    console.log('👤 Google 사용자 정보:', googleUser);
+                    
+                    if (!googleUser) {
+                        throw new Error('Google 사용자 정보를 가져올 수 없습니다. 로그인을 다시 시도해주세요.');
+                    }
+
+                    // 사용자 등록
+                    console.log('📝 사용자 등록 시도...');
+                    const result = await this.googleSheetsAPI.registerUser(username, email, password);
+                    
+                    if (!result) {
+                        throw new Error('등록 결과가 없습니다.');
+                    }
+                    
+                    if (result.success) {
                         // 회원가입만 완료하고 로그인 상태로 설정하지 않음
                         this.hideModal(document.getElementById('register-modal'));
-                        this.showNotification('회원가입이 완료되었습니다! 로그인 버튼을 클릭해서 로그인해주세요.', 'success');
-                
-                console.log('✅ 로컬 스토리지 데모 회원가입 완료:', newUser);
-                return;
+                        this.showNotification('Google Sheets에 회원가입이 완료되었습니다! 로그인 버튼을 클릭해서 로그인해주세요.', 'success');
+                        console.log('✅ Google Sheets 회원가입 완료:', result.user);
+                        return;
+                    } else {
+                        throw new Error(result.error || '회원가입에 실패했습니다.');
+                    }
+                    
+                } catch (googleError) {
+                    console.error('❌ Google Sheets 연동 실패:', googleError);
+                    
+                    // Google OAuth 관련 오류인 경우 로컬 스토리지로 폴백
+                    const errorStr = googleError.message + ' ' + googleError.toString();
+                    console.log('🔍 오류 문자열 분석:', errorStr);
+                    
+                    if (errorStr.includes('OAuth 인증 오류') ||
+                        errorStr.includes('invalid_client') || 
+                        errorStr.includes('unauthorized_client') ||
+                        errorStr.includes('no registered origin') ||
+                        errorStr.includes('401') ||
+                        errorStr.includes('popup_closed_by_user') ||
+                        errorStr.includes('access_denied') ||
+                        errorStr.includes('CORS')) {
+                        console.log('🔄 Google OAuth/CORS 문제로 인해 로컬 스토리지 데모 모드로 폴백합니다...');
+                        this.showNotification('Google Sheets 연동에 실패하여 로컬 스토리지 데모 모드로 진행합니다.', 'warning');
+                        
+                        // 로컬 스토리지에서 기존 사용자 확인
+                        console.log('🔍 로컬 스토리지 사용자 확인 중...');
+                        const existingUsers = this.getLocalData('users') || [];
+                        console.log('📊 기존 사용자 목록:', existingUsers);
+                        
+                        const isUsernameExists = existingUsers.some(u => u.username === username);
+                        const isEmailExists = existingUsers.some(u => u.email === email);
+                        
+                        if (isUsernameExists) {
+                            this.showNotification('이미 존재하는 사용자명입니다.', 'error');
+                            return;
+                        }
+                        
+                        if (isEmailExists) {
+                            this.showNotification('이미 존재하는 이메일입니다.', 'error');
+                            return;
+                        }
+                        
+                        // 새 사용자 생성
+                        const newUser = {
+                            username: username,
+                            email: email,
+                            password: password,
+                            id: 'demo_' + Date.now(),
+                            created_at: new Date().toISOString()
+                        };
+                        
+                        // 로컬 스토리지에 저장
+                        existingUsers.push(newUser);
+                        this.saveLocalData('users', existingUsers);
+                        
+                        // 회원가입만 완료하고 로그인 상태로 설정하지 않음
+                        this.hideModal(document.getElementById('register-modal'));
+                        this.showNotification('로컬 스토리지 데모 모드로 회원가입이 완료되었습니다! 로그인 버튼을 클릭해서 로그인해주세요.', 'success');
+                        
+                        console.log('✅ 로컬 스토리지 데모 회원가입 완료:', newUser);
+                        return;
+                    } else {
+                        // 다른 오류는 재시도 가능하도록 throw
+                        throw googleError;
+                    }
+                }
             }
             
             try {
