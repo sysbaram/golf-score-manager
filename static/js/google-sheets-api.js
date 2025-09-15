@@ -132,14 +132,15 @@ class GoogleSheetsAPI {
         try {
             const authInstance = this.gapi.auth2.getAuthInstance();
             
-            // GitHub Pages에서는 특별한 설정 적용
+            // GitHub Pages에서는 popup 모드 사용 (redirect_uri 문제 해결)
             if (this.isGitHubPages) {
-                console.log('🔧 GitHub Pages 로그인 설정 적용');
+                console.log('🔧 GitHub Pages popup 로그인 설정 적용');
+                
                 const options = {
-                    prompt: 'select_account',
-                    ux_mode: 'redirect',
-                    redirect_uri: window.location.origin
+                    prompt: 'select_account'
                 };
+                console.log('🔧 로그인 옵션:', options);
+                
                 const user = await authInstance.signIn(options);
                 this.isSignedIn = true;
                 return user;
