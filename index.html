@@ -13,34 +13,16 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#667eea">
     
-    <!-- GitHub Pages 환경에서는 CSP 비활성화 -->
+    <!-- GitHub Pages 최적화 - 최소한의 설정 -->
     <script>
-        // GitHub Pages 환경 감지 및 CSP 처리
+        // GitHub Pages 환경 감지
         const isGitHubPages = window.location.hostname.includes('github.io');
         if (isGitHubPages) {
-            console.log('🔧 GitHub Pages 환경 - CSP 정책 비활성화');
-            // GitHub Pages에서는 CSP 관련 메타 태그를 동적으로 제거
-            const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-            if (cspMeta) {
-                cspMeta.remove();
-                console.log('✅ CSP 메타 태그 제거 완료');
-            }
+            console.log('🔧 GitHub Pages 환경 - 최적화된 설정 적용');
         } else {
-            console.log('🔧 로컬 환경 - 기본 보안 정책 적용');
+            console.log('🔧 로컬 환경');
         }
     </script>
-    
-    <!-- 추가 보안 헤더 -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    
-    <!-- CORS 및 보안 헤더 (GitHub Pages 최적화) -->
-    <meta http-equiv="Access-Control-Allow-Origin" content="*">
-    <meta http-equiv="Access-Control-Allow-Methods" content="GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH">
-    <meta http-equiv="Access-Control-Allow-Headers" content="*">
-    <meta http-equiv="Access-Control-Allow-Credentials" content="true">
-    <meta http-equiv="Access-Control-Max-Age" content="86400">
     <meta name="description" content="Google Sheets와 연동하는 현대적인 골프 스코어 관리 시스템. 상세한 홀별 기록과 통계 분석을 제공합니다.">
     <meta name="keywords" content="골프, 스코어, 관리, 통계, Google Sheets, 라운드">
     <meta name="author" content="Golf Score Manager">
@@ -80,9 +62,7 @@
     <link rel="dns-prefetch" href="//apis.google.com">
     
     <!-- Google API 정적 로딩 (GitHub Pages 최적화) -->
-    <script src="https://apis.google.com/js/api.js" async defer 
-            onerror="console.error('❌ Google API 스크립트 로딩 실패')"
-            onload="console.log('✅ Google API 스크립트 로딩 완료')"></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
     <div class="container">
@@ -306,151 +286,62 @@
         </div>
     </div>
 
-    <!-- 스타일시트 및 리소스 로딩 검증 -->
+    <!-- 간소화된 리소스 검증 -->
     <script>
-        // 페이지 로딩 상태 및 리소스 검증
-        function verifyPageResources() {
-            console.log('🔍 페이지 리소스 로딩 상태 확인...');
+        // 기본 페이지 상태 확인
+        function checkPageStatus() {
+            console.log('📋 페이지 상태:');
+            console.log('  - DOCTYPE:', document.doctype ? 'HTML5 ✅' : '없음 ❌');
+            console.log('  - 렌더링 모드:', document.compatMode === 'CSS1Compat' ? 'Standards Mode ✅' : 'Quirks Mode ❌');
+            console.log('  - 준비 상태:', document.readyState);
             
-            // DOCTYPE 및 렌더링 모드 확인
-            console.log('📋 문서 정보:');
-            console.log('  - DOCTYPE:', document.doctype ? 'HTML5' : '없음');
-            console.log('  - 호환 모드:', document.compatMode); // CSS1Compat = Standards Mode, BackCompat = Quirks Mode
-            console.log('  - 문서 준비 상태:', document.readyState);
-            
-            // 스타일시트 로딩 상태 확인
-            console.log('🎨 스타일시트 로딩 상태:');
+            // 스타일시트 간단 확인
             const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
-            stylesheets.forEach((link, index) => {
-                const href = link.href;
-                const filename = href.split('/').pop();
-                console.log(`📄 ${index + 1}. ${filename}: ${href}`);
-                
-                // 로딩 상태 확인
-                if (link.sheet) {
-                    try {
-                        const rules = link.sheet.cssRules || link.sheet.rules;
-                        console.log(`   ✅ 로딩 성공 (${rules.length} CSS 규칙)`);
-                    } catch (e) {
-                        console.log(`   ⚠️ CORS 제한으로 규칙 수 확인 불가`);
-                    }
-                } else {
-                    console.log(`   ❌ 로딩 실패 또는 대기 중`);
-                }
-            });
+            console.log(`🎨 스타일시트: ${stylesheets.length}개 로드됨`);
             
-            // 스크립트 로딩 확인
-            console.log('📜 스크립트 로딩 상태:');
+            // 스크립트 간단 확인
             const scripts = document.querySelectorAll('script[src]');
-            scripts.forEach((script, index) => {
-                const src = script.src;
-                const filename = src.split('/').pop();
-                console.log(`📜 ${index + 1}. ${filename}: ${src}`);
-            });
-            
-            // 폰트 로딩 확인
-            if (document.fonts) {
-                document.fonts.ready.then(() => {
-                    console.log('🔤 폰트 로딩 상태:');
-                    console.log(`   총 ${document.fonts.size}개 폰트 로드됨`);
-                    
-                    const interFont = Array.from(document.fonts).find(font => 
-                        font.family.includes('Inter')
-                    );
-                    if (interFont) {
-                        console.log('   ✅ Inter 폰트 로딩 완료');
-                    } else {
-                        console.log('   ⚠️ Inter 폰트 확인 필요');
-                    }
-                });
-            }
-            
-            // 오류 감지 및 처리
-            window.addEventListener('securitypolicyviolation', (e) => {
-                console.error('🚫 CSP 위반 감지:', {
-                    blockedURI: e.blockedURI,
-                    violatedDirective: e.violatedDirective,
-                    originalPolicy: e.originalPolicy
-                });
-            });
-            
-            // 네트워크 오류 감지
-            window.addEventListener('error', (e) => {
-                if (e.target && e.target.tagName) {
-                    console.error(`❌ 리소스 로딩 실패: ${e.target.tagName} - ${e.target.src || e.target.href}`);
-                }
-            });
-            
-            // CORS 오류 감지
-            window.addEventListener('unhandledrejection', (e) => {
-                if (e.reason && e.reason.message && e.reason.message.includes('CORS')) {
-                    console.error('🚫 CORS 오류 감지:', e.reason.message);
-                }
-            });
+            console.log(`📜 외부 스크립트: ${scripts.length}개 로드됨`);
         }
         
-        // 페이지 로드 완료 후 검증
+        // 페이지 로드 완료 후 확인
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', verifyPageResources);
+            document.addEventListener('DOMContentLoaded', checkPageStatus);
         } else {
-            verifyPageResources();
+            checkPageStatus();
         }
     </script>
 
-    <!-- Google API 정적 로딩 초기화 -->
+    <!-- Google API 간소화된 초기화 -->
     <script>
-        // GitHub Pages 환경 감지
-        const isGitHubPages = window.location.hostname === 'sysbaram.github.io' || 
-                              window.location.hostname.includes('github.io');
-        
-        console.log('🌐 환경 감지:', isGitHubPages ? 'GitHub Pages' : '로컬');
-        
-        // Google API 초기화 대기
-        function waitForGoogleAPI() {
-            console.log('⏳ Google API 로딩 대기 중...');
-            
+        // 간단한 Google API 대기
+        function initGoogleAPI() {
             let attempts = 0;
-            const maxAttempts = 50; // 5초 대기
+            const maxAttempts = 30; // 3초 대기
             
             const checkGapi = () => {
-                attempts++;
-                
-                if (window.gapi) {
-                    console.log('✅ Google API 로드 완료');
-                    // 앱이 준비되면 초기화
-                    if (window.golfApp) {
-                        console.log('🔄 앱 초기화 시작...');
-                        window.golfApp.init();
-                    } else {
-                        console.log('⏳ 앱 로딩 대기 중...');
-                        setTimeout(() => {
-                            if (window.golfApp) {
-                                window.golfApp.init();
-                            }
-                        }, 1000);
-                    }
+                if (window.gapi && window.golfApp) {
+                    console.log('✅ Google API 및 앱 준비 완료');
+                    window.golfApp.init();
                 } else if (attempts < maxAttempts) {
-                    if (attempts % 10 === 0) {
-                        console.log(`⏳ Google API 대기 중... (${attempts}/${maxAttempts})`);
-                    }
+                    attempts++;
                     setTimeout(checkGapi, 100);
                 } else {
-                    console.error('❌ Google API 로딩 시간 초과');
+                    console.log('⏳ Google API 대기 시간 초과 - 오프라인 모드');
                     if (window.golfApp) {
-                        console.log('🔄 오프라인 모드로 전환...');
                         window.golfApp.enableFallbackMode();
                     }
                 }
             };
             
-            checkGapi();
+            setTimeout(checkGapi, 500);
         }
         
-        // 페이지 로드 완료 후 Google API 대기 시작
+        // 페이지 로드 후 초기화
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', waitForGoogleAPI);
+            document.addEventListener('DOMContentLoaded', initGoogleAPI);
         } else {
-            waitForGoogleAPI();
+            initGoogleAPI();
         }
     </script>
     
