@@ -9,12 +9,6 @@ class GolfScoreApp {
         this.isInitialized = false;
         this.initializationAttempts = 0;
         this.maxInitializationAttempts = 3; // 5초 → 3초로 단축
-        
-        // 기본 UI 설정만 먼저 수행
-        this.setupBasicUI();
-        
-        // Google API가 준비될 때까지 대기 후 초기화
-        this.waitForGoogleAPIAndInit();
     }
 
     setupBasicUI() {
@@ -488,9 +482,11 @@ class GolfScoreApp {
 
             // 로그인 버튼
             const loginBtn = document.getElementById('login-btn');
+            console.log('🔍 login-btn 요소 확인:', loginBtn);
             if (loginBtn) {
+                console.log('✅ login-btn 요소 발견, 이벤트 리스너 설정 중...');
                 loginBtn.addEventListener('click', (e) => {
-                    console.log('🔐 로그인 버튼 클릭');
+                    console.log('🔐 로그인 버튼 클릭됨!');
                     console.log('📊 현재 상태:');
                     console.log('  - isInitialized:', this.isInitialized);
                     console.log('  - googleSheetsAPI:', !!this.googleSheetsAPI);
@@ -526,13 +522,27 @@ class GolfScoreApp {
                 console.log('✅ 로그인 버튼 이벤트 리스너 설정 완료');
             } else {
                 console.error('❌ login-btn 버튼을 찾을 수 없습니다');
+                console.log('🔍 DOM 상태 디버깅:');
+                console.log('  - document.body:', !!document.body);
+                console.log('  - document.readyState:', document.readyState);
+                console.log('  - 모든 버튼 요소:', document.querySelectorAll('button').length + '개');
+                const allIds = Array.from(document.querySelectorAll('[id]')).map(el => el.id);
+                console.log('  - ID가 있는 모든 요소:', allIds);
             }
 
             // 회원가입 버튼
             const registerBtn = document.getElementById('register-btn');
+            console.log('🔍 register-btn 요소 확인:', registerBtn);
             if (registerBtn) {
+                console.log('✅ register-btn 요소 발견, 이벤트 리스너 설정 중...');
                 registerBtn.addEventListener('click', (e) => {
-                    console.log('📝 회원가입 버튼 클릭, isInitialized:', this.isInitialized);
+                    console.log('📝 회원가입 버튼 클릭됨!');
+                    console.log('📊 현재 상태:');
+                    console.log('  - isInitialized:', this.isInitialized);
+                    console.log('  - googleSheetsAPI:', !!this.googleSheetsAPI);
+                    console.log('  - window.gapi:', !!window.gapi);
+                    console.log('  - window.googleSheetsAPI:', !!window.googleSheetsAPI);
+                    
                     e.preventDefault();
                     try {
                         if (this.isInitialized && this.googleSheetsAPI) {
@@ -560,6 +570,12 @@ class GolfScoreApp {
                 console.log('✅ 회원가입 버튼 이벤트 리스너 설정 완료');
             } else {
                 console.error('❌ register-btn 버튼을 찾을 수 없습니다');
+                console.log('🔍 DOM 상태 디버깅:');
+                console.log('  - document.body:', !!document.body);
+                console.log('  - document.readyState:', document.readyState);
+                console.log('  - 모든 버튼 요소:', document.querySelectorAll('button').length + '개');
+                const allIds = Array.from(document.querySelectorAll('[id]')).map(el => el.id);
+                console.log('  - ID가 있는 모든 요소:', allIds);
             }
 
             // 로그아웃 버튼
@@ -1420,8 +1436,26 @@ class GolfScoreApp {
 
 // 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM 로드 완료, 앱 초기화 시작...');
+    console.log('🌟 DOM 로드 완료, 앱 초기화 시작...');
     window.golfApp = new GolfScoreApp();
+    
+    // DOM이 완전히 로드된 후 기본 UI 설정
+    console.log('🎨 DOM 로드 후 기본 UI 설정...');
+    window.golfApp.setupBasicUI();
+    
+    // GitHub Pages에서는 약간의 지연 후 Google API 초기화 시도
+    const isGitHubPages = window.location.hostname.includes('github.io');
+    if (isGitHubPages) {
+        console.log('🌐 GitHub Pages 환경 감지, 2초 후 Google API 초기화 시도...');
+        setTimeout(() => {
+            window.golfApp.waitForGoogleAPIAndInit();
+        }, 2000);
+    } else {
+        console.log('🖥️ 로컬 환경 감지, 즉시 Google API 초기화 시도...');
+        setTimeout(() => {
+            window.golfApp.waitForGoogleAPIAndInit();
+        }, 100);
+    }
 });
 
 // Google API 로딩 완료 후 재초기화 시도
