@@ -2,21 +2,31 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- 표준 모드 강제 및 렌더링 최적화 -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#667eea">
     
-    <!-- GitHub Pages 최적화 보안 정책 (완화된 버전) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; style-src 'self' 'unsafe-inline' https: data: blob:; img-src 'self' data: blob: https:; connect-src 'self' https: data: blob:; frame-src 'self' https:; font-src 'self' https: data: blob:; media-src 'self' https: data: blob:; object-src 'none'; base-uri 'self';">
-    
-    <!-- 개발 환경에서는 더 관대한 정책 적용 -->
+    <!-- GitHub Pages 환경에서는 CSP 비활성화 -->
     <script>
-        // GitHub Pages 환경에서만 CSP 완화
-        if (window.location.hostname.includes('github.io')) {
-            console.log('🔧 GitHub Pages 환경 - CSP 정책 완화 적용');
+        // GitHub Pages 환경 감지 및 CSP 처리
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        if (isGitHubPages) {
+            console.log('🔧 GitHub Pages 환경 - CSP 정책 비활성화');
+            // GitHub Pages에서는 CSP 관련 메타 태그를 동적으로 제거
+            const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            if (cspMeta) {
+                cspMeta.remove();
+                console.log('✅ CSP 메타 태그 제거 완료');
+            }
+        } else {
+            console.log('🔧 로컬 환경 - 기본 보안 정책 적용');
         }
     </script>
     
@@ -25,10 +35,12 @@
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
-    <!-- CORS 및 보안 헤더 -->
+    <!-- CORS 및 보안 헤더 (GitHub Pages 최적화) -->
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
-    <meta http-equiv="Access-Control-Allow-Methods" content="GET, POST, PUT, DELETE, OPTIONS">
-    <meta http-equiv="Access-Control-Allow-Headers" content="Content-Type, Authorization, X-Requested-With">
+    <meta http-equiv="Access-Control-Allow-Methods" content="GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH">
+    <meta http-equiv="Access-Control-Allow-Headers" content="*">
+    <meta http-equiv="Access-Control-Allow-Credentials" content="true">
+    <meta http-equiv="Access-Control-Max-Age" content="86400">
     <meta name="description" content="Google Sheets와 연동하는 현대적인 골프 스코어 관리 시스템. 상세한 홀별 기록과 통계 분석을 제공합니다.">
     <meta name="keywords" content="골프, 스코어, 관리, 통계, Google Sheets, 라운드">
     <meta name="author" content="Golf Score Manager">
@@ -68,7 +80,9 @@
     <link rel="dns-prefetch" href="//apis.google.com">
     
     <!-- Google API 정적 로딩 (GitHub Pages 최적화) -->
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer 
+            onerror="console.error('❌ Google API 스크립트 로딩 실패')"
+            onload="console.log('✅ Google API 스크립트 로딩 완료')"></script>
 </head>
 <body>
     <div class="container">
@@ -351,13 +365,27 @@
                 });
             }
             
-            // CSP 오류 감지
+            // 오류 감지 및 처리
             window.addEventListener('securitypolicyviolation', (e) => {
                 console.error('🚫 CSP 위반 감지:', {
                     blockedURI: e.blockedURI,
                     violatedDirective: e.violatedDirective,
                     originalPolicy: e.originalPolicy
                 });
+            });
+            
+            // 네트워크 오류 감지
+            window.addEventListener('error', (e) => {
+                if (e.target && e.target.tagName) {
+                    console.error(`❌ 리소스 로딩 실패: ${e.target.tagName} - ${e.target.src || e.target.href}`);
+                }
+            });
+            
+            // CORS 오류 감지
+            window.addEventListener('unhandledrejection', (e) => {
+                if (e.reason && e.reason.message && e.reason.message.includes('CORS')) {
+                    console.error('🚫 CORS 오류 감지:', e.reason.message);
+                }
             });
         }
         
