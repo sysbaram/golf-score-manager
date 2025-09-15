@@ -60,7 +60,7 @@ class GoogleSheetsAPI {
                 try {
                     console.log('🔧 Google API 클라이언트 초기화 중...');
                     
-                    // GitHub Pages 환경에 최적화된 설정
+                    // CORS 문제 해결을 위한 최적화된 설정
                     const initConfig = {
                         clientId: this.clientId,
                         discoveryDocs: this.discoveryDocs,
@@ -68,13 +68,20 @@ class GoogleSheetsAPI {
                     };
                     
                     if (this.isGitHubPages) {
-                        console.log('🔧 GitHub Pages 전용 설정 적용');
-                        // GitHub Pages에서는 최소한의 설정만 사용
-                        initConfig.ux_mode = 'redirect';
+                        console.log('🔧 GitHub Pages CORS 해결 설정 적용');
+                        // CORS 문제 해결을 위한 설정
+                        initConfig.ux_mode = 'popup';
                         initConfig.redirect_uri = window.location.origin;
-                        initConfig.prompt = 'select_account';
-                        initConfig.fetch_basic_profile = true;
-                        initConfig.include_granted_scopes = true;
+                        initConfig.prompt = 'consent';
+                        initConfig.fetch_basic_profile = false; // CORS 문제 방지
+                        initConfig.include_granted_scopes = false; // CORS 문제 방지
+                        initConfig.cookie_policy = 'single_host_origin';
+                        
+                        // GitHub Pages 도메인 명시적 설정
+                        if (window.location.hostname.includes('github.io')) {
+                            initConfig.hosted_domain = '';
+                            initConfig.plugin_name = 'golf-score-manager';
+                        }
                     } else {
                         // 로컬 환경에서는 popup 사용
                         initConfig.ux_mode = 'popup';
@@ -86,13 +93,25 @@ class GoogleSheetsAPI {
                     resolve();
                 } catch (error) {
                     console.error('❌ Google API 초기화 실패:', error);
+                    console.error('❌ 오류 상세:', error.stack);
+                    
+                    // CORS 관련 오류 감지 및 처리
+                    const errorMessage = error.message || error.toString();
+                    if (errorMessage.includes('CORS') || 
+                        errorMessage.includes('Cross-Origin') ||
+                        errorMessage.includes('blocked') ||
+                        errorMessage.includes('response header') ||
+                        error.status === 0) {
+                        console.error('🚫 CORS 오류 감지');
+                        reject(new Error('CORS: GitHub Pages에서 Google API 접근이 차단되었습니다. 브라우저 설정을 확인하거나 다른 브라우저를 시도해주세요.'));
+                        return;
+                    }
                     
                     // 재시도 로직 (더 간단한 설정으로)
                     try {
-                        console.log('🔄 Google API 재시도 중...');
+                        console.log('🔄 Google API 최소 설정으로 재시도 중...');
                         await this.gapi.client.init({
                             clientId: this.clientId,
-                            discoveryDocs: this.discoveryDocs,
                             scope: this.scope
                         });
                         console.log('✅ Google API 재시도 성공');
@@ -100,18 +119,39 @@ class GoogleSheetsAPI {
                     } catch (retryError) {
                         console.error('❌ Google API 재시도 실패:', retryError);
                         
+                        // 재시도에서도 CORS 오류 확인
+                        const retryErrorMessage = retryError.message || retryError.toString();
+                        if (retryErrorMessage.includes('CORS') || 
+                            retryErrorMessage.includes('Cross-Origin') ||
+                            retryErrorMessage.includes('blocked') ||
+                            retryErrorMessage.includes('response header') ||
+                            retryError.status === 0) {
+                            reject(new Error('CORS: GitHub Pages 환경에서 Google API에 접근할 수 없습니다. 오프라인 모드를 사용해주세요.'));
+                            return;
+                        }
+                        
                         // 최종 재시도 (기본 설정만)
                         try {
                             console.log('🔄 Google API 최종 재시도 중...');
                             await this.gapi.client.init({
-                                clientId: this.clientId,
-                                scope: this.scope
+                                clientId: this.clientId
                             });
                             console.log('✅ Google API 최종 재시도 성공');
                             resolve();
                         } catch (finalError) {
                             console.error('❌ Google API 최종 재시도 실패:', finalError);
-                            reject(new Error(`Google API 초기화 실패: ${finalError.message}. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.`));
+                            
+                            // 최종 오류에서도 CORS 확인
+                            const finalErrorMessage = finalError.message || finalError.toString();
+                            if (finalErrorMessage.includes('CORS') || 
+                                finalErrorMessage.includes('Cross-Origin') ||
+                                finalErrorMessage.includes('blocked') ||
+                                finalErrorMessage.includes('response header') ||
+                                finalError.status === 0) {
+                                reject(new Error('CORS: GitHub Pages에서 Google API를 사용할 수 없습니다. 오프라인 모드로 전환합니다.'));
+                            } else {
+                                reject(new Error(`Google API 초기화 실패: ${finalError.message}. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.`));
+                            }
                         }
                     }
                 }

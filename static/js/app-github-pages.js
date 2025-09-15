@@ -231,6 +231,12 @@ class GolfScoreApp {
                     errorMessage = 'GitHub Pages에서 Google API를 로드할 수 없습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
                 } else if (error.message.includes('GoogleSheetsAPI')) {
                     errorMessage = 'GitHub Pages에서 Google Sheets API 클래스를 로드할 수 없습니다. 페이지를 새로고침해주세요.';
+                } else if (error.message.includes('CORS')) {
+                    errorMessage = 'GitHub Pages CORS 정책으로 인해 Google API에 접근할 수 없습니다. 오프라인 모드로 전환합니다.';
+                    // CORS 오류 시 자동으로 오프라인 모드 전환
+                    setTimeout(() => {
+                        this.enableFallbackMode();
+                    }, 1000);
                 } else {
                     errorMessage = 'GitHub Pages에서 Google Sheets API 초기화에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 시도해주세요.';
                 }
