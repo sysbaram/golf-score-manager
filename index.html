@@ -287,8 +287,8 @@
             console.log('✅ Google API 로딩 완료');
             window.googleApiLoaded = true;
             
-            // GitHub Pages에서는 더 긴 지연 시간 적용
-            const delay = isGitHubPages ? 5000 : 1000;
+            // GitHub Pages에서는 적절한 지연 시간 적용
+            const delay = isGitHubPages ? 2000 : 500; // 5초 → 2초로 단축
             setTimeout(() => {
                 if (window.golfApp && !fallbackModeEnabled) {
                     console.log('🔄 앱 재초기화 시도...');
@@ -317,139 +317,51 @@
             }
         };
         
-        // Google API 동적 로딩 함수 (다중 방법 시도)
+        // Google API 간단한 로딩 함수
         function loadGoogleAPI() {
-            console.log('📡 Google API 동적 로딩 시작...');
+            console.log('📡 Google API 로딩 시작...');
             
             // 기존 스크립트 제거
             const existingScripts = document.querySelectorAll('script[src*="apis.google.com"], script[src*="gstatic.com"]');
             existingScripts.forEach(script => script.remove());
             
-            // 방법 1: 표준 Google API
-            const script1 = document.createElement('script');
-            script1.src = 'https://apis.google.com/js/api.js?onload=gapiOnLoad&onerror=gapiOnError';
-            script1.async = true;
-            script1.defer = true;
-            script1.onload = () => console.log('✅ Google API 스크립트 로드 완료');
-            script1.onerror = () => {
-                console.error('❌ Google API 스크립트 로드 실패 - 방법 2 시도');
-                loadGoogleAPIAlternative();
-            };
+            // 간단한 Google API 로딩
+            const script = document.createElement('script');
+            script.src = 'https://apis.google.com/js/api.js';
+            script.async = true;
+            script.defer = true;
             
-            document.head.appendChild(script1);
-        }
-        
-        // 대체 방법: 다른 CDN 또는 직접 로딩
-        function loadGoogleAPIAlternative() {
-            console.log('📡 Google API 대체 방법 시도...');
-            
-            // 방법 2: 다른 CDN 사용
-            const script2 = document.createElement('script');
-            script2.src = 'https://apis.google.com/js/api.js';
-            script2.async = true;
-            script2.defer = true;
-            script2.onload = () => {
-                console.log('✅ Google API 대체 로딩 완료');
+            script.onload = () => {
+                console.log('✅ Google API 스크립트 로드 완료');
+                // Google API 로드 완료 후 초기화
                 setTimeout(() => {
                     if (window.gapi && window.gapi.load) {
+                        console.log('✅ Google API 사용 가능');
                         window.gapiOnLoad();
                     } else {
-                        window.gapiOnError(new Error('gapi not available'));
-                    }
-                }, 1000);
-            };
-            script2.onerror = () => {
-                console.error('❌ Google API 대체 로딩 실패 - 방법 3 시도');
-                loadGoogleAPIAlternative2();
-            };
-            
-            document.head.appendChild(script2);
-        }
-        
-        // 방법 3: 직접 Google API 로딩
-        function loadGoogleAPIAlternative2() {
-            console.log('📡 Google API 직접 로딩 시도...');
-            
-            // 방법 3: 직접 로딩 (callback 없이)
-            const script3 = document.createElement('script');
-            script3.src = 'https://apis.google.com/js/api.js';
-            script3.async = true;
-            script3.defer = true;
-            script3.onload = () => {
-                console.log('✅ Google API 직접 로딩 완료');
-                // 수동으로 gapi 초기화
-                setTimeout(() => {
-                    if (window.gapi && window.gapi.load) {
-                        try {
-                            window.gapi.load('client:auth2', () => {
-                                console.log('✅ Google API 수동 초기화 완료');
-                                window.gapiOnLoad();
-                            });
-                        } catch (error) {
-                            console.error('❌ Google API 수동 초기화 실패:', error);
-                            window.gapiOnError(error);
-                        }
-                    } else {
-                        window.gapiOnError(new Error('gapi not available after direct load'));
-                    }
-                }, 2000);
-            };
-            script3.onerror = () => {
-                console.error('❌ Google API 직접 로딩 실패 - 방법 4 시도');
-                loadGoogleAPIAlternative3();
-            };
-            
-            document.head.appendChild(script3);
-        }
-        
-        // 방법 4: JSONP 방식으로 로딩
-        function loadGoogleAPIAlternative3() {
-            console.log('📡 Google API JSONP 로딩 시도...');
-            
-            // 방법 4: JSONP 방식
-            const script4 = document.createElement('script');
-            script4.src = 'https://apis.google.com/js/api.js?callback=googleApiCallback';
-            script4.async = true;
-            script4.defer = true;
-            
-            // JSONP 콜백 함수 정의
-            window.googleApiCallback = function() {
-                console.log('✅ Google API JSONP 로딩 완료');
-                setTimeout(() => {
-                    if (window.gapi && window.gapi.load) {
-                        window.gapiOnLoad();
-                    } else {
-                        window.gapiOnError(new Error('gapi not available after JSONP load'));
+                        console.error('❌ Google API 사용 불가');
+                        window.gapiOnError(new Error('Google API not available'));
                     }
                 }, 1000);
             };
             
-            script4.onerror = () => {
-                console.error('❌ Google API JSONP 로딩 실패 - 오프라인 모드 활성화');
-                if (window.golfApp && !fallbackModeEnabled) {
-                    fallbackModeEnabled = true;
-                    window.golfApp.enableFallbackMode();
-                }
+            script.onerror = () => {
+                console.error('❌ Google API 스크립트 로드 실패');
+                window.gapiOnError(new Error('Failed to load Google API script'));
             };
             
-            document.head.appendChild(script4);
+            document.head.appendChild(script);
         }
         
-        // GitHub Pages 전용 초기화 로직
-        if (isGitHubPages) {
-            console.log('🔧 GitHub Pages 전용 설정 적용');
-            
-            // 페이지 로드 완료 후 Google API 로드
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    setTimeout(loadGoogleAPI, 2000);
-                });
-            } else {
-                setTimeout(loadGoogleAPI, 2000);
-            }
+        // 즉시 Google API 로딩 시작 (환경 구분 없이)
+        console.log('🔧 Google API 로딩 즉시 시작');
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(loadGoogleAPI, 100); // 2초 → 0.1초로 단축
+            });
         } else {
-            // 로컬 환경에서는 즉시 로드
-            loadGoogleAPI();
+            setTimeout(loadGoogleAPI, 100); // 즉시 시작
         }
     </script>
     

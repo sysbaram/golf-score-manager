@@ -8,7 +8,7 @@ class GolfScoreApp {
         this.googleSheetsAPI = null;
         this.isInitialized = false;
         this.initializationAttempts = 0;
-        this.maxInitializationAttempts = 5; // 10초 → 5초로 단축
+        this.maxInitializationAttempts = 3; // 5초 → 3초로 단축
         
         // 기본 UI 설정만 먼저 수행
         this.setupBasicUI();
