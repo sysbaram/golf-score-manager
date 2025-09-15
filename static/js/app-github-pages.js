@@ -20,17 +20,44 @@ class GolfScoreApp {
     setupBasicUI() {
         console.log('🎨 기본 UI 설정 중...');
         
-        // 로딩 상태 표시
-        this.showLoadingStatus('Google Sheets API 연결 중...');
-        
-        // 기본 이벤트 리스너 설정 (Google API 없이도 동작)
-        this.setupEventListeners();
-        this.generateHoleInputs();
-        this.setupTabSwitching();
-        this.setupScoreFormEventListeners();
-        this.updateUIForLoggedOutUser();
-        
-        console.log('✅ 기본 UI 설정 완료');
+        try {
+            // 로딩 상태 표시
+            this.showLoadingStatus('Google Sheets API 연결 중...');
+            
+            // DOM 요소 존재 확인
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            console.log('🔍 DOM 요소 확인:');
+            console.log('  - login-btn:', loginBtn ? '✅' : '❌');
+            console.log('  - register-btn:', registerBtn ? '✅' : '❌');
+            console.log('  - login-modal:', document.getElementById('login-modal') ? '✅' : '❌');
+            console.log('  - register-modal:', document.getElementById('register-modal') ? '✅' : '❌');
+            console.log('  - login-form:', document.getElementById('login-form') ? '✅' : '❌');
+            console.log('  - register-form:', document.getElementById('register-form') ? '✅' : '❌');
+            
+            // 기본 이벤트 리스너 설정 (Google API 없이도 동작)
+            console.log('🔧 이벤트 리스너 설정 시작...');
+            this.setupEventListeners();
+            
+            console.log('🕳️ 홀 입력 필드 생성 시작...');
+            this.generateHoleInputs();
+            
+            console.log('📑 탭 전환 설정 시작...');
+            this.setupTabSwitching();
+            
+            console.log('📝 스코어 폼 이벤트 설정 시작...');
+            this.setupScoreFormEventListeners();
+            
+            console.log('👤 로그아웃 UI 업데이트 시작...');
+            this.updateUIForLoggedOutUser();
+            
+            console.log('✅ 기본 UI 설정 완료');
+            
+        } catch (error) {
+            console.error('❌ 기본 UI 설정 중 오류:', error);
+            console.error('❌ 오류 스택:', error.stack);
+            this.showNotification('UI 설정 중 오류가 발생했습니다: ' + error.message, 'error');
+        }
     }
 
     showLoadingStatus(message) {
@@ -369,86 +396,225 @@ class GolfScoreApp {
     }
 
     setupEventListeners() {
-        // 새로고침 버튼
-        document.getElementById('refresh-rounds').addEventListener('click', () => {
-            this.loadRounds();
-        });
-
-        // 통계 조회 버튼
-        document.getElementById('get-stats').addEventListener('click', () => {
-            this.getPlayerStatistics();
-        });
-
-        // 알림 닫기
-        document.getElementById('notification-close').addEventListener('click', () => {
-            this.hideNotification();
-        });
-
-        // 로그인 관련 이벤트
-        document.getElementById('login-btn').addEventListener('click', () => {
-            if (this.isInitialized) {
-                this.showLoginModal();
-            } else {
-                this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
-            }
-        });
-
-        document.getElementById('register-btn').addEventListener('click', () => {
-            if (this.isInitialized) {
-                this.showRegisterModal();
-            } else {
-                this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
-            }
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            this.logout();
-        });
-
-        // 모달 이벤트
-        this.setupModalEvents();
+        console.log('🔧 이벤트 리스너 설정 시작...');
         
-        // Google OAuth 버튼
-        document.getElementById('google-login-btn').addEventListener('click', () => {
-            this.handleGoogleLogin();
-        });
+        try {
+            // 새로고침 버튼
+            const refreshBtn = document.getElementById('refresh-rounds');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    console.log('🔄 새로고침 버튼 클릭');
+                    this.loadRounds();
+                });
+                console.log('✅ 새로고침 버튼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ refresh-rounds 버튼을 찾을 수 없습니다');
+            }
+
+            // 통계 조회 버튼
+            const statsBtn = document.getElementById('get-stats');
+            if (statsBtn) {
+                statsBtn.addEventListener('click', () => {
+                    console.log('📊 통계 조회 버튼 클릭');
+                    this.getPlayerStatistics();
+                });
+                console.log('✅ 통계 조회 버튼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ get-stats 버튼을 찾을 수 없습니다');
+            }
+
+            // 알림 닫기
+            const notificationClose = document.getElementById('notification-close');
+            if (notificationClose) {
+                notificationClose.addEventListener('click', () => {
+                    console.log('🔔 알림 닫기 버튼 클릭');
+                    this.hideNotification();
+                });
+                console.log('✅ 알림 닫기 버튼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ notification-close 버튼을 찾을 수 없습니다');
+            }
+
+            // 로그인 버튼
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', (e) => {
+                    console.log('🔐 로그인 버튼 클릭, isInitialized:', this.isInitialized);
+                    e.preventDefault();
+                    try {
+                        if (this.isInitialized) {
+                            console.log('✅ API 초기화 완료, 로그인 모달 표시');
+                            this.showLoginModal();
+                        } else {
+                            console.log('⏳ API 초기화 중, 대기 메시지 표시');
+                            this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
+                        }
+                    } catch (error) {
+                        console.error('❌ 로그인 버튼 클릭 처리 중 오류:', error);
+                        this.showNotification('로그인 버튼 처리 중 오류가 발생했습니다: ' + error.message, 'error');
+                    }
+                });
+                console.log('✅ 로그인 버튼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ login-btn 버튼을 찾을 수 없습니다');
+            }
+
+            // 회원가입 버튼
+            const registerBtn = document.getElementById('register-btn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', (e) => {
+                    console.log('📝 회원가입 버튼 클릭, isInitialized:', this.isInitialized);
+                    e.preventDefault();
+                    try {
+                        if (this.isInitialized) {
+                            console.log('✅ API 초기화 완료, 회원가입 모달 표시');
+                            this.showRegisterModal();
+                        } else {
+                            console.log('⏳ API 초기화 중, 대기 메시지 표시');
+                            this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
+                        }
+                    } catch (error) {
+                        console.error('❌ 회원가입 버튼 클릭 처리 중 오류:', error);
+                        this.showNotification('회원가입 버튼 처리 중 오류가 발생했습니다: ' + error.message, 'error');
+                    }
+                });
+                console.log('✅ 회원가입 버튼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ register-btn 버튼을 찾을 수 없습니다');
+            }
+
+            // 로그아웃 버튼
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    console.log('🚪 로그아웃 버튼 클릭');
+                    e.preventDefault();
+                    try {
+                        this.logout();
+                    } catch (error) {
+                        console.error('❌ 로그아웃 처리 중 오류:', error);
+                        this.showNotification('로그아웃 처리 중 오류가 발생했습니다: ' + error.message, 'error');
+                    }
+                });
+                console.log('✅ 로그아웃 버튼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ logout-btn 버튼을 찾을 수 없습니다');
+            }
+
+            // 모달 이벤트
+            this.setupModalEvents();
+            
+            // Google OAuth 버튼
+            const googleLoginBtn = document.getElementById('google-login-btn');
+            if (googleLoginBtn) {
+                googleLoginBtn.addEventListener('click', (e) => {
+                    console.log('🌐 Google 로그인 버튼 클릭');
+                    e.preventDefault();
+                    try {
+                        this.handleGoogleLogin();
+                    } catch (error) {
+                        console.error('❌ Google 로그인 처리 중 오류:', error);
+                        this.showNotification('Google 로그인 처리 중 오류가 발생했습니다: ' + error.message, 'error');
+                    }
+                });
+                console.log('✅ Google 로그인 버튼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ google-login-btn 버튼을 찾을 수 없습니다');
+            }
+            
+            console.log('✅ 모든 이벤트 리스너 설정 완료');
+            
+        } catch (error) {
+            console.error('❌ 이벤트 리스너 설정 중 전체 오류:', error);
+            console.error('❌ 오류 스택:', error.stack);
+        }
     }
 
     setupModalEvents() {
-        // 로그인 모달
-        const loginModal = document.getElementById('login-modal');
-        const loginForm = document.getElementById('login-form');
+        console.log('🔧 모달 이벤트 리스너 설정 시작...');
         
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
+        try {
+            // 로그인 모달
+            const loginModal = document.getElementById('login-modal');
+            const loginForm = document.getElementById('login-form');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    console.log('📝 로그인 폼 제출');
+                    e.preventDefault();
+                    try {
+                        this.handleLogin();
+                    } catch (error) {
+                        console.error('❌ 로그인 처리 중 오류:', error);
+                        this.showNotification('로그인 처리 중 오류가 발생했습니다: ' + error.message, 'error');
+                    }
+                });
+                console.log('✅ 로그인 폼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ login-form을 찾을 수 없습니다');
+            }
 
-        // 회원가입 모달
-        const registerModal = document.getElementById('register-modal');
-        const registerForm = document.getElementById('register-form');
-        
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleRegister();
-        });
+            // 회원가입 모달
+            const registerModal = document.getElementById('register-modal');
+            const registerForm = document.getElementById('register-form');
+            
+            if (registerForm) {
+                registerForm.addEventListener('submit', (e) => {
+                    console.log('📝 회원가입 폼 제출');
+                    e.preventDefault();
+                    try {
+                        this.handleRegister();
+                    } catch (error) {
+                        console.error('❌ 회원가입 처리 중 오류:', error);
+                        this.showNotification('회원가입 처리 중 오류가 발생했습니다: ' + error.message, 'error');
+                    }
+                });
+                console.log('✅ 회원가입 폼 이벤트 리스너 설정 완료');
+            } else {
+                console.error('❌ register-form을 찾을 수 없습니다');
+            }
 
-        // 모달 닫기
-        document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const modal = e.target.closest('.modal');
-                this.hideModal(modal);
+            // 모달 닫기 버튼들
+            const modalCloseButtons = document.querySelectorAll('.modal-close');
+            console.log(`🔍 모달 닫기 버튼 ${modalCloseButtons.length}개 발견`);
+            modalCloseButtons.forEach((btn, index) => {
+                btn.addEventListener('click', (e) => {
+                    console.log(`🚪 모달 닫기 버튼 ${index + 1} 클릭`);
+                    try {
+                        const modal = e.target.closest('.modal');
+                        if (modal) {
+                            this.hideModal(modal);
+                        } else {
+                            console.error('❌ 상위 모달을 찾을 수 없습니다');
+                        }
+                    } catch (error) {
+                        console.error('❌ 모달 닫기 처리 중 오류:', error);
+                    }
+                });
             });
-        });
 
-        // 모달 배경 클릭으로 닫기
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.hideModal(modal);
-                }
+            // 모달 배경 클릭으로 닫기
+            const modals = document.querySelectorAll('.modal');
+            console.log(`🔍 모달 ${modals.length}개 발견`);
+            modals.forEach((modal, index) => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        console.log(`🚪 모달 ${index + 1} 배경 클릭으로 닫기`);
+                        try {
+                            this.hideModal(modal);
+                        } catch (error) {
+                            console.error('❌ 모달 배경 클릭 처리 중 오류:', error);
+                        }
+                    }
+                });
             });
-        });
+            
+            console.log('✅ 모든 모달 이벤트 리스너 설정 완료');
+            
+        } catch (error) {
+            console.error('❌ 모달 이벤트 리스너 설정 중 전체 오류:', error);
+            console.error('❌ 오류 스택:', error.stack);
+        }
     }
 
     setupScoreFormEventListeners() {
