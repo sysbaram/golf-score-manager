@@ -244,25 +244,48 @@ class GoogleSheetsAPI {
     // 사용자 목록 조회
     async getUsers() {
         try {
+            console.log('📊 Users 시트 조회 시작...');
+            
             const response = await this.gapi.client.sheets.spreadsheets.values.get({
                 spreadsheetId: this.usersSheetId,
                 range: 'Users!A:F'
             });
 
-            const users = response.result.values || [];
-            // 헤더 행 제거 (첫 번째 행이 헤더인 경우)
-            const dataRows = users.length > 1 ? users.slice(1) : users;
+            console.log('📊 Google Sheets 응답:', response.result);
             
-            return dataRows.map(row => ({
-                username: row[0] || '',
-                email: row[1] || '',
-                password: row[2] || '',
-                google_id: row[3] || '',
-                google_name: row[4] || '',
-                created_at: row[5] || ''
-            }));
+            const users = response.result.values || [];
+            console.log('📊 조회된 원본 데이터:', users);
+            
+            if (users.length === 0) {
+                console.log('📊 Users 시트가 비어있습니다.');
+                return [];
+            }
+            
+            // 첫 번째 행이 헤더인지 확인
+            const hasHeader = users.length > 0 && 
+                (users[0][0] === 'username' || users[0][0] === 'Username' || users[0][0] === '사용자명');
+            
+            const dataRows = hasHeader ? users.slice(1) : users;
+            console.log('📊 헤더 제거 후 데이터:', dataRows);
+            
+            const processedUsers = dataRows.map((row, index) => {
+                const user = {
+                    username: (row[0] || '').toString().trim(),
+                    email: (row[1] || '').toString().trim(),
+                    password: (row[2] || '').toString().trim(),
+                    google_id: (row[3] || '').toString().trim(),
+                    google_name: (row[4] || '').toString().trim(),
+                    created_at: (row[5] || '').toString().trim()
+                };
+                console.log(`📊 처리된 사용자 ${index + 1}:`, user);
+                return user;
+            }).filter(user => user.username && user.email); // 필수 필드가 있는 사용자만 반환
+            
+            console.log('📊 최종 사용자 목록:', processedUsers);
+            return processedUsers;
         } catch (error) {
-            console.error('사용자 목록 조회 실패:', error);
+            console.error('❌ 사용자 목록 조회 실패:', error);
+            console.error('❌ 오류 상세:', error.stack);
             return [];
         }
     }
@@ -270,25 +293,47 @@ class GoogleSheetsAPI {
     // 사용자 로그인
     async loginUser(usernameOrEmail, password) {
         try {
+            console.log('🔍 사용자 로그인 시작:', usernameOrEmail);
+            
             const user = this.getCurrentUser();
             if (!user) {
-                throw new Error('Google 계정으로 로그인해주세요.');
+                throw new Error('Google 계정으로 먼저 로그인해주세요.');
             }
+            
+            console.log('👤 현재 Google 사용자:', user);
 
             // Users 시트에서 사용자 정보 조회
+            console.log('📊 Users 시트에서 사용자 정보 조회 중...');
             const users = await this.getUsers();
+            console.log('📊 조회된 사용자 수:', users.length);
+            
+            if (users.length === 0) {
+                throw new Error('등록된 사용자가 없습니다. 먼저 회원가입을 해주세요.');
+            }
+            
             const foundUser = users.find(u => 
-                u.username === usernameOrEmail || u.email === usernameOrEmail
+                (u.username && u.username.toLowerCase() === usernameOrEmail.toLowerCase()) || 
+                (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase())
             );
+            
+            console.log('🔍 찾은 사용자:', foundUser);
 
             if (!foundUser) {
-                throw new Error('사용자를 찾을 수 없습니다.');
+                console.log('❌ 사용자를 찾을 수 없음. 입력값:', usernameOrEmail);
+                console.log('❌ 등록된 사용자들:', users.map(u => ({ username: u.username, email: u.email })));
+                throw new Error('사용자를 찾을 수 없습니다. 사용자명 또는 이메일을 확인해주세요.');
+            }
+
+            if (!foundUser.password) {
+                throw new Error('사용자 비밀번호 정보가 없습니다.');
             }
 
             if (foundUser.password !== password) {
+                console.log('❌ 비밀번호 불일치');
                 throw new Error('비밀번호가 올바르지 않습니다.');
             }
 
+            console.log('✅ 로그인 성공');
             return { 
                 success: true, 
                 user: {
@@ -298,7 +343,7 @@ class GoogleSheetsAPI {
                 }
             };
         } catch (error) {
-            console.error('로그인 실패:', error);
+            console.error('❌ 로그인 실패:', error);
             return { success: false, error: error.message };
         }
     }

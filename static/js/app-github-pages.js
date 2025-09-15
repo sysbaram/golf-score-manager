@@ -443,7 +443,7 @@ class GolfScoreApp {
 
     async handleLogin() {
         try {
-            const usernameOrEmail = document.getElementById('login-username').value;
+            const usernameOrEmail = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
 
             if (!usernameOrEmail || !password) {
@@ -451,17 +451,30 @@ class GolfScoreApp {
                 return;
             }
 
+            console.log('🔐 로그인 시작:', usernameOrEmail);
+            this.showNotification('로그인 중...', 'info');
+
+            // Google Sheets API가 초기화되었는지 확인
+            if (!this.googleSheetsAPI) {
+                throw new Error('Google Sheets API가 초기화되지 않았습니다.');
+            }
+
             // Google 계정으로 로그인
+            console.log('📡 Google 계정 로그인 시도...');
             await this.googleSheetsAPI.signIn();
             
             // Google 사용자 정보 가져오기
             const googleUser = this.googleSheetsAPI.getCurrentUser();
+            console.log('👤 Google 사용자 정보:', googleUser);
+            
             if (!googleUser) {
                 throw new Error('Google 로그인에 실패했습니다.');
             }
 
             // 사용자 인증 (Google Sheets에서 확인)
+            console.log('🔍 사용자 인증 확인 중...');
             const result = await this.googleSheetsAPI.loginUser(usernameOrEmail, password);
+            console.log('🔍 인증 결과:', result);
             
             if (result.success) {
                 this.currentUser = result.user;
@@ -469,19 +482,34 @@ class GolfScoreApp {
                 this.hideModal(document.getElementById('login-modal'));
                 this.showNotification('로그인 성공!', 'success');
                 this.switchToScoreInputTab();
+                console.log('✅ 로그인 완료:', this.currentUser);
             } else {
                 this.showNotification(result.error || '로그인에 실패했습니다.', 'error');
+                console.error('❌ 로그인 실패:', result.error);
             }
         } catch (error) {
-            console.error('로그인 실패:', error);
-            this.showNotification('로그인 중 오류가 발생했습니다: ' + error.message, 'error');
+            console.error('❌ 로그인 오류:', error);
+            console.error('❌ 오류 상세:', error.stack);
+            
+            let errorMessage = '로그인 중 오류가 발생했습니다.';
+            if (error.message.includes('Google')) {
+                errorMessage = 'Google 로그인에 실패했습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
+            } else if (error.message.includes('초기화')) {
+                errorMessage = 'Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침해주세요.';
+            } else if (error.message.includes('사용자')) {
+                errorMessage = error.message;
+            } else if (error.message.includes('비밀번호')) {
+                errorMessage = error.message;
+            }
+            
+            this.showNotification(errorMessage, 'error');
         }
     }
 
     async handleRegister() {
         try {
-            const username = document.getElementById('register-username').value;
-            const email = document.getElementById('register-email').value;
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('register-confirm-password').value;
 
@@ -495,29 +523,55 @@ class GolfScoreApp {
                 return;
             }
 
+            console.log('📝 회원가입 시작:', username, email);
+            this.showNotification('회원가입 중...', 'info');
+
+            // Google Sheets API가 초기화되었는지 확인
+            if (!this.googleSheetsAPI) {
+                throw new Error('Google Sheets API가 초기화되지 않았습니다.');
+            }
+
             // Google 계정으로 로그인
+            console.log('📡 Google 계정 로그인 시도...');
             await this.googleSheetsAPI.signIn();
-            
+
             // Google 사용자 정보 가져오기
             const googleUser = this.googleSheetsAPI.getCurrentUser();
+            console.log('👤 Google 사용자 정보:', googleUser);
+            
             if (!googleUser) {
                 throw new Error('Google 로그인에 실패했습니다.');
             }
 
             // 사용자 등록
+            console.log('📝 사용자 등록 시도...');
             const result = await this.googleSheetsAPI.registerUser(username, email, password);
-            
+            console.log('📝 등록 결과:', result);
+
             if (result.success) {
                 this.currentUser = result.user;
                 this.updateUIForLoggedInUser();
                 this.hideModal(document.getElementById('register-modal'));
                 this.showNotification('회원가입 성공!', 'success');
+                console.log('✅ 회원가입 완료:', this.currentUser);
             } else {
                 this.showNotification(result.error || '회원가입에 실패했습니다.', 'error');
+                console.error('❌ 회원가입 실패:', result.error);
             }
         } catch (error) {
-            console.error('회원가입 실패:', error);
-            this.showNotification('회원가입 중 오류가 발생했습니다: ' + error.message, 'error');
+            console.error('❌ 회원가입 오류:', error);
+            console.error('❌ 오류 상세:', error.stack);
+            
+            let errorMessage = '회원가입 중 오류가 발생했습니다.';
+            if (error.message.includes('Google')) {
+                errorMessage = 'Google 로그인에 실패했습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
+            } else if (error.message.includes('초기화')) {
+                errorMessage = 'Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침해주세요.';
+            } else if (error.message.includes('존재')) {
+                errorMessage = error.message;
+            }
+            
+            this.showNotification(errorMessage, 'error');
         }
     }
 
