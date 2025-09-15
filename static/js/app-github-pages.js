@@ -6,12 +6,100 @@ class GolfScoreApp {
         this.rounds = [];
         this.currentUser = null;
         this.googleSheetsAPI = null;
-        this.init();
+        this.isInitialized = false;
+        this.initializationAttempts = 0;
+        this.maxInitializationAttempts = 10;
+        
+        // 기본 UI 설정만 먼저 수행
+        this.setupBasicUI();
+        
+        // Google API가 준비될 때까지 대기 후 초기화
+        this.waitForGoogleAPIAndInit();
+    }
+
+    setupBasicUI() {
+        console.log('🎨 기본 UI 설정 중...');
+        
+        // 로딩 상태 표시
+        this.showLoadingStatus('Google Sheets API 연결 중...');
+        
+        // 기본 이벤트 리스너 설정 (Google API 없이도 동작)
+        this.setupEventListeners();
+        this.generateHoleInputs();
+        this.setupTabSwitching();
+        this.setupScoreFormEventListeners();
+        this.updateUIForLoggedOutUser();
+        
+        console.log('✅ 기본 UI 설정 완료');
+    }
+
+    showLoadingStatus(message) {
+        // 로딩 상태를 헤더에 표시
+        const header = document.querySelector('.header');
+        if (header) {
+            let loadingDiv = document.getElementById('loading-status');
+            if (!loadingDiv) {
+                loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loading-status';
+                loadingDiv.style.cssText = `
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 0.5rem 1rem;
+                    text-align: center;
+                    font-size: 0.9rem;
+                    border-radius: 0 0 10px 10px;
+                    margin-bottom: 1rem;
+                    animation: pulse 2s infinite;
+                `;
+                header.appendChild(loadingDiv);
+            }
+            loadingDiv.textContent = message;
+            loadingDiv.style.display = 'block';
+        }
+    }
+
+    hideLoadingStatus() {
+        const loadingDiv = document.getElementById('loading-status');
+        if (loadingDiv) {
+            loadingDiv.style.display = 'none';
+        }
+    }
+
+    async waitForGoogleAPIAndInit() {
+        console.log('⏳ Google API 로딩 대기 중...');
+        
+        const checkAndInit = async () => {
+            this.initializationAttempts++;
+            
+            if (window.googleSheetsAPI && window.gapi) {
+                console.log('✅ Google API 준비 완료, 앱 초기화 시작');
+                this.showLoadingStatus('Google Sheets API 연결 중...');
+                await this.init();
+            } else if (this.initializationAttempts < this.maxInitializationAttempts) {
+                console.log(`⏳ Google API 대기 중... (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
+                this.showLoadingStatus(`Google API 로딩 중... (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
+                setTimeout(checkAndInit, 1000);
+            } else {
+                console.log('❌ Google API 로딩 시간 초과, 오프라인 모드 활성화');
+                this.showLoadingStatus('Google API 로딩 실패, 오프라인 모드로 전환 중...');
+                setTimeout(() => {
+                    this.enableFallbackMode();
+                }, 1000);
+            }
+        };
+        
+        // 즉시 확인 후 대기
+        setTimeout(checkAndInit, 500);
     }
 
     async init() {
+        if (this.isInitialized) {
+            console.log('⚠️ 이미 초기화됨, 중복 초기화 방지');
+            return;
+        }
+        
         try {
-            console.log('🚀 앱 초기화 시작...');
+            console.log('🚀 Google Sheets API 초기화 시작...');
 
             // Google Sheets API 초기화
             this.googleSheetsAPI = window.googleSheetsAPI;
@@ -19,16 +107,22 @@ class GolfScoreApp {
                 throw new Error('GoogleSheetsAPI 클래스가 로드되지 않았습니다.');
             }
 
-            console.log('📡 Google Sheets API 초기화 중...');
+            console.log('📡 Google Sheets API 연결 중...');
             await this.googleSheetsAPI.init();
 
-            this.setupEventListeners();
-            this.generateHoleInputs();
-            this.setupTabSwitching();
-            this.setupScoreFormEventListeners();
+            // Google API 관련 이벤트 리스너 추가
+            this.setupGoogleAPIEventListeners();
             this.checkAuthStatus();
-
+            
+            this.isInitialized = true;
             console.log('✅ Google Sheets API 초기화 완료');
+            
+            // 로딩 상태 숨기기
+            this.hideLoadingStatus();
+            
+            // 초기화 성공 알림
+            this.showNotification('Google Sheets API 연결 완료!', 'success');
+            
         } catch (error) {
             console.error('❌ 초기화 실패:', error);
             console.error('에러 상세:', error.stack);
@@ -211,6 +305,10 @@ class GolfScoreApp {
         this.updateUIForLoggedInUser();
         
         console.log('✅ 오프라인 모드 활성화 완료');
+        
+        // 로딩 상태 숨기기
+        this.hideLoadingStatus();
+        
         this.showNotification('오프라인 모드가 활성화되었습니다. 데이터는 브라우저에 저장됩니다!', 'success');
     }
     
@@ -253,11 +351,19 @@ class GolfScoreApp {
 
         // 로그인 관련 이벤트
         document.getElementById('login-btn').addEventListener('click', () => {
-            this.showLoginModal();
+            if (this.isInitialized) {
+                this.showLoginModal();
+            } else {
+                this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
+            }
         });
 
         document.getElementById('register-btn').addEventListener('click', () => {
-            this.showRegisterModal();
+            if (this.isInitialized) {
+                this.showRegisterModal();
+            } else {
+                this.showNotification('Google Sheets API 연결 중입니다. 잠시만 기다려주세요.', 'info');
+            }
         });
 
         document.getElementById('logout-btn').addEventListener('click', () => {
