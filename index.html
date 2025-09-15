@@ -144,10 +144,18 @@
                     </button>
                 </div>
                 <div id="login-section" class="login-section">
-                    <button id="login-btn" class="btn btn-outline">
+                    <!-- 테스트 버튼 (임시) -->
+                    <button onclick="console.log('✅ HTML onclick 테스트 성공!'); alert('HTML onclick 동작 확인!');" 
+                            style="background: red; color: white; padding: 10px; margin: 5px; border: none; border-radius: 5px;">
+                        🔧 테스트 버튼
+                    </button>
+                    
+                    <button id="login-btn" class="btn btn-outline" 
+                            onclick="console.log('🔐 HTML onclick - 로그인 버튼'); alert('로그인 버튼 HTML onclick');">
                         <i class="fas fa-sign-in-alt"></i> 로그인
                     </button>
-                    <button id="register-btn" class="btn btn-outline">
+                    <button id="register-btn" class="btn btn-outline"
+                            onclick="console.log('📝 HTML onclick - 회원가입 버튼'); alert('회원가입 버튼 HTML onclick');">
                         <i class="fas fa-user-plus"></i> 회원가입
                     </button>
                 </div>
@@ -389,8 +397,48 @@
         }
     </script>
     
+    <!-- JavaScript 로드 확인 스크립트 (임시 디버깅) -->
+    <script>
+        console.log('🔍 HTML 페이지 로드 시작...');
+        console.log('📄 document.readyState:', document.readyState);
+        
+        // DOM이 로드되면 기본 상태 확인
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 DOMContentLoaded 이벤트 발생');
+            console.log('🔍 기본 DOM 요소 확인:');
+            console.log('  - login-btn:', document.getElementById('login-btn'));
+            console.log('  - register-btn:', document.getElementById('register-btn'));
+            console.log('  - body:', document.body);
+            console.log('  - 전체 button 개수:', document.querySelectorAll('button').length);
+        });
+        
+        // 페이지 완전 로드 후 확인
+        window.addEventListener('load', function() {
+            console.log('🌐 window.load 이벤트 발생');
+            console.log('🔍 JavaScript 파일 로드 상태:');
+            console.log('  - window.golfApp:', typeof window.golfApp);
+            console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI);
+            console.log('  - window.gapi:', typeof window.gapi);
+        });
+    </script>
+    
     <!-- 앱 스크립트들 (GitHub Pages 최적화) -->
-    <script src="./static/js/google-sheets-api.js"></script>
-    <script src="./static/js/app-github-pages.js"></script>
+    <script src="./static/js/google-sheets-api.js" 
+            onload="console.log('✅ google-sheets-api.js 로드 완료')"
+            onerror="console.error('❌ google-sheets-api.js 로드 실패')"></script>
+    <script src="./static/js/app-github-pages.js" 
+            onload="console.log('✅ app-github-pages.js 로드 완료')"
+            onerror="console.error('❌ app-github-pages.js 로드 실패')"></script>
+            
+    <!-- 최종 확인 스크립트 -->
+    <script>
+        // 모든 스크립트 로드 후 최종 확인
+        setTimeout(() => {
+            console.log('🏁 모든 스크립트 로드 후 최종 상태:');
+            console.log('  - window.golfApp:', window.golfApp);
+            console.log('  - login-btn 이벤트:', document.getElementById('login-btn')?.onclick);
+            console.log('  - register-btn 이벤트:', document.getElementById('register-btn')?.onclick);
+        }, 1000);
+    </script>
 </body>
 </html>
