@@ -60,7 +60,7 @@ class GolfScoreApp {
         }
     }
 
-    showLoadingStatus(message) {
+    showLoadingStatus(message, showRetry = false) {
         // 로딩 상태를 헤더에 표시
         const header = document.querySelector('.header');
         if (header) {
@@ -84,23 +84,55 @@ class GolfScoreApp {
                 header.appendChild(loadingDiv);
             }
             
+            // 버튼 스타일 정의
+            const buttonStyle = `
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 0.3rem 0.8rem;
+                border-radius: 5px;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-left: 0.5rem;
+            `;
+            
             // 메시지와 버튼을 포함한 내용 구성
-            loadingDiv.innerHTML = `
-                <span>${message}</span>
-                <button id="skip-to-offline" style="
-                    background: rgba(255, 255, 255, 0.2);
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    color: white;
-                    padding: 0.3rem 0.8rem;
-                    border-radius: 5px;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" 
-                   onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+            let buttonsHtml = '';
+            
+            if (showRetry) {
+                buttonsHtml += `
+                    <button id="retry-connection" style="${buttonStyle}"
+                        onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" 
+                        onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                        재시도
+                    </button>
+                `;
+            }
+            
+            buttonsHtml += `
+                <button id="skip-to-offline" style="${buttonStyle}"
+                    onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" 
+                    onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
                     오프라인 모드로 계속
                 </button>
             `;
+            
+            loadingDiv.innerHTML = `
+                <span>${message}</span>
+                <div style="display: flex; align-items: center;">
+                    ${buttonsHtml}
+                </div>
+            `;
+            
+            // 재시도 버튼 이벤트 리스너
+            const retryButton = document.getElementById('retry-connection');
+            if (retryButton) {
+                retryButton.addEventListener('click', () => {
+                    console.log('🔄 사용자가 재시도 요청');
+                    this.retryGoogleAPIConnection();
+                });
+            }
             
             // 오프라인 모드 버튼 이벤트 리스너
             const skipButton = document.getElementById('skip-to-offline');
@@ -141,11 +173,8 @@ class GolfScoreApp {
                     this.showLoadingStatus(`API 로딩 중... gapi: ${gapiStatus}, API클래스: ${apiClassStatus} (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
                     setTimeout(checkAndInit, 1000);
                 } else {
-                    console.log('❌ API 로딩 시간 초과, 오프라인 모드 활성화');
-                    this.showLoadingStatus('API 연결 실패, 오프라인 모드로 전환 중...');
-                    setTimeout(() => {
-                        this.enableFallbackMode();
-                    }, 500);
+                    console.log('❌ API 로딩 시간 초과, 재시도 옵션 제공');
+                    this.showLoadingStatus('Google API 연결에 실패했습니다. 재시도하거나 오프라인 모드를 사용하세요.', true);
                 }
             }
         };
@@ -1176,6 +1205,25 @@ class GolfScoreApp {
     hideNotification() {
         const notification = document.getElementById('notification');
         notification.classList.remove('show');
+    }
+
+    // 재시도 기능 강화
+    async retryGoogleAPIConnection() {
+        console.log('🔄 Google API 재연결 시도...');
+        
+        // 초기화 상태 리셋
+        this.isInitialized = false;
+        this.initializationAttempts = 0;
+        this.googleSheetsAPI = null;
+        
+        // 기존 로딩 상태 숨기기
+        this.hideLoadingStatus();
+        
+        // 로딩 상태 표시
+        this.showLoadingStatus('Google Sheets API 재연결 중...');
+        
+        // 재시도 시작
+        await this.waitForGoogleAPIAndInit();
     }
 }
 

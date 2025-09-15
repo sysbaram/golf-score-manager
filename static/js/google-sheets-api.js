@@ -60,35 +60,40 @@ class GoogleSheetsAPI {
                 try {
                     console.log('🔧 Google API 클라이언트 초기화 중...');
                     
-                    // CORS 문제 해결을 위한 최적화된 설정
+                    // GitHub Pages 최적화된 설정
                     const initConfig = {
                         clientId: this.clientId,
-                        discoveryDocs: this.discoveryDocs,
                         scope: this.scope
                     };
                     
-                    if (this.isGitHubPages) {
-                        console.log('🔧 GitHub Pages CORS 해결 설정 적용');
-                        // CORS 문제 해결을 위한 설정
-                        initConfig.ux_mode = 'popup';
-                        initConfig.redirect_uri = window.location.origin;
-                        initConfig.prompt = 'consent';
-                        initConfig.fetch_basic_profile = false; // CORS 문제 방지
-                        initConfig.include_granted_scopes = false; // CORS 문제 방지
-                        initConfig.cookie_policy = 'single_host_origin';
-                        
-                        // GitHub Pages 도메인 명시적 설정
-                        if (window.location.hostname.includes('github.io')) {
-                            initConfig.hosted_domain = '';
-                            initConfig.plugin_name = 'golf-score-manager';
-                        }
-                    } else {
-                        // 로컬 환경에서는 popup 사용
-                        initConfig.ux_mode = 'popup';
-                        initConfig.redirect_uri = window.location.origin;
+                    // Discovery Docs는 CORS 문제를 일으킬 수 있으므로 조건부 추가
+                    if (!this.isGitHubPages) {
+                        initConfig.discoveryDocs = this.discoveryDocs;
                     }
                     
+                    if (this.isGitHubPages) {
+                        console.log('🔧 GitHub Pages 최적화 설정 적용');
+                        // GitHub Pages에서 안정적인 설정
+                        initConfig.ux_mode = 'redirect';
+                        initConfig.redirect_uri = window.location.origin + window.location.pathname;
+                        initConfig.immediate = false;
+                        initConfig.cookie_policy = 'single_host_origin';
+                    } else {
+                        // 로컬 환경 설정
+                        initConfig.ux_mode = 'popup';
+                        initConfig.redirect_uri = window.location.origin;
+                        initConfig.discoveryDocs = this.discoveryDocs;
+                    }
+                    
+                    console.log('🔧 초기화 설정:', initConfig);
                     await this.gapi.client.init(initConfig);
+                    
+                    // Sheets API 수동 로드 (Discovery Docs 대신)
+                    if (this.isGitHubPages) {
+                        console.log('📊 Sheets API 수동 로드 중...');
+                        await this.gapi.client.load('sheets', 'v4');
+                    }
+                    
                     console.log('✅ Google API 초기화 성공');
                     resolve();
                 } catch (error) {
