@@ -972,11 +972,9 @@ class GolfScoreApp {
                 existingUsers.push(newUser);
                 this.saveLocalData('users', existingUsers);
                 
-                // 로그인 상태로 설정
-                this.currentUser = newUser;
-                this.updateUIForLoggedInUser();
-                this.hideModal(document.getElementById('register-modal'));
-                this.showNotification('로컬 스토리지 데모 모드로 회원가입 완료!', 'success');
+                        // 회원가입만 완료하고 로그인 상태로 설정하지 않음
+                        this.hideModal(document.getElementById('register-modal'));
+                        this.showNotification('회원가입이 완료되었습니다! 로그인 버튼을 클릭해서 로그인해주세요.', 'success');
                 
                 console.log('✅ 로컬 스토리지 데모 회원가입 완료:', newUser);
                 return;
@@ -1030,11 +1028,9 @@ class GolfScoreApp {
                     existingUsers.push(newUser);
                     this.saveLocalData('users', existingUsers);
                     
-                    // 로그인 상태로 설정
-                    this.currentUser = newUser;
-                    this.updateUIForLoggedInUser();
+                    // 회원가입만 완료하고 로그인 상태로 설정하지 않음
                     this.hideModal(document.getElementById('register-modal'));
-                    this.showNotification('로컬 스토리지 데모 모드로 회원가입 완료!', 'success');
+                    this.showNotification('회원가입이 완료되었습니다! 로그인 버튼을 클릭해서 로그인해주세요.', 'success');
                     
                     console.log('✅ 로컬 스토리지 데모 회원가입 완료:', newUser);
                     return;
@@ -1064,11 +1060,10 @@ class GolfScoreApp {
                 
                 
                 if (result.success) {
-                    this.currentUser = result.user;
-                    this.updateUIForLoggedInUser();
+                    // 회원가입만 완료하고 로그인 상태로 설정하지 않음
                     this.hideModal(document.getElementById('register-modal'));
-                    this.showNotification('회원가입 성공!', 'success');
-                    console.log('✅ 회원가입 완료:', this.currentUser);
+                    this.showNotification('회원가입이 완료되었습니다! 로그인 버튼을 클릭해서 로그인해주세요.', 'success');
+                    console.log('✅ 회원가입 완료:', result.user);
                 } else {
                     this.showNotification(result.error || '회원가입에 실패했습니다.', 'error');
                 }
