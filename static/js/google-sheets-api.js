@@ -107,8 +107,8 @@ class GoogleSheetsAPI {
                         errorMessage.includes('Not a valid origin') ||
                         errorMessage.includes('idpiframe_initialization_failed') ||
                         (window.location.hostname.includes('github.io') && errorMessage.includes('origin'))) {
-                        console.error('🌐 GitHub Pages OAuth 제한 감지 - Google Cloud Console 설정 필요');
-                        reject(new Error('GitHub Pages OAuth 제한: Google Cloud Console에서 승인된 출처에 이 도메인을 추가해주세요.'));
+                        console.error('🌐 GitHub Pages OAuth 오류 감지 - API 초기화 실패');
+                        reject(new Error('OAuth 초기화 실패: 도메인 권한 문제가 발생했습니다.'));
                         return;
                     }
                     

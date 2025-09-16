@@ -117,8 +117,8 @@ class GolfScoreApp {
                 if (this.initializationAttempts < this.maxInitializationAttempts) {
                     setTimeout(checkAndInit, 1000);
                 } else {
-                    console.log('❌ API 로딩 시간 초과, OAuth 설정 가이드 표시');
-                    this.showOAuthSetupGuide();
+                    console.log('❌ API 로딩 시간 초과, 재시도 옵션 제공');
+                    this.showLoadingStatus('Google API 연결에 실패했습니다. 재시도해주세요.', true);
                 }
             }
         };
@@ -181,45 +181,12 @@ class GolfScoreApp {
             console.error('❌ 초기화 실패:', error);
             console.error('❌ 에러 상세:', error.stack);
             
-            // OAuth 관련 오류인지 확인
-            if (error.message.includes('GitHub Pages OAuth 제한') || 
-                error.message.includes('Not a valid origin') ||
-                error.message.includes('idpiframe_initialization_failed')) {
-                console.log('🔧 OAuth 설정 문제 감지 - 설정 가이드 표시');
-                setTimeout(() => {
-                    this.showOAuthSetupGuide();
-                }, 1000);
-            } else {
-                this.showLoadingStatus(`API 초기화 실패: ${error.message}`, true);
-            }
+            // OAuth 관련 오류도 재시도 가능하도록 처리
+            this.showLoadingStatus(`API 초기화 실패: ${error.message}`, true);
         }
     }
 
-    showOAuthSetupGuide() {
-        console.log('📋 OAuth 설정 가이드 표시');
-        
-        const guideMessage = `
-            <div style="text-align: left; line-height: 1.6; max-width: 600px;">
-                <h3>🔧 Google OAuth 설정이 필요합니다</h3>
-                <p><strong>문제:</strong> GitHub Pages 도메인이 Google Cloud Console에 등록되지 않았습니다.</p>
-                <p><strong>해결 방법:</strong></p>
-                <ol>
-                    <li><a href="https://console.developers.google.com/" target="_blank" style="color: #4285f4;">Google Cloud Console</a> 접속</li>
-                    <li><strong>API 및 서비스</strong> → <strong>사용자 인증 정보</strong> 메뉴 선택</li>
-                    <li>OAuth 2.0 클라이언트 ID 설정에서</li>
-                    <li><strong>승인된 JavaScript 원본</strong>에 추가:<br>
-                        <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">https://sysbaram.github.io</code></li>
-                    <li><strong>승인된 리디렉션 URI</strong>에 추가:<br>
-                        <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">https://sysbaram.github.io/golf-score-manager/</code></li>
-                    <li>저장 후 5-10분 대기</li>
-                </ol>
-                <p><strong>설정 완료 후 페이지를 새로고침해주세요.</strong></p>
-            </div>
-        `;
-        
-        this.showNotification(guideMessage, 'warning', 0); // 0 = 자동 사라지지 않음
-        this.hideLoadingStatus();
-    }
+    // OAuth 설정 가이드 제거됨 - 직접 API 연동 시도
 
     async retryGoogleAPIConnection() {
         try {
@@ -242,8 +209,7 @@ class GolfScoreApp {
             }
         } catch (error) {
             console.error('❌ API 재초기화 실패:', error);
-            this.showNotification('API 재초기화에 실패했습니다. OAuth 설정을 확인해주세요.', 'error');
-            this.showOAuthSetupGuide();
+            this.showNotification('API 재초기화에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
         }
     }
 
@@ -305,8 +271,7 @@ class GolfScoreApp {
                         this.showLoginModal();
                     } else {
                         console.log('❌ API 초기화되지 않음, 설정 가이드 표시');
-                        this.showNotification('Google Sheets API가 초기화되지 않았습니다. OAuth 설정을 확인해주세요.', 'error');
-                        this.showOAuthSetupGuide();
+                        this.showNotification('Google Sheets API가 초기화되지 않았습니다. 재시도 버튼을 클릭해주세요.', 'error');
                     }
                 });
                 console.log('✅ 로그인 버튼 이벤트 리스너 설정 완료');
@@ -332,8 +297,7 @@ class GolfScoreApp {
                         this.showRegisterModal();
                     } else {
                         console.log('❌ API 초기화되지 않음, 설정 가이드 표시');
-                        this.showNotification('Google Sheets API가 초기화되지 않았습니다. OAuth 설정을 확인해주세요.', 'error');
-                        this.showOAuthSetupGuide();
+                        this.showNotification('Google Sheets API가 초기화되지 않았습니다. 재시도 버튼을 클릭해주세요.', 'error');
                     }
                 });
                 console.log('✅ 회원가입 버튼 이벤트 리스너 설정 완료');
@@ -466,8 +430,7 @@ class GolfScoreApp {
         // Google Sheets API가 초기화되지 않은 경우
         if (!this.googleSheetsAPI || !this.isInitialized) {
             console.error('❌ Google Sheets API가 초기화되지 않았습니다');
-            this.showNotification('Google Sheets API가 초기화되지 않았습니다. OAuth 설정을 확인해주세요.', 'error');
-            this.showOAuthSetupGuide();
+            this.showNotification('Google Sheets API가 초기화되지 않았습니다. 재시도 버튼을 클릭해주세요.', 'error');
             return;
         }
 
@@ -517,7 +480,7 @@ class GolfScoreApp {
                 error.message.includes('access_denied') ||
                 error.message.includes('Not a valid origin')) {
                 errorMessage = 'Google OAuth 설정에 문제가 있습니다. 설정 가이드를 확인해주세요.';
-                this.showOAuthSetupGuide();
+                // OAuth 설정 가이드 제거됨
             } else if (error.message.includes('Google')) {
                 errorMessage = 'Google 로그인에 실패했습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
             } else if (error.message.includes('초기화')) {
@@ -543,8 +506,7 @@ class GolfScoreApp {
         // Google Sheets API가 초기화되지 않은 경우
         if (!this.googleSheetsAPI || !this.isInitialized) {
             console.error('❌ Google Sheets API가 초기화되지 않았습니다');
-            this.showNotification('Google Sheets API가 초기화되지 않았습니다. OAuth 설정을 확인해주세요.', 'error');
-            this.showOAuthSetupGuide();
+            this.showNotification('Google Sheets API가 초기화되지 않았습니다. 재시도 버튼을 클릭해주세요.', 'error');
             return;
         }
 
@@ -582,7 +544,7 @@ class GolfScoreApp {
                 error.message.includes('access_denied') ||
                 error.message.includes('Not a valid origin')) {
                 errorMessage = 'Google OAuth 설정에 문제가 있습니다. 설정 가이드를 확인해주세요.';
-                this.showOAuthSetupGuide();
+                // OAuth 설정 가이드 제거됨
             } else if (error.message.includes('Google')) {
                 errorMessage = 'Google 로그인에 실패했습니다. 팝업 차단을 해제하고 다시 시도해주세요.';
             }
