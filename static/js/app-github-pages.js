@@ -1530,6 +1530,10 @@ window.addEventListener('load', () => {
     setTimeout(setupFallbackEventListeners, 100);
 });
 
+// 클래스를 전역에 노출
+window.GolfScoreApp = GolfScoreApp;
+console.log('✅ GolfScoreApp 클래스 전역 노출 완료:', typeof window.GolfScoreApp);
+
 // 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🌟 DOM 로드 완료, 앱 초기화 시작...');

@@ -509,5 +509,12 @@ class GoogleSheetsAPI {
     }
 }
 
+// 클래스를 전역에 노출
+window.GoogleSheetsAPI = GoogleSheetsAPI;
+
 // 전역 인스턴스 생성
 window.googleSheetsAPI = new GoogleSheetsAPI();
+
+console.log('✅ GoogleSheetsAPI 클래스 및 인스턴스 전역 노출 완료');
+console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI);
+console.log('  - window.googleSheetsAPI:', !!window.googleSheetsAPI);
