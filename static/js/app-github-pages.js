@@ -602,7 +602,7 @@ class GolfScoreApp {
                 });
                 console.log('✅ 로그아웃 버튼 이벤트 리스너 설정 완료');
             } else {
-                console.error('❌ logout-btn 버튼을 찾을 수 없습니다');
+                console.log('ℹ️ logout-btn 버튼이 없음 (정상 - 로그아웃 상태)');
             }
 
             // 모달 이벤트
@@ -839,6 +839,23 @@ class GolfScoreApp {
 
     async checkAuthStatus() {
         try {
+            // 오프라인 모드에서는 로컬 스토리지에서 사용자 정보 확인
+            if (!this.googleSheetsAPI || !this.isInitialized || typeof this.googleSheetsAPI.isUserSignedIn !== 'function') {
+                console.log('🔄 오프라인 모드 - 로컬 스토리지에서 사용자 상태 확인');
+                const localUser = this.loadLocalData('currentUser');
+                if (localUser) {
+                    console.log('✅ 로컬 사용자 로그인 상태');
+                    this.currentUser = localUser;
+                    this.updateUIForLoggedInUser();
+                } else {
+                    console.log('❌ 로컬 사용자 로그아웃 상태');
+                    this.currentUser = null;
+                    this.updateUIForLoggedOutUser();
+                }
+                return;
+            }
+            
+            // Google Sheets API 사용 가능한 경우
             if (this.googleSheetsAPI.isUserSignedIn()) {
                 this.currentUser = this.googleSheetsAPI.getCurrentUser();
                 this.updateUIForLoggedInUser();
@@ -1391,21 +1408,29 @@ class GolfScoreApp {
     }
 
     updateUIForLoggedInUser() {
-        document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('register-btn').style.display = 'none';
-        document.getElementById('logout-btn').style.display = 'inline-block';
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (registerBtn) registerBtn.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
         
         const userInfo = document.getElementById('user-info');
-        if (userInfo) {
+        if (userInfo && this.currentUser) {
             userInfo.textContent = `안녕하세요, ${this.currentUser.username}님!`;
             userInfo.style.display = 'block';
         }
     }
 
     updateUIForLoggedOutUser() {
-        document.getElementById('login-btn').style.display = 'inline-block';
-        document.getElementById('register-btn').style.display = 'inline-block';
-        document.getElementById('logout-btn').style.display = 'none';
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (registerBtn) registerBtn.style.display = 'inline-block';
+        if (logoutBtn) logoutBtn.style.display = 'none';
         
         const userInfo = document.getElementById('user-info');
         if (userInfo) {
