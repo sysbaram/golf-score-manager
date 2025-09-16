@@ -6,7 +6,8 @@ class GoogleSheetsAPI {
         this.isSignedIn = false;
         this.spreadsheetId = '1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10';
         this.usersSheetId = '1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10';
-        this.clientId = '38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.com';
+        // 웹 애플리케이션 유형 Client ID
+        this.clientId = '38824619592-npt5ckpvnqjleo82j7onsrvqi7r39q0h.apps.googleusercontent.com';
         this.scope = 'https://www.googleapis.com/auth/spreadsheets';
         this.discoveryDocs = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
         

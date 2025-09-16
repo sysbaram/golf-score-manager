@@ -2,7 +2,7 @@
 
 ## 🎯 문제 상황
 ```
-Client ID: 38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.com
+Client ID: 38824619592-npt5ckpvnqjleo82j7onsrvqi7r39q0h.apps.googleusercontent.com
 도메인: https://sysbaram.github.io
 오류: "Not a valid origin for the client"
 ```
@@ -15,7 +15,7 @@ Client ID: 38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.c
 
 ### 2단계: OAuth 2.0 클라이언트 ID 설정
 1. **API 및 서비스** → **사용자 인증 정보** 메뉴 선택
-2. **OAuth 2.0 클라이언트 ID** 중에서 `38824619592-jpqaqquvbkectvohfs0vnujvi4v7h0sb.apps.googleusercontent.com` 선택
+2. **OAuth 2.0 클라이언트 ID** 중에서 `38824619592-npt5ckpvnqjleo82j7onsrvqi7r39q0h.apps.googleusercontent.com` 선택
 3. **승인된 JavaScript 원본** 섹션에 다음 도메인 추가:
    ```
    https://sysbaram.github.io
