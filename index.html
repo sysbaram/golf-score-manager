@@ -279,7 +279,7 @@
                     <h2><i class="fas fa-sign-in-alt"></i> 로그인</h2>
                     <button class="modal-close">&times;</button>
                 </div>
-                <form id="login-form">
+                <form id="login-form" onsubmit="handleLoginSubmit(event); return false;">
                     <div class="form-group">
                         <label for="login-username">사용자명 또는 이메일</label>
                         <input type="text" id="login-username" name="username" placeholder="사용자명 또는 이메일 주소" autocomplete="username" required>
@@ -293,7 +293,7 @@
                         <button type="submit" class="btn btn-primary">로그인</button>
                     </div>
                     <div class="divider">또는</div>
-                    <button type="button" id="google-login-btn" class="btn btn-google">
+                    <button type="button" id="google-login-btn" class="btn btn-google" onclick="handleGoogleLogin();">
                         <i class="fab fa-google"></i> Google로 로그인
                     </button>
                 </form>
@@ -307,7 +307,7 @@
                     <h2><i class="fas fa-user-plus"></i> 회원가입</h2>
                     <button class="modal-close">&times;</button>
                 </div>
-                <form id="register-form">
+                <form id="register-form" onsubmit="handleRegisterSubmit(event); return false;">
                     <div class="form-group">
                         <label for="register-username">사용자명</label>
                         <input type="text" id="register-username" name="username" autocomplete="username" required>
@@ -492,14 +492,190 @@
             console.log('✅ 모달 닫기 이벤트 설정 완료');
         });
         
+        // Google Sheets API 호출 함수들
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            console.log('🔐 handleLoginSubmit() 호출됨');
+            
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            if (!username || !password) {
+                alert('사용자명과 비밀번호를 입력해주세요.');
+                return;
+            }
+            
+            console.log('📡 로그인 시도:', username);
+            
+            try {
+                // Google Sheets API 또는 golfApp 사용
+                if (window.golfApp && window.golfApp.googleSheetsAPI) {
+                    console.log('🔄 golfApp.googleSheetsAPI 사용');
+                    const result = await window.golfApp.googleSheetsAPI.loginUser(username, password);
+                    
+                    if (result && result.success) {
+                        alert('로그인 성공!');
+                        document.getElementById('login-modal').style.display = 'none';
+                        console.log('✅ 로그인 성공:', result.user);
+                    } else {
+                        alert('로그인 실패: ' + (result.error || '알 수 없는 오류'));
+                        console.error('❌ 로그인 실패:', result);
+                    }
+                } else if (window.GoogleSheetsAPI) {
+                    console.log('🔄 직접 GoogleSheetsAPI 사용');
+                    const api = new GoogleSheetsAPI();
+                    await api.init();
+                    await api.signIn();
+                    
+                    const result = await api.loginUser(username, password);
+                    if (result && result.success) {
+                        alert('로그인 성공!');
+                        document.getElementById('login-modal').style.display = 'none';
+                        console.log('✅ 로그인 성공:', result.user);
+                    } else {
+                        alert('로그인 실패: ' + (result.error || '알 수 없는 오류'));
+                        console.error('❌ 로그인 실패:', result);
+                    }
+                } else {
+                    console.log('🔄 로컬 스토리지 데모 모드 사용');
+                    // 로컬 스토리지 데모 모드
+                    const users = JSON.parse(localStorage.getItem('golf_users') || '[]');
+                    const user = users.find(u => 
+                        (u.username === username || u.email === username) && u.password === password
+                    );
+                    
+                    if (user) {
+                        alert('로그인 성공! (데모 모드)');
+                        document.getElementById('login-modal').style.display = 'none';
+                        console.log('✅ 데모 로그인 성공:', user);
+                    } else {
+                        alert('로그인 실패: 사용자를 찾을 수 없거나 비밀번호가 틀렸습니다.');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ 로그인 오류:', error);
+                alert('로그인 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        async function handleRegisterSubmit(event) {
+            event.preventDefault();
+            console.log('📝 handleRegisterSubmit() 호출됨');
+            
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-password-confirm').value;
+            
+            if (!username || !email || !password || !confirmPassword) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            
+            console.log('📡 회원가입 시도:', username, email);
+            
+            try {
+                // Google Sheets API 또는 golfApp 사용
+                if (window.golfApp && window.golfApp.googleSheetsAPI) {
+                    console.log('🔄 golfApp.googleSheetsAPI 사용');
+                    await window.golfApp.googleSheetsAPI.signIn();
+                    const result = await window.golfApp.googleSheetsAPI.registerUser(username, email, password);
+                    
+                    if (result && result.success) {
+                        alert('회원가입 성공!');
+                        document.getElementById('register-modal').style.display = 'none';
+                        console.log('✅ 회원가입 성공:', result.user);
+                    } else {
+                        alert('회원가입 실패: ' + (result.error || '알 수 없는 오류'));
+                        console.error('❌ 회원가입 실패:', result);
+                    }
+                } else if (window.GoogleSheetsAPI) {
+                    console.log('🔄 직접 GoogleSheetsAPI 사용');
+                    const api = new GoogleSheetsAPI();
+                    await api.init();
+                    await api.signIn();
+                    
+                    const result = await api.registerUser(username, email, password);
+                    if (result && result.success) {
+                        alert('회원가입 성공!');
+                        document.getElementById('register-modal').style.display = 'none';
+                        console.log('✅ 회원가입 성공:', result.user);
+                    } else {
+                        alert('회원가입 실패: ' + (result.error || '알 수 없는 오류'));
+                        console.error('❌ 회원가입 실패:', result);
+                    }
+                } else {
+                    console.log('🔄 로컬 스토리지 데모 모드 사용');
+                    // 로컬 스토리지 데모 모드
+                    const users = JSON.parse(localStorage.getItem('golf_users') || '[]');
+                    
+                    // 중복 확인
+                    const existingUser = users.find(u => u.username === username || u.email === email);
+                    if (existingUser) {
+                        alert('이미 존재하는 사용자명 또는 이메일입니다.');
+                        return;
+                    }
+                    
+                    // 새 사용자 추가
+                    const newUser = {
+                        username: username,
+                        email: email,
+                        password: password,
+                        id: 'demo_' + Date.now(),
+                        created_at: new Date().toISOString()
+                    };
+                    
+                    users.push(newUser);
+                    localStorage.setItem('golf_users', JSON.stringify(users));
+                    
+                    alert('회원가입 성공! (데모 모드)');
+                    document.getElementById('register-modal').style.display = 'none';
+                    console.log('✅ 데모 회원가입 성공:', newUser);
+                }
+            } catch (error) {
+                console.error('❌ 회원가입 오류:', error);
+                alert('회원가입 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        async function handleGoogleLogin() {
+            console.log('🔐 handleGoogleLogin() 호출됨');
+            
+            try {
+                if (window.golfApp && window.golfApp.googleSheetsAPI) {
+                    console.log('🔄 Google OAuth 로그인 시도...');
+                    await window.golfApp.googleSheetsAPI.signIn();
+                    alert('Google 로그인 성공!');
+                    document.getElementById('login-modal').style.display = 'none';
+                } else if (window.GoogleSheetsAPI) {
+                    const api = new GoogleSheetsAPI();
+                    await api.init();
+                    await api.signIn();
+                    alert('Google 로그인 성공!');
+                    document.getElementById('login-modal').style.display = 'none';
+                } else {
+                    alert('Google Sheets API가 로드되지 않았습니다.');
+                }
+            } catch (error) {
+                console.error('❌ Google 로그인 오류:', error);
+                alert('Google 로그인 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
         // 최종 확인
         setTimeout(() => {
             console.log('🏁 모든 스크립트 로드 후 최종 상태:');
             console.log('  - window.golfApp:', window.golfApp);
+            console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI);
             console.log('  - showLoginModal:', typeof showLoginModal);
             console.log('  - showRegisterModal:', typeof showRegisterModal);
-            console.log('  - login-btn:', document.getElementById('login-btn'));
-            console.log('  - register-btn:', document.getElementById('register-btn'));
+            console.log('  - handleLoginSubmit:', typeof handleLoginSubmit);
+            console.log('  - handleRegisterSubmit:', typeof handleRegisterSubmit);
         }, 1000);
     </script>
 </body>
