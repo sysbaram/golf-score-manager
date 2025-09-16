@@ -100,6 +100,17 @@ class GoogleSheetsAPI {
                         code: error.code
                     });
                     
+                    // GitHub Pages OAuth 오류 감지
+                    if (error.error === 'idpiframe_initialization_failed' ||
+                        (error.details && error.details.includes('Not a valid origin')) ||
+                        errorMessage.includes('Not a valid origin') ||
+                        errorMessage.includes('idpiframe_initialization_failed') ||
+                        (window.location.hostname.includes('github.io') && errorMessage.includes('origin'))) {
+                        console.error('🌐 GitHub Pages OAuth 제한 감지 - 오프라인 모드로 자동 전환');
+                        reject(new Error('GitHub Pages OAuth 제한: Google Cloud Console에서 승인된 출처에 이 도메인을 추가하거나 오프라인 모드를 사용해주세요.'));
+                        return;
+                    }
+                    
                     // CORS 관련 오류 감지
                     if (errorMessage.includes('CORS') || 
                         errorMessage.includes('Cross-Origin') ||

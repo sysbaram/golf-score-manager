@@ -241,7 +241,16 @@ class GolfScoreApp {
             let showRetry = true;
             
             // 오류 유형별 처리
-            if (error.message.includes('CORS')) {
+            if (error.message.includes('GitHub Pages OAuth 제한') || 
+                error.message.includes('Not a valid origin') ||
+                error.message.includes('idpiframe_initialization_failed')) {
+                errorMessage = 'GitHub Pages OAuth 제한: Google Cloud Console에서 이 도메인을 승인된 출처에 추가해주세요. 현재는 오프라인 모드를 사용합니다.';
+                showRetry = false; // OAuth 오류는 재시도해도 해결되지 않음
+                // OAuth 오류 시 즉시 오프라인 모드 전환
+                setTimeout(() => {
+                    this.enableFallbackMode();
+                }, 1000);
+            } else if (error.message.includes('CORS')) {
                 errorMessage = 'CORS 오류: GitHub Pages에서 Google API 접근이 제한됩니다. 오프라인 모드를 사용해주세요.';
                 showRetry = false; // CORS 오류는 재시도해도 해결되지 않음
                 // CORS 오류 시 자동으로 오프라인 모드 전환
