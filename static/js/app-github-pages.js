@@ -1029,6 +1029,45 @@ class GolfScoreApp {
                         throw googleError;
                     }
                 }
+            } catch (error) {
+                console.error('❌ Google Sheets API 연동 오류:', error);
+                console.log('🔄 로컬 스토리지 데모 모드로 폴백');
+                
+                // 로컬 스토리지 데모 모드로 회원가입 처리
+                const existingUsers = this.loadLocalData('users') || [];
+                
+                // 중복 사용자명 확인
+                const isUsernameExists = existingUsers.some(user => user.username === username);
+                if (isUsernameExists) {
+                    this.showNotification('이미 존재하는 사용자명입니다.', 'error');
+                    return;
+                }
+                
+                // 중복 이메일 확인
+                const isEmailExists = existingUsers.some(user => user.email === email);
+                if (isEmailExists) {
+                    this.showNotification('이미 존재하는 이메일입니다.', 'error');
+                    return;
+                }
+                
+                // 새 사용자 생성
+                const newUser = {
+                    username: username,
+                    email: email,
+                    password: password,
+                    id: 'demo_' + Date.now(),
+                    created_at: new Date().toISOString()
+                };
+                
+                // 로컬 스토리지에 저장
+                existingUsers.push(newUser);
+                this.saveLocalData('users', existingUsers);
+                
+                // 회원가입만 완료하고 로그인 상태로 설정하지 않음
+                this.hideModal(document.getElementById('register-modal'));
+                this.showNotification('로컬 스토리지 데모 모드로 회원가입이 완료되었습니다! 로그인 버튼을 클릭해서 로그인해주세요.', 'success');
+                
+                console.log('✅ 로컬 스토리지 데모 회원가입 완료:', newUser);
             }
             
             try {
