@@ -60,22 +60,25 @@
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="//apis.google.com">
+    <link rel="dns-prefetch" href="//accounts.google.com">
     
-    <!-- Google API 다중 로딩 전략 (GitHub Pages 최적화) -->
+    <!-- Google Identity Services (GIS) 및 API 로딩 전략 -->
     <script>
         // Google API 로딩 상태 추적
         window.googleApiLoadAttempts = 0;
+        window.googleGisLoadAttempts = 0;
         window.googleApiLoaded = false;
+        window.googleGisLoaded = false;
         
-        // 성공 콜백
+        // Google API 클라이언트 성공 콜백
         window.onGoogleApiLoad = function() {
-            console.log('✅ Google API 로딩 성공');
+            console.log('✅ Google API 클라이언트 로딩 성공');
             window.googleApiLoaded = true;
             
             // 스크립트 로딩 상태 업데이트
             if (window.scriptLoadStatus) {
                 window.scriptLoadStatus.gapi = true;
-                console.log('📊 Google API 상태 업데이트:', window.scriptLoadStatus);
+                console.log('📊 Google API 클라이언트 상태 업데이트:', window.scriptLoadStatus);
                 checkAllScriptsLoaded();
             }
             
@@ -85,23 +88,52 @@
             }
         };
         
-        // 실패 콜백
+        // Google Identity Services 성공 콜백
+        window.onGoogleGisLoad = function() {
+            console.log('✅ Google Identity Services 로딩 성공');
+            window.googleGisLoaded = true;
+            
+            // 스크립트 로딩 상태 업데이트
+            if (window.scriptLoadStatus) {
+                window.scriptLoadStatus.gis = true;
+                console.log('📊 Google Identity Services 상태 업데이트:', window.scriptLoadStatus);
+                checkAllScriptsLoaded();
+            }
+        };
+        
+        // Google API 클라이언트 실패 콜백
         window.onGoogleApiError = function(error) {
-            console.error('❌ Google API 로딩 실패:', error);
+            console.error('❌ Google API 클라이언트 로딩 실패:', error);
             window.googleApiLoadAttempts++;
             
             if (window.googleApiLoadAttempts < 3) {
-                console.log(`🔄 Google API 재시도 ${window.googleApiLoadAttempts}/3`);
+                console.log(`🔄 Google API 클라이언트 재시도 ${window.googleApiLoadAttempts}/3`);
                 setTimeout(loadGoogleApiAlternative, 2000);
             } else {
-                console.log('❌ Google API 로딩 완전 실패 - 오프라인 모드 권장');
-                if (window.golfApp) {
-                    window.golfApp.showLoadingStatus('Google API 로딩에 실패했습니다. 오프라인 모드를 사용해주세요.', true);
+                console.log('❌ Google API 클라이언트 로딩 완전 실패');
+                if (window.scriptLoadStatus) {
+                    window.scriptLoadStatus.gapi = false;
                 }
             }
         };
         
-        // 대안 로딩 방법
+        // Google Identity Services 실패 콜백
+        window.onGoogleGisError = function(error) {
+            console.error('❌ Google Identity Services 로딩 실패:', error);
+            window.googleGisLoadAttempts++;
+            
+            if (window.googleGisLoadAttempts < 3) {
+                console.log(`🔄 Google Identity Services 재시도 ${window.googleGisLoadAttempts}/3`);
+                setTimeout(loadGoogleGisAlternative, 2000);
+            } else {
+                console.log('❌ Google Identity Services 로딩 완전 실패');
+                if (window.scriptLoadStatus) {
+                    window.scriptLoadStatus.gis = false;
+                }
+            }
+        };
+        
+        // Google API 클라이언트 대안 로딩
         function loadGoogleApiAlternative() {
             const script = document.createElement('script');
             script.src = 'https://apis.google.com/js/api.js';
@@ -110,10 +142,24 @@
             script.onload = window.onGoogleApiLoad;
             script.onerror = window.onGoogleApiError;
             document.head.appendChild(script);
+            console.log('🔄 Google API 클라이언트 로딩 시도...');
         }
         
-        // 초기 로딩 시도
+        // Google Identity Services 대안 로딩
+        function loadGoogleGisAlternative() {
+            const script = document.createElement('script');
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            script.defer = true;
+            script.onload = window.onGoogleGisLoad;
+            script.onerror = window.onGoogleGisError;
+            document.head.appendChild(script);
+            console.log('🔄 Google Identity Services 로딩 시도...');
+        }
+        
+        // 초기 로딩 시도 (둘 다 필요)
         loadGoogleApiAlternative();
+        loadGoogleGisAlternative();
     </script>
 </head>
 <body>
@@ -431,12 +477,14 @@
         // 스크립트 로딩 상태 추적
         window.scriptLoadStatus = {
             gapi: false,
+            gis: false,
             googleSheetsAPI: false,
             appGitHubPages: false
         };
         
         function checkAllScriptsLoaded() {
             const allLoaded = window.scriptLoadStatus.gapi && 
+                            window.scriptLoadStatus.gis &&
                             window.scriptLoadStatus.googleSheetsAPI && 
                             window.scriptLoadStatus.appGitHubPages;
             
