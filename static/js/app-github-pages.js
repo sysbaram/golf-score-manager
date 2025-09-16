@@ -842,7 +842,7 @@ class GolfScoreApp {
             // 오프라인 모드에서는 로컬 스토리지에서 사용자 정보 확인
             if (!this.googleSheetsAPI || !this.isInitialized || typeof this.googleSheetsAPI.isUserSignedIn !== 'function') {
                 console.log('🔄 오프라인 모드 - 로컬 스토리지에서 사용자 상태 확인');
-                const localUser = this.loadLocalData('currentUser');
+                const localUser = this.getLocalData('currentUser');
                 if (localUser) {
                     console.log('✅ 로컬 사용자 로그인 상태');
                     this.currentUser = localUser;
