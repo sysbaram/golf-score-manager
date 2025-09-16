@@ -71,6 +71,14 @@
         window.onGoogleApiLoad = function() {
             console.log('✅ Google API 로딩 성공');
             window.googleApiLoaded = true;
+            
+            // 스크립트 로딩 상태 업데이트
+            if (window.scriptLoadStatus) {
+                window.scriptLoadStatus.gapi = true;
+                console.log('📊 Google API 상태 업데이트:', window.scriptLoadStatus);
+                checkAllScriptsLoaded();
+            }
+            
             if (window.golfApp && !window.golfApp.isInitialized) {
                 console.log('🔄 앱 재초기화 시도...');
                 window.golfApp.retryGoogleAPIConnection();
@@ -418,13 +426,44 @@
         });
     </script>
     
-    <!-- 앱 스크립트들 (GitHub Pages 최적화) -->
+    <!-- 앱 스크립트들 (GitHub Pages 최적화) - 순서 중요 -->
+    <script>
+        // 스크립트 로딩 상태 추적
+        window.scriptLoadStatus = {
+            gapi: false,
+            googleSheetsAPI: false,
+            appGitHubPages: false
+        };
+        
+        function checkAllScriptsLoaded() {
+            const allLoaded = window.scriptLoadStatus.gapi && 
+                            window.scriptLoadStatus.googleSheetsAPI && 
+                            window.scriptLoadStatus.appGitHubPages;
+            
+            console.log('📊 스크립트 로딩 상태:', window.scriptLoadStatus);
+            
+            if (allLoaded) {
+                console.log('🎉 모든 스크립트 로딩 완료!');
+                // 모든 스크립트가 로드된 후 앱 초기화
+                if (typeof window.golfApp === 'undefined') {
+                    console.log('🚀 GolfApp 초기화 시작...');
+                    setTimeout(() => {
+                        if (window.GolfScoreApp) {
+                            window.golfApp = new GolfScoreApp();
+                            console.log('✅ GolfApp 초기화 완료');
+                        }
+                    }, 100);
+                }
+            }
+        }
+    </script>
+    
     <script src="./static/js/google-sheets-api.js" 
-            onload="console.log('✅ google-sheets-api.js 로드 완료')"
-            onerror="console.error('❌ google-sheets-api.js 로드 실패')"></script>
+            onload="console.log('✅ google-sheets-api.js 로드 완료'); window.scriptLoadStatus.googleSheetsAPI = true; checkAllScriptsLoaded();"
+            onerror="console.error('❌ google-sheets-api.js 로드 실패'); window.scriptLoadStatus.googleSheetsAPI = false;"></script>
     <script src="./static/js/app-github-pages.js" 
-            onload="console.log('✅ app-github-pages.js 로드 완료')"
-            onerror="console.error('❌ app-github-pages.js 로드 실패')"></script>
+            onload="console.log('✅ app-github-pages.js 로드 완료'); window.scriptLoadStatus.appGitHubPages = true; checkAllScriptsLoaded();"
+            onerror="console.error('❌ app-github-pages.js 로드 실패'); window.scriptLoadStatus.appGitHubPages = false;"></script>
             
     <!-- 긴급 수정: 직접 모달 함수 정의 -->
     <script>
