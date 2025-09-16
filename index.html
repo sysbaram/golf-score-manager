@@ -656,11 +656,22 @@
                 
                 // 상태 진단
                 console.log('🔍 회원가입 시 API 상태 확인:');
-                console.log('  - window.golfApp:', !!window.golfApp);
+                console.log('  - window.golfApp:', !!window.golfApp, window.golfApp);
                 console.log('  - window.golfApp?.isInitialized:', window.golfApp?.isInitialized);
-                console.log('  - window.golfApp?.googleSheetsAPI:', !!window.golfApp?.googleSheetsAPI);
+                console.log('  - window.golfApp?.googleSheetsAPI:', !!window.golfApp?.googleSheetsAPI, window.golfApp?.googleSheetsAPI);
                 console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI);
                 console.log('  - window.gapi:', !!window.gapi);
+                
+                // 🚨 긴급 진단: golfApp이 있지만 초기화되지 않은 경우
+                if (window.golfApp && !window.golfApp.isInitialized) {
+                    console.log('⚠️ golfApp은 존재하지만 초기화되지 않음 - 강제 초기화 시도');
+                    try {
+                        await window.golfApp.waitForGoogleAPIAndInit();
+                        console.log('✅ 강제 초기화 완료, 재시도...');
+                    } catch (initError) {
+                        console.error('❌ 강제 초기화 실패:', initError.message);
+                    }
+                }
                 
                 // 1순위: golfApp의 googleSheetsAPI 사용
                 if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.isInitialized) {
@@ -688,15 +699,22 @@
                     console.log('📡 Google Sheets API로 회원가입 시도...');
                     console.log('  - API 인스턴스:', !!api);
                     console.log('  - isSignedIn:', api.isSignedIn);
+                    console.log('  - clientId:', api.clientId);
+                    console.log('  - spreadsheetId:', api.spreadsheetId);
                     
                     // Google OAuth 로그인이 필요한 경우
                     if (!api.isSignedIn) {
                         console.log('🔐 Google OAuth 로그인 시도...');
                         try {
+                            console.log('🔐 signIn() 메서드 호출 중...');
                             await api.signIn();
-                            console.log('✅ Google OAuth 로그인 성공');
+                            console.log('✅ Google OAuth 로그인 성공, isSignedIn:', api.isSignedIn);
                         } catch (signInError) {
                             console.error('❌ Google OAuth 로그인 실패:', signInError.message);
+                            console.error('❌ OAuth 오류 상세:', signInError);
+                            
+                            // OAuth 실패 시에도 데모 모드로 폴백하지 말고 명확한 오류 표시
+                            alert('Google OAuth 인증에 실패했습니다: ' + signInError.message + '\n\n페이지를 새로고침하고 다시 시도해주세요.');
                             throw signInError;
                         }
                     }
