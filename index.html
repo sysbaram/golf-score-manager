@@ -144,10 +144,12 @@
                     </button>
                 </div>
                 <div id="login-section" class="login-section">
-                    <button id="login-btn" class="btn btn-outline">
+                    <button id="login-btn" class="btn btn-outline" 
+                            onclick="showLoginModal(); return false;">
                         <i class="fas fa-sign-in-alt"></i> 로그인
                     </button>
-                    <button id="register-btn" class="btn btn-outline">
+                    <button id="register-btn" class="btn btn-outline"
+                            onclick="showRegisterModal(); return false;">
                         <i class="fas fa-user-plus"></i> 회원가입
                     </button>
                 </div>
@@ -232,7 +234,8 @@
                             </tbody>
                         </table>
                     </div>
-                    <button id="refresh-rounds" class="btn btn-primary">
+                    <button id="refresh-rounds" class="btn btn-primary"
+                            onclick="console.log('🔄 새로고침 버튼 클릭'); alert('새로고침 기능 (임시)');">
                         <i class="fas fa-sync-alt"></i> 새로고침
                     </button>
                 </div>
@@ -243,7 +246,8 @@
                 <div class="card">
                     <h2><i class="fas fa-chart-line"></i> 내 통계</h2>
                     <div class="stats-form">
-                        <button id="get-stats" class="btn btn-primary">
+                        <button id="get-stats" class="btn btn-primary"
+                                onclick="console.log('📊 통계 조회 버튼 클릭'); alert('통계 조회 기능 (임시)');">
                             <i class="fas fa-chart-bar"></i> 통계 조회
                         </button>
                     </div>
@@ -265,7 +269,7 @@
         <!-- 알림 메시지 -->
         <div id="notification" class="notification">
             <span id="notification-message"></span>
-            <button id="notification-close">&times;</button>
+            <button id="notification-close" onclick="this.parentElement.style.display='none';">&times;</button>
         </div>
 
         <!-- 로그인 모달 -->
@@ -422,14 +426,80 @@
             onload="console.log('✅ app-github-pages.js 로드 완료')"
             onerror="console.error('❌ app-github-pages.js 로드 실패')"></script>
             
-    <!-- 최종 확인 스크립트 -->
+    <!-- 긴급 수정: 직접 모달 함수 정의 -->
     <script>
-        // 모든 스크립트 로드 후 최종 확인
+        console.log('🚨 긴급 수정: 직접 모달 함수 정의');
+        
+        // 로그인 모달 표시 함수
+        function showLoginModal() {
+            console.log('🔐 showLoginModal() 호출됨');
+            const modal = document.getElementById('login-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('✅ 로그인 모달 표시 완료');
+            } else {
+                console.error('❌ 로그인 모달을 찾을 수 없음');
+                alert('로그인 모달을 찾을 수 없습니다.');
+            }
+        }
+        
+        // 회원가입 모달 표시 함수
+        function showRegisterModal() {
+            console.log('📝 showRegisterModal() 호출됨');
+            const modal = document.getElementById('register-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('✅ 회원가입 모달 표시 완료');
+            } else {
+                console.error('❌ 회원가입 모달을 찾을 수 없음');
+                alert('회원가입 모달을 찾을 수 없습니다.');
+            }
+        }
+        
+        // 모달 닫기 함수
+        function closeModal(modalId) {
+            console.log('❌ closeModal() 호출됨:', modalId);
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                console.log('✅ 모달 닫기 완료');
+            }
+        }
+        
+        // DOM 로드 후 모달 닫기 이벤트 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 모달 닫기 이벤트 설정 중...');
+            
+            // 모든 모달 닫기 버튼
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.onclick = function(e) {
+                    const modal = e.target.closest('.modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+            });
+            
+            // 모달 배경 클릭으로 닫기
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.onclick = function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+            });
+            
+            console.log('✅ 모달 닫기 이벤트 설정 완료');
+        });
+        
+        // 최종 확인
         setTimeout(() => {
             console.log('🏁 모든 스크립트 로드 후 최종 상태:');
             console.log('  - window.golfApp:', window.golfApp);
-            console.log('  - login-btn 이벤트:', document.getElementById('login-btn')?.onclick);
-            console.log('  - register-btn 이벤트:', document.getElementById('register-btn')?.onclick);
+            console.log('  - showLoginModal:', typeof showLoginModal);
+            console.log('  - showRegisterModal:', typeof showRegisterModal);
+            console.log('  - login-btn:', document.getElementById('login-btn'));
+            console.log('  - register-btn:', document.getElementById('register-btn'));
         }, 1000);
     </script>
 </body>
