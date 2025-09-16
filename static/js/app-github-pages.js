@@ -1131,7 +1131,8 @@ class GolfScoreApp {
                 throw new Error(`Google 로그인 실패: ${signInError.message}`);
             }
 
-            // Google 사용자 정보 가져오기
+            try {
+                // Google 사용자 정보 가져오기
             console.log('👤 Google 사용자 정보 가져오기...');
             const googleUser = this.googleSheetsAPI.getCurrentUser();
             console.log('👤 Google 사용자 정보:', googleUser);
@@ -1177,6 +1178,7 @@ class GolfScoreApp {
             }
             
             this.showNotification(errorMessage, 'error');
+        }
         }
     }
 
