@@ -1069,7 +1069,6 @@ class GolfScoreApp {
                 
                 console.log('✅ 로컬 스토리지 데모 회원가입 완료:', newUser);
             }
-        }
         
         // Google Sheets API를 통한 회원가입 시도
         if (this.googleSheetsAPI && this.isInitialized) {
@@ -1178,7 +1177,6 @@ class GolfScoreApp {
             }
             
             this.showNotification(errorMessage, 'error');
-        }
         }
     }
 
