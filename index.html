@@ -631,13 +631,30 @@
         }
         
         async function handleRegisterSubmit(event) {
-            event.preventDefault();
-            console.log('📝 handleRegisterSubmit() 호출됨');
+            console.log('🚨 handleRegisterSubmit() 시작 - 오류 감지 모드');
             
-            const username = document.getElementById('register-username').value.trim();
-            const email = document.getElementById('register-email').value.trim();
-            const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('register-password-confirm').value;
+            try {
+                event.preventDefault();
+                console.log('📝 handleRegisterSubmit() 호출됨');
+                
+                // 안전한 요소 접근
+                const usernameEl = document.getElementById('register-username');
+                const emailEl = document.getElementById('register-email');
+                const passwordEl = document.getElementById('register-password');
+                const confirmPasswordEl = document.getElementById('register-password-confirm');
+                
+                if (!usernameEl || !emailEl || !passwordEl || !confirmPasswordEl) {
+                    console.error('❌ 회원가입 폼 요소를 찾을 수 없음');
+                    alert('회원가입 폼에 오류가 있습니다. 페이지를 새로고침해주세요.');
+                    return;
+                }
+                
+                const username = usernameEl.value.trim();
+                const email = emailEl.value.trim();
+                const password = passwordEl.value;
+                const confirmPassword = confirmPasswordEl.value;
+                
+                console.log('✅ 폼 데이터 추출 완료:', { username, email });
             
             if (!username || !email || !password || !confirmPassword) {
                 alert('모든 필드를 입력해주세요.');
@@ -767,7 +784,13 @@
                 
             } catch (error) {
                 console.error('❌ 회원가입 오류:', error);
+                console.error('❌ 오류 상세:', error.stack);
                 alert('회원가입 중 오류가 발생했습니다: ' + error.message + '\n데모 모드를 사용해주세요.');
+            }
+            } catch (globalError) {
+                console.error('🚨 handleRegisterSubmit() 전체 오류:', globalError);
+                console.error('🚨 전체 오류 상세:', globalError.stack);
+                alert('시스템 오류가 발생했습니다: ' + globalError.message + '\n페이지를 새로고침해주세요.');
             }
         }
         
