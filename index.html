@@ -831,6 +831,20 @@
             }
         };
         
+        // 중간 확인 (500ms 후)
+        setTimeout(() => {
+            if (!window.golfApp && window.GolfScoreApp) {
+                console.log('🔄 중간 확인: golfApp 생성 시도...');
+                try {
+                    window.golfApp = new GolfScoreApp();
+                    window.golfApp.setupBasicUI();
+                    console.log('✅ 중간 확인: golfApp 생성 성공');
+                } catch (error) {
+                    console.log('⚠️ 중간 확인: golfApp 생성 실패, 최종 확인에서 재시도');
+                }
+            }
+        }, 500);
+        
         // 최종 확인
         setTimeout(() => {
             console.log('🏁 모든 스크립트 로드 후 최종 상태:');
@@ -845,6 +859,29 @@
             diagnoseGoogleAPI();
             
             console.log('💡 수동 테스트: Console에서 testGoogleSheetsAPI() 함수를 호출해보세요.');
+            
+            // 🚨 긴급 수정: golfApp이 없으면 강제 생성
+            if (!window.golfApp && window.GolfScoreApp) {
+                console.log('🚨 golfApp이 없음, 강제 생성 시도...');
+                try {
+                    window.golfApp = new GolfScoreApp();
+                    console.log('✅ 강제 golfApp 생성 완료');
+                    
+                    // 기본 UI 설정
+                    window.golfApp.setupBasicUI();
+                    console.log('✅ 기본 UI 설정 완료');
+                    
+                    // Google API 초기화 시도
+                    setTimeout(() => {
+                        window.golfApp.waitForGoogleAPIAndInit();
+                    }, 500);
+                } catch (error) {
+                    console.error('❌ 강제 golfApp 생성 실패:', error);
+                }
+            } else if (!window.GolfScoreApp) {
+                console.error('❌ GolfScoreApp 클래스가 로드되지 않았습니다');
+                console.log('📊 스크립트 로딩 상태:', window.scriptLoadStatus);
+            }
         }, 1000);
     </script>
 </body>
