@@ -615,28 +615,56 @@
             try {
                 let api = null;
                 
+                // 상태 진단
+                console.log('🔍 회원가입 시 API 상태 확인:');
+                console.log('  - window.golfApp:', !!window.golfApp);
+                console.log('  - window.golfApp?.isInitialized:', window.golfApp?.isInitialized);
+                console.log('  - window.golfApp?.googleSheetsAPI:', !!window.golfApp?.googleSheetsAPI);
+                console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI);
+                console.log('  - window.gapi:', !!window.gapi);
+                
                 // 1순위: golfApp의 googleSheetsAPI 사용
                 if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.isInitialized) {
-                    console.log('🔄 golfApp.googleSheetsAPI 사용');
+                    console.log('🔄 1순위: golfApp.googleSheetsAPI 사용');
                     api = window.golfApp.googleSheetsAPI;
                 } 
                 // 2순위: 직접 GoogleSheetsAPI 강제 초기화
                 else if (window.GoogleSheetsAPI && window.gapi) {
-                    console.log('🔄 직접 GoogleSheetsAPI 강제 초기화');
-                    api = await forceInitializeGoogleAPI();
+                    console.log('🔄 2순위: 직접 GoogleSheetsAPI 강제 초기화 시도');
+                    try {
+                        api = await forceInitializeGoogleAPI();
+                        console.log('✅ 강제 초기화 성공:', !!api);
+                    } catch (initError) {
+                        console.error('❌ 강제 초기화 실패:', initError.message);
+                        api = null;
+                    }
+                } else {
+                    console.log('❌ Google API 요구사항 미충족:');
+                    console.log('  - GoogleSheetsAPI 클래스:', typeof window.GoogleSheetsAPI);
+                    console.log('  - gapi 스크립트:', !!window.gapi);
                 }
                 
                 // Google Sheets API 사용 가능한 경우
                 if (api) {
                     console.log('📡 Google Sheets API로 회원가입 시도...');
+                    console.log('  - API 인스턴스:', !!api);
+                    console.log('  - isSignedIn:', api.isSignedIn);
                     
                     // Google OAuth 로그인이 필요한 경우
                     if (!api.isSignedIn) {
-                        console.log('🔐 Google OAuth 로그인 필요');
-                        await api.signIn();
+                        console.log('🔐 Google OAuth 로그인 시도...');
+                        try {
+                            await api.signIn();
+                            console.log('✅ Google OAuth 로그인 성공');
+                        } catch (signInError) {
+                            console.error('❌ Google OAuth 로그인 실패:', signInError.message);
+                            throw signInError;
+                        }
                     }
                     
+                    console.log('👤 registerUser() 호출 중...');
                     const result = await api.registerUser(username, email, password);
+                    console.log('📊 registerUser() 결과:', result);
                     
                     if (result && result.success) {
                         alert('Google Sheets 회원가입 성공!');
@@ -645,10 +673,12 @@
                         return;
                     } else {
                         console.log('❌ Google Sheets 회원가입 실패, 데모 모드로 폴백');
-                        alert('Google Sheets 회원가입 실패: ' + (result.error || '알 수 없는 오류') + '\n데모 모드로 진행합니다.');
+                        console.log('  - result:', result);
+                        console.log('  - error:', result?.error);
+                        alert('Google Sheets 회원가입 실패: ' + (result?.error || '알 수 없는 오류') + '\n데모 모드로 진행합니다.');
                     }
                 } else {
-                    console.log('⚠️ Google Sheets API 사용 불가, 데모 모드로 진행');
+                    console.log('⚠️ Google Sheets API 사용 불가, 즉시 데모 모드로 진행');
                 }
                 
                 // 3순위: 로컬 스토리지 데모 모드
@@ -708,6 +738,60 @@
             }
         }
         
+        // 상세 진단 함수
+        function diagnoseGoogleAPI() {
+            console.log('🔍 === Google API 상태 진단 ===');
+            console.log('  - window.gapi:', !!window.gapi, window.gapi);
+            console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI, window.GoogleSheetsAPI);
+            console.log('  - window.golfApp:', !!window.golfApp, window.golfApp);
+            
+            if (window.golfApp) {
+                console.log('  - golfApp.isInitialized:', window.golfApp.isInitialized);
+                console.log('  - golfApp.googleSheetsAPI:', !!window.golfApp.googleSheetsAPI);
+                console.log('  - golfApp.initializationAttempts:', window.golfApp.initializationAttempts);
+            }
+            
+            // Google API 기능 테스트
+            if (window.gapi) {
+                console.log('  - gapi.load:', typeof window.gapi.load);
+                console.log('  - gapi.client:', typeof window.gapi.client);
+                console.log('  - gapi.auth2:', typeof window.gapi.auth2);
+            }
+            
+            // GoogleSheetsAPI 클래스 테스트
+            if (window.GoogleSheetsAPI) {
+                try {
+                    const testInstance = new GoogleSheetsAPI();
+                    console.log('  - GoogleSheetsAPI 인스턴스 생성:', '✅ 성공');
+                    console.log('  - testInstance.clientId:', testInstance.clientId);
+                    console.log('  - testInstance.spreadsheetId:', testInstance.spreadsheetId);
+                } catch (error) {
+                    console.log('  - GoogleSheetsAPI 인스턴스 생성:', '❌ 실패', error.message);
+                }
+            }
+            
+            console.log('🔍 === 진단 완료 ===');
+        }
+        
+        // 수동 Google Sheets API 테스트 함수 (Console에서 호출 가능)
+        window.testGoogleSheetsAPI = async function() {
+            console.log('🧪 Google Sheets API 수동 테스트 시작...');
+            
+            try {
+                const api = await forceInitializeGoogleAPI();
+                console.log('✅ 강제 초기화 성공:', api);
+                
+                console.log('🔐 Google OAuth 테스트...');
+                await api.signIn();
+                console.log('✅ Google OAuth 성공');
+                
+                return api;
+            } catch (error) {
+                console.error('❌ Google Sheets API 테스트 실패:', error);
+                return null;
+            }
+        };
+        
         // 최종 확인
         setTimeout(() => {
             console.log('🏁 모든 스크립트 로드 후 최종 상태:');
@@ -717,6 +801,11 @@
             console.log('  - showRegisterModal:', typeof showRegisterModal);
             console.log('  - handleLoginSubmit:', typeof handleLoginSubmit);
             console.log('  - handleRegisterSubmit:', typeof handleRegisterSubmit);
+            
+            // 상세 진단 실행
+            diagnoseGoogleAPI();
+            
+            console.log('💡 수동 테스트: Console에서 testGoogleSheetsAPI() 함수를 호출해보세요.');
         }, 1000);
     </script>
 </body>
