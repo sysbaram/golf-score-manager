@@ -195,7 +195,7 @@
                     <span id="welcome-message">안녕하세요, <strong id="username-display"></strong>님!</span>
                         <small class="user-status">온라인</small>
                     </div>
-                    <button id="logout-btn" class="btn btn-outline">
+                    <button id="logout-btn" class="btn btn-outline" onclick="handleLogout(); return false;">
                         <i class="fas fa-sign-out-alt"></i> 로그아웃
                     </button>
                 </div>
@@ -766,119 +766,46 @@
             
             console.log('📡 회원가입 시도:', username, email);
             
-            try {
-                let api = null;
-                
-                // 상태 진단
-                console.log('🔍 회원가입 시 API 상태 확인:');
-                console.log('  - window.golfApp:', !!window.golfApp, window.golfApp);
-                console.log('  - window.golfApp?.isInitialized:', window.golfApp?.isInitialized);
-                console.log('  - window.golfApp?.googleSheetsAPI:', !!window.golfApp?.googleSheetsAPI, window.golfApp?.googleSheetsAPI);
-                console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI);
-                console.log('  - window.gapi:', !!window.gapi);
-                
-                // 🚨 긴급 진단: golfApp이 있지만 초기화되지 않은 경우
-                if (window.golfApp && !window.golfApp.isInitialized) {
-                    console.log('⚠️ golfApp은 존재하지만 초기화되지 않음 - 강제 초기화 시도');
-                    try {
-                        await window.golfApp.waitForGoogleAPIAndInit();
-                        console.log('✅ 강제 초기화 완료, 재시도...');
-                    } catch (initError) {
-                        console.error('❌ 강제 초기화 실패:', initError.message);
-                    }
-                }
-                
-                // 1순위: golfApp의 googleSheetsAPI 사용
-                if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.isInitialized) {
-                    console.log('🔄 1순위: golfApp.googleSheetsAPI 사용');
-                    api = window.golfApp.googleSheetsAPI;
-                } 
-                // 2순위: 직접 GoogleSheetsAPI 강제 초기화
-                else if (window.GoogleSheetsAPI && window.gapi) {
-                    console.log('🔄 2순위: 직접 GoogleSheetsAPI 강제 초기화 시도');
-                    try {
-                        api = await forceInitializeGoogleAPI();
-                        console.log('✅ 강제 초기화 성공:', !!api);
-                    } catch (initError) {
-                        console.error('❌ 강제 초기화 실패:', initError.message);
-                        api = null;
-                    }
-                } else {
-                    console.log('❌ Google API 요구사항 미충족:');
-                    console.log('  - GoogleSheetsAPI 클래스:', typeof window.GoogleSheetsAPI);
-                    console.log('  - gapi 스크립트:', !!window.gapi);
-                }
-                
-                // Google Sheets API 사용 가능한 경우
-                if (api) {
-                    console.log('📡 Google Sheets API로 회원가입 시도...');
-                    console.log('  - API 인스턴스:', !!api);
-                    console.log('  - isSignedIn:', api.isSignedIn);
-                    console.log('  - clientId:', api.clientId);
-                    console.log('  - spreadsheetId:', api.spreadsheetId);
-                    
-                    // Google OAuth 로그인이 필요한 경우
-                    if (!api.isSignedIn) {
-                        console.log('🔐 Google OAuth 로그인 시도...');
-                        try {
-                            console.log('🔐 signIn() 메서드 호출 중...');
-                            await api.signIn();
-                            console.log('✅ Google OAuth 로그인 성공, isSignedIn:', api.isSignedIn);
-                        } catch (signInError) {
-                            console.error('❌ Google OAuth 로그인 실패:', signInError.message);
-                            console.error('❌ OAuth 오류 상세:', signInError);
-                            
-                            // OAuth 실패 시에도 데모 모드로 폴백하지 말고 명확한 오류 표시
-                            alert('Google OAuth 인증에 실패했습니다: ' + signInError.message + '\n\n페이지를 새로고침하고 다시 시도해주세요.');
-                            throw signInError;
-                        }
-                    }
-                    
-                    console.log('👤 registerUser() 호출 중...');
-                    const result = await api.registerUser(username, email, password);
-                    console.log('📊 registerUser() 결과:', result);
-                    
-                    if (result && result.success) {
-                        alert('Google Sheets 회원가입 성공!');
-                        document.getElementById('register-modal').style.display = 'none';
-                        console.log('✅ Google Sheets 회원가입 성공:', result.user);
-                        return;
-                    } else {
-                        console.log('❌ Google Sheets 회원가입 실패, 데모 모드로 폴백');
-                        console.log('  - result:', result);
-                        console.log('  - error:', result?.error);
-                        alert('Google Sheets 회원가입 실패: ' + (result?.error || '알 수 없는 오류') + '\n데모 모드로 진행합니다.');
-                    }
-                } else {
-                    console.log('⚠️ Google Sheets API 사용 불가, 즉시 데모 모드로 진행');
-                }
-                
-                // 3순위: 로컬 스토리지 데모 모드
-                console.log('🔄 로컬 스토리지 데모 모드 사용');
-                const users = JSON.parse(localStorage.getItem('golf_users') || '[]');
-                
-                // 중복 확인
-                const existingUser = users.find(u => u.username === username || u.email === email);
-                if (existingUser) {
-                    alert('이미 존재하는 사용자명 또는 이메일입니다.');
-                    return;
-                }
-                
-                // 새 사용자 추가
-                const newUser = {
-                    username: username,
-                    email: email,
-                    password: password,
-                    id: 'demo_' + Date.now(),
-                    created_at: new Date().toISOString()
-                };
-                
-                users.push(newUser);
-                localStorage.setItem('golf_users', JSON.stringify(users));
-                
-                alert('회원가입 성공! (데모 모드)');
-                document.getElementById('register-modal').style.display = 'none';
-                console.log('✅ 데모 회원가입 성공:', newUser);
+            // 로컬 스토리지를 통한 간단한 회원가입 처리
+            console.log('🔄 로컬 스토리지 회원가입 처리 중...');
+            
+            // 기존 사용자 목록 가져오기
+            const users = JSON.parse(localStorage.getItem('golf-users') || '[]');
+            
+            // 이메일 중복 확인
+            if (users.find(u => u.email === email)) {
+                alert('이미 등록된 이메일입니다.');
+                return;
+            }
+            
+            // 사용자명 중복 확인
+            if (users.find(u => u.username === username)) {
+                alert('이미 사용 중인 사용자명입니다.');
+                return;
+            }
+            
+            // 새 사용자 정보 생성
+            const newUser = {
+                id: Date.now().toString(),
+                username: username,
+                email: email,
+                password: password, // 실제 서비스에서는 해시화 필요
+                createdAt: new Date().toISOString(),
+                rounds: []
+            };
+            
+            // 사용자 목록에 추가
+            users.push(newUser);
+            localStorage.setItem('golf-users', JSON.stringify(users));
+            
+            console.log('✅ 회원가입 성공!');
+            console.log('📊 등록된 사용자 수:', users.length);
+            
+            alert(`${username}님, 회원가입이 완료되었습니다! 로그인해주세요.`);
+            document.getElementById('register-modal').style.display = 'none';
+            
+            // 폼 초기화
+            document.getElementById('register-form').reset();
                 
             } catch (error) {
                 console.error('❌ 회원가입 오류:', error);
@@ -892,131 +819,126 @@
             }
         }
         
-        // 🚀 완전히 새로운 동적 Google API 로딩 방식
+        // 🚀 Google API 없이 작동하는 간단한 로그인 시스템
         async function handleGoogleLogin() {
-            console.log('🚀🚀🚀 === 완전히 새로운 동적 Google API 로딩 방식! ===');
+            console.log('🚀🚀🚀 === 간단한 로컬 로그인 시스템! ===');
             console.log('🔐 handleGoogleLogin() 호출됨');
             
             try {
-                // 0단계: Google API 스크립트 동적 로딩 (필요한 경우)
-                if (!window.gapi) {
-                    console.log('🔄 Google API 스크립트 동적 로딩 중...');
-                    await new Promise((resolve, reject) => {
-                        const script = document.createElement('script');
-                        script.src = 'https://apis.google.com/js/api.js';
-                        script.async = true;
-                        script.defer = true;
-                        script.onload = () => {
-                            console.log('✅ Google API 스크립트 동적 로딩 완료');
-                            resolve();
-                        };
-                        script.onerror = () => {
-                            console.error('❌ Google API 스크립트 동적 로딩 실패');
-                            reject(new Error('Google API 스크립트를 로드할 수 없습니다'));
-                        };
-                        document.head.appendChild(script);
-                    });
-                    
-                    // gapi 로딩 대기
-                    let waitCount = 0;
-                    while (!window.gapi && waitCount < 50) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        waitCount++;
-                    }
-                    
-                    if (!window.gapi) {
-                        throw new Error('Google API 스크립트 로딩 타임아웃');
-                    }
+                // 사용자에게 이메일 입력 받기
+                const email = prompt('로그인할 이메일을 입력하세요:');
+                if (!email) {
+                    console.log('❌ 이메일 입력이 취소되었습니다.');
+                    return;
                 }
                 
-                // 1단계: Google API 기본 라이브러리 확인
-                console.log('✅ Google API 기본 라이브러리 확인됨');
+                console.log('✅ 이메일 입력됨:', email);
                 
-                // 2단계: client:auth2 강제 로딩
-                console.log('🔄 Google client:auth2 라이브러리 로딩 중...');
-                await new Promise((resolve, reject) => {
-                    window.gapi.load('client:auth2', {
-                        callback: resolve,
-                        onerror: reject,
-                        timeout: 15000,
-                        ontimeout: () => reject(new Error('타임아웃'))
-                    });
-                });
+                // 로컬 스토리지에서 사용자 정보 확인
+                const users = JSON.parse(localStorage.getItem('golf-users') || '[]');
+                const user = users.find(u => u.email === email);
                 
-                console.log('✅ client:auth2 라이브러리 로딩 완료');
-                console.log('🔍 gapi.auth2:', !!window.gapi.auth2);
-                console.log('🔍 gapi.client:', !!window.gapi.client);
-                
-                // 3단계: Google API 클라이언트 초기화
-                console.log('🔄 Google API 클라이언트 초기화 중...');
-                await window.gapi.client.init({
-                    clientId: '38824619592-npt5ckpvnqjleo82j7onsrvqi7r39q0h.apps.googleusercontent.com',
-                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-                    scope: 'https://www.googleapis.com/auth/spreadsheets'
-                });
-                
-                console.log('✅ Google API 클라이언트 초기화 완료');
-                
-                // 4단계: Auth2 인스턴스 획득
-                const authInstance = window.gapi.auth2.getAuthInstance();
-                if (!authInstance) {
-                    throw new Error('Auth2 인스턴스를 획득할 수 없습니다.');
+                if (!user) {
+                    alert('등록되지 않은 사용자입니다. 회원가입을 먼저 진행해주세요.');
+                    return;
                 }
                 
-                console.log('✅ Auth2 인스턴스 획득 완료');
-                console.log('🔍 현재 로그인 상태:', authInstance.isSignedIn.get());
+                // 로그인 성공
+                localStorage.setItem('golf-current-user', JSON.stringify(user));
+                console.log('✅ 로그인 성공:', user.username);
                 
-                // 5단계: 로그인 진행
-                console.log('🔄 Google OAuth 로그인 시도...');
-                
-                if (!authInstance.isSignedIn.get()) {
-                    try {
-                        const googleUser = await authInstance.signIn({
-                            prompt: 'select_account'
-                        });
-                        console.log('✅ Google 로그인 성공:', googleUser.getBasicProfile().getName());
-                    } catch (signInError) {
-                        console.log('🔄 팝업 차단 감지, 리디렉션 방식으로 전환...');
-                        
-                        // 팝업이 차단된 경우 리디렉션 방식 사용
-                        const authUrl = `https://accounts.google.com/oauth/v2/auth?` +
-                            `client_id=38824619592-npt5ckpvnqjleo82j7onsrvqi7r39q0h.apps.googleusercontent.com&` +
-                            `redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&` +
-                            `response_type=token&` +
-                            `scope=https://www.googleapis.com/auth/spreadsheets&` +
-                            `prompt=select_account`;
-                        
-                        window.location.href = authUrl;
-                        return;
-                    }
-                } else {
-                    console.log('✅ 이미 로그인된 상태입니다.');
-                }
-                
-                // 6단계: 성공 처리
-                alert('Google 로그인 성공!');
+                alert(`${user.username}님, 로그인 성공!`);
                 document.getElementById('login-modal').style.display = 'none';
                 
-                // UI 업데이트 (가능한 경우)
-                if (window.golfApp && typeof window.golfApp.updateUIForLoggedInUser === 'function') {
-                    window.golfApp.updateUIForLoggedInUser();
-                }
+                // UI 업데이트
+                updateUIAfterLogin(user);
                 
             } catch (error) {
-                console.error('❌ Google 로그인 오류:', error);
-                console.error('❌ 오류 상세:', error.message);
-                console.error('❌ 스택 트레이스:', error.stack);
-                
-                let errorMessage = 'Google 로그인 중 오류가 발생했습니다: ' + error.message;
-                if (error.message.includes('타임아웃')) {
-                    errorMessage = 'Google API 로딩이 시간 초과되었습니다. 인터넷 연결을 확인하고 다시 시도해주세요.';
-                } else if (error.message.includes('Auth2')) {
-                    errorMessage = 'Google 인증 시스템에 문제가 있습니다. 페이지를 새로고침하고 다시 시도해주세요.';
-                }
-                
-                alert(errorMessage);
+                console.error('❌ 로그인 오류:', error);
+                alert('로그인 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
             }
         }
+        
+        // UI 업데이트 함수
+        function updateUIAfterLogin(user) {
+            console.log('🔄 UI 업데이트 중...');
+            
+            // 로그인/회원가입 버튼 숨기기
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (registerBtn) registerBtn.style.display = 'none';
+            
+            // 로그아웃 버튼 표시
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.style.display = 'inline-block';
+                logoutBtn.textContent = `${user.username} 로그아웃`;
+            }
+            
+            // 로그인 안내 메시지 숨기기
+            const loginPrompt = document.querySelector('.login-prompt');
+            if (loginPrompt) loginPrompt.style.display = 'none';
+            
+            // 메인 콘텐츠 표시
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) mainContent.style.display = 'block';
+            
+            console.log('✅ UI 업데이트 완료');
+        }
+        
+        // 로그아웃 함수
+        function handleLogout() {
+            console.log('🚪 로그아웃 처리 중...');
+            
+            // 로컬 스토리지에서 현재 사용자 정보 제거
+            localStorage.removeItem('golf-current-user');
+            
+            // UI 복원
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (registerBtn) registerBtn.style.display = 'inline-block';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            
+            // 로그인 안내 메시지 표시
+            const loginPrompt = document.querySelector('.login-prompt');
+            if (loginPrompt) loginPrompt.style.display = 'block';
+            
+            // 메인 콘텐츠 숨기기
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) mainContent.style.display = 'none';
+            
+            console.log('✅ 로그아웃 완료');
+            alert('로그아웃되었습니다.');
+        }
+        
+        // 페이지 로드 시 로그인 상태 확인
+        function checkLoginStatus() {
+            console.log('🔍 로그인 상태 확인 중...');
+            
+            const currentUser = localStorage.getItem('golf-current-user');
+            if (currentUser) {
+                try {
+                    const user = JSON.parse(currentUser);
+                    console.log('✅ 로그인된 사용자 발견:', user.username);
+                    updateUIAfterLogin(user);
+                } catch (error) {
+                    console.error('❌ 사용자 정보 파싱 오류:', error);
+                    localStorage.removeItem('golf-current-user');
+                }
+            } else {
+                console.log('❌ 로그인된 사용자 없음');
+            }
+        }
+        
+        // 페이지 로드 완료 후 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 페이지 로드 완료, 로그인 상태 확인');
+            checkLoginStatus();
+        });
         
         // 상세 진단 함수
         function diagnoseGoogleAPI() {
