@@ -392,7 +392,9 @@
                         <button type="submit" class="btn btn-primary">로그인</button>
                     </div>
                     <div class="divider">또는</div>
-                    <button type="button" id="google-login-btn" class="btn btn-google" onclick="handleGoogleLogin();">
+                    <button type="button" id="google-login-btn" class="btn btn-google" 
+                            onclick="console.log('🔐 모달 내부 Google 로그인 버튼 클릭됨!'); handleGoogleLogin(); return false;"
+                            style="pointer-events: auto !important; display: block !important; visibility: visible !important;">
                         <i class="fab fa-google"></i> Google로 로그인
                     </button>
                 </form>
@@ -891,24 +893,41 @@
         
         async function handleGoogleLogin() {
             console.log('🔐 handleGoogleLogin() 호출됨');
+            console.log('🔍 현재 상태 진단:');
+            console.log('  - window.golfApp:', !!window.golfApp);
+            console.log('  - window.golfApp.googleSheetsAPI:', !!window.golfApp?.googleSheetsAPI);
+            console.log('  - window.GoogleSheetsAPI:', !!window.GoogleSheetsAPI);
+            console.log('  - golfApp.isInitialized:', window.golfApp?.isInitialized);
             
             try {
                 if (window.golfApp && window.golfApp.googleSheetsAPI) {
+                    console.log('✅ golfApp.googleSheetsAPI 경로 사용');
                     console.log('🔄 Google OAuth 로그인 시도...');
                     await window.golfApp.googleSheetsAPI.signIn();
+                    console.log('✅ Google 로그인 성공!');
                     alert('Google 로그인 성공!');
                     document.getElementById('login-modal').style.display = 'none';
                 } else if (window.GoogleSheetsAPI) {
+                    console.log('✅ 직접 GoogleSheetsAPI 경로 사용');
                     const api = new GoogleSheetsAPI();
+                    console.log('🔄 API 초기화 중...');
                     await api.init();
+                    console.log('🔄 Google OAuth 로그인 시도...');
                     await api.signIn();
+                    console.log('✅ Google 로그인 성공!');
                     alert('Google 로그인 성공!');
                     document.getElementById('login-modal').style.display = 'none';
                 } else {
-                    alert('Google Sheets API가 로드되지 않았습니다.');
+                    console.error('❌ Google Sheets API를 찾을 수 없음');
+                    console.log('🔍 사용 가능한 객체들:');
+                    console.log('  - window.golfApp:', window.golfApp);
+                    console.log('  - window.GoogleSheetsAPI:', window.GoogleSheetsAPI);
+                    alert('Google Sheets API가 로드되지 않았습니다. 페이지를 새로고침해주세요.');
                 }
             } catch (error) {
                 console.error('❌ Google 로그인 오류:', error);
+                console.error('❌ 오류 상세:', error.message);
+                console.error('❌ 스택 트레이스:', error.stack);
                 alert('Google 로그인 중 오류가 발생했습니다: ' + error.message);
             }
         }
