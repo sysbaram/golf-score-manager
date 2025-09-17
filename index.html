@@ -810,12 +810,7 @@
             } catch (error) {
                 console.error('❌ 회원가입 오류:', error);
                 console.error('❌ 오류 상세:', error.stack);
-                alert('회원가입 중 오류가 발생했습니다: ' + error.message + '\n데모 모드를 사용해주세요.');
-            }
-            } catch (globalError) {
-                console.error('🚨 handleRegisterSubmit() 전체 오류:', globalError);
-                console.error('🚨 전체 오류 상세:', globalError.stack);
-                alert('시스템 오류가 발생했습니다: ' + globalError.message + '\n페이지를 새로고침해주세요.');
+                alert('회원가입 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
             }
         }
         
