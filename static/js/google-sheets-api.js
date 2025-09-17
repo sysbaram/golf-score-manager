@@ -305,7 +305,7 @@ class GoogleSheetsAPI {
             // 먼저 헤더가 있는지 확인하고 없으면 추가
             await this.ensureUsersHeader();
             
-            const result = await this.appendToSheet('Sheet1', [
+            const result = await this.appendToSheet('Users', [
                 [newUser.username, newUser.email, newUser.password, newUser.created_at]
             ]);
 
@@ -340,7 +340,7 @@ class GoogleSheetsAPI {
                 await this.signIn();
             }
 
-            // 사용자 정보 확인 (기본 시트명 사용)
+            // 사용자 정보 확인
             const users = await this.getUsers();
             const user = users.find(u => 
                 (u.username === usernameOrEmail || u.email === usernameOrEmail) && 
@@ -375,7 +375,7 @@ class GoogleSheetsAPI {
     async getUsers() {
         try {
             console.log('👥 사용자 목록 조회 중...');
-            const response = await this.readFromSheet('Sheet1', 'A2:D');
+            const response = await this.readFromSheet('Users', 'A2:D');
             
             if (!response || !response.length) {
                 console.log('📝 사용자 없음');
@@ -416,8 +416,11 @@ class GoogleSheetsAPI {
                 created_at: new Date().toISOString()
             };
 
-            // Google Sheets에 라운드 저장 (기본 시트명 사용)
-            const result = await this.appendToSheet('Sheet1', [
+            // Google Sheets에 라운드 저장
+            // 먼저 헤더가 있는지 확인하고 없으면 추가
+            await this.ensureScoresHeader();
+            
+            const result = await this.appendToSheet('Scores', [
                 [round.username, round.date, round.course, round.total_score, round.detailed_scores, round.created_at]
             ]);
 
@@ -445,7 +448,7 @@ class GoogleSheetsAPI {
             }
 
             console.log('⛳ 라운드 목록 조회 중...');
-            const response = await this.readFromSheet('Sheet1', 'A2:F');
+            const response = await this.readFromSheet('Scores', 'A2:F');
             
             if (!response || !response.length) {
                 console.log('📝 라운드 없음');
@@ -498,7 +501,7 @@ class GoogleSheetsAPI {
             console.log('🔍 사용자 헤더 확인 중...');
             
             // 첫 번째 행 확인
-            const firstRow = await this.readFromSheet('Sheet1', 'A1:D1');
+            const firstRow = await this.readFromSheet('Users', 'A1:D1');
             
             if (!firstRow || !firstRow.length || firstRow[0].length === 0) {
                 console.log('📝 사용자 헤더 추가 중...');
@@ -506,7 +509,7 @@ class GoogleSheetsAPI {
                 // 헤더 추가
                 await window.gapi.client.sheets.spreadsheets.values.update({
                     spreadsheetId: this.spreadsheetId,
-                    range: 'Sheet1!A1:D1',
+                    range: 'Users!A1:D1',
                     valueInputOption: 'RAW',
                     resource: {
                         values: [['username', 'email', 'password', 'created_at']]
@@ -520,6 +523,37 @@ class GoogleSheetsAPI {
             
         } catch (error) {
             console.warn('⚠️ 헤더 확인/추가 실패 (무시):', error);
+        }
+    }
+
+    // 스코어 헤더 확인 및 생성
+    async ensureScoresHeader() {
+        try {
+            console.log('🔍 스코어 헤더 확인 중...');
+            
+            // 첫 번째 행 확인
+            const firstRow = await this.readFromSheet('Scores', 'A1:F1');
+            
+            if (!firstRow || !firstRow.length || firstRow[0].length === 0) {
+                console.log('📝 스코어 헤더 추가 중...');
+                
+                // 헤더 추가
+                await window.gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: this.spreadsheetId,
+                    range: 'Scores!A1:F1',
+                    valueInputOption: 'RAW',
+                    resource: {
+                        values: [['username', 'date', 'course', 'total_score', 'detailed_scores', 'created_at']]
+                    }
+                });
+                
+                console.log('✅ 스코어 헤더 추가 완료');
+            } else {
+                console.log('✅ 스코어 헤더 이미 존재');
+            }
+            
+        } catch (error) {
+            console.warn('⚠️ 스코어 헤더 확인/추가 실패 (무시):', error);
         }
     }
 
