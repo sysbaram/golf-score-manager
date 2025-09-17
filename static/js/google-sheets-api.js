@@ -86,18 +86,36 @@ class GoogleSheetsAPI {
                 console.log('  - Google Identity Services (GIS):', hasGIS ? '✅ (강제 비활성화)' : '❌');
                 console.log('  - Legacy gapi.auth2:', hasLegacyAuth ? '✅' : '❌');
                 
-                // gapi.auth2가 없으면 강제 로딩 시도
+                // gapi.auth2가 없으면 제한된 재시도
                 if (!hasLegacyAuth) {
-                    console.warn('⚠️ gapi.auth2가 아직 로드되지 않음 - 강제 로딩 시도');
+                    // 시도 횟수 추적
+                    if (!this.initAttempts) {
+                        this.initAttempts = 0;
+                    }
+                    this.initAttempts++;
                     
-                    // 강제 로딩 후 재시도
+                    const maxAttempts = 3;
+                    console.warn(`⚠️ gapi.auth2가 아직 로드되지 않음 - 시도 ${this.initAttempts}/${maxAttempts}`);
+                    
+                    // 최대 시도 횟수 초과 시 중단
+                    if (this.initAttempts >= maxAttempts) {
+                        console.error('❌ gapi.auth2 로드 실패 - 최대 시도 횟수 도달, 초기화 중단');
+                        reject(new Error('gapi.auth2 로드 실패 - 최대 시도 횟수 초과'));
+                        return;
+                    }
+                    
+                    // 제한된 재시도
+                    console.log(`⏳ ${2}초 후 재시도...`);
                     setTimeout(() => {
                         this.init().then(resolve).catch(reject);
-                    }, 1000);
+                    }, 2000);
                     return;
                 }
 
                 console.log('✅ Google API 클라이언트 로드 완료');
+                
+                // 성공 시 시도 횟수 리셋
+                this.initAttempts = 0;
                 
                 // 🚨 GitHub Pages CORS 문제로 인해 GIS 강제 비활성화
                 this.useGIS = false;
