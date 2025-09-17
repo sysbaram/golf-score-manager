@@ -208,11 +208,13 @@
                     </button>
                     
                     <button id="login-btn" class="btn btn-outline" 
-                            onclick="console.log('🔐 로그인 버튼 클릭됨!'); showLoginModal(); return false;">
+                            onclick="console.log('🔐 로그인 버튼 클릭됨!'); console.log('🔍 로그인 버튼 상태:', this); showLoginModal(); return false;"
+                            style="pointer-events: auto !important; display: inline-block !important; visibility: visible !important;">
                         <i class="fas fa-sign-in-alt"></i> 로그인
                     </button>
                     <button id="register-btn" class="btn btn-outline"
-                            onclick="console.log('📝 회원가입 버튼 클릭됨!'); showRegisterModal(); return false;">
+                            onclick="console.log('📝 회원가입 버튼 클릭됨!'); console.log('🔍 회원가입 버튼 상태:', this); showRegisterModal(); return false;"
+                            style="pointer-events: auto !important; display: inline-block !important; visibility: visible !important;">
                         <i class="fas fa-user-plus"></i> 회원가입
                     </button>
                 </div>

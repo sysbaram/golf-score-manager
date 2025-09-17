@@ -257,6 +257,9 @@ class GolfScoreApp {
             const loginBtn = document.getElementById('login-btn');
             console.log('🔍 login-btn 요소 확인:', loginBtn);
             if (loginBtn) {
+                console.log('🚨 로그인 버튼 이벤트 리스너 임시 비활성화 - HTML onclick 사용');
+                // 임시로 이벤트 리스너 비활성화하여 HTML onclick이 작동하도록 함
+                /*
                 console.log('✅ login-btn 요소 발견, 이벤트 리스너 설정 중...');
                 loginBtn.addEventListener('click', (e) => {
                     console.log('🔐 로그인 버튼 클릭됨!');
@@ -275,6 +278,7 @@ class GolfScoreApp {
                     }
                 });
                 console.log('✅ 로그인 버튼 이벤트 리스너 설정 완료');
+                */
             } else {
                 console.error('❌ login-btn 버튼을 찾을 수 없습니다');
             }
@@ -283,6 +287,9 @@ class GolfScoreApp {
             const registerBtn = document.getElementById('register-btn');
             console.log('🔍 register-btn 요소 확인:', registerBtn);
             if (registerBtn) {
+                console.log('🚨 회원가입 버튼 이벤트 리스너 임시 비활성화 - HTML onclick 사용');
+                // 임시로 이벤트 리스너 비활성화하여 HTML onclick이 작동하도록 함
+                /*
                 console.log('✅ register-btn 요소 발견, 이벤트 리스너 설정 중...');
                 registerBtn.addEventListener('click', (e) => {
                     console.log('📝 회원가입 버튼 클릭됨!');
@@ -301,6 +308,7 @@ class GolfScoreApp {
                     }
                 });
                 console.log('✅ 회원가입 버튼 이벤트 리스너 설정 완료');
+                */
             } else {
                 console.error('❌ register-btn 버튼을 찾을 수 없습니다');
             }
