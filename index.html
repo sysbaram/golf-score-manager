@@ -794,43 +794,14 @@
                     }
                 } catch (error) {
                     console.error('❌ Google Sheets 회원가입 실패:', error);
-                    console.log('🔄 로컬 스토리지로 폴백...');
+                    alert('Google Sheets 연결에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+                    return;
                 }
             } else {
-                console.log('⚠️ Google Sheets API 사용 불가, 로컬 스토리지 사용');
-            }
-            
-            // 로컬 스토리지 폴백 (Google Sheets 실패 시)
-            console.log('🔄 로컬 스토리지 폴백 처리 중...');
-            
-            const users = JSON.parse(localStorage.getItem('golf-users') || '[]');
-            
-            if (users.find(u => u.email === email)) {
-                alert('이미 등록된 이메일입니다.');
+                console.log('⚠️ Google Sheets API 사용 불가');
+                alert('Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
                 return;
             }
-            
-            if (users.find(u => u.username === username)) {
-                alert('이미 사용 중인 사용자명입니다.');
-                return;
-            }
-            
-            const newUser = {
-                id: Date.now().toString(),
-                username: username,
-                email: email,
-                password: password,
-                createdAt: new Date().toISOString(),
-                rounds: []
-            };
-            
-            users.push(newUser);
-            localStorage.setItem('golf-users', JSON.stringify(users));
-            
-            console.log('✅ 로컬 스토리지 회원가입 성공!');
-            alert(`${username}님, 회원가입이 완료되었습니다! (로컬 저장)`);
-            document.getElementById('register-modal').style.display = 'none';
-            document.getElementById('register-form').reset();
                 
             } catch (error) {
                 console.error('❌ 회원가입 오류:', error);
@@ -839,43 +810,40 @@
             }
         }
         
-        // 🚀 Google API 없이 작동하는 간단한 로그인 시스템
+        // 🚀 Google Sheets API 로그인 시스템
         async function handleGoogleLogin() {
-            console.log('🚀🚀🚀 === 간단한 로컬 로그인 시스템! ===');
-            console.log('🔐 handleGoogleLogin() 호출됨');
+            console.log('🔐 Google Sheets API 로그인 시작');
             
             try {
-                // 사용자에게 이메일 입력 받기
-                const email = prompt('로그인할 이메일을 입력하세요:');
-                if (!email) {
-                    console.log('❌ 이메일 입력이 취소되었습니다.');
+                // Google Sheets API 사용 가능 여부 확인
+                if (!window.golfApp || !window.golfApp.isInitialized || !window.golfApp.googleSheetsAPI) {
+                    alert('Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
                     return;
                 }
                 
-                console.log('✅ 이메일 입력됨:', email);
+                console.log('✅ Google Sheets API 사용 가능');
                 
-                // 로컬 스토리지에서 사용자 정보 확인
-                const users = JSON.parse(localStorage.getItem('golf-users') || '[]');
-                const user = users.find(u => u.email === email);
-                
-                if (!user) {
-                    alert('등록되지 않은 사용자입니다. 회원가입을 먼저 진행해주세요.');
-                    return;
+                // Google OAuth 로그인
+                if (!window.golfApp.googleSheetsAPI.isSignedIn) {
+                    console.log('🔐 Google OAuth 로그인 필요...');
+                    await window.golfApp.googleSheetsAPI.signIn();
                 }
                 
-                // 로그인 성공
-                localStorage.setItem('golf-current-user', JSON.stringify(user));
-                console.log('✅ 로그인 성공:', user.username);
-                
-                alert(`${user.username}님, 로그인 성공!`);
-                document.getElementById('login-modal').style.display = 'none';
-                
-                // UI 업데이트
-                updateUIAfterLogin(user);
+                if (window.golfApp.googleSheetsAPI.isSignedIn) {
+                    console.log('✅ Google OAuth 로그인 성공');
+                    alert('Google 로그인이 성공했습니다!');
+                    document.getElementById('login-modal').style.display = 'none';
+                    
+                    // UI 업데이트 (Google 계정 정보 기반)
+                    const userProfile = window.golfApp.googleSheetsAPI.currentUser;
+                    updateUIAfterLogin(userProfile);
+                } else {
+                    throw new Error('Google OAuth 로그인 실패');
+                }
                 
             } catch (error) {
                 console.error('❌ 로그인 오류:', error);
-                alert('로그인 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+                alert('Google 로그인 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
             }
         }
         
@@ -907,51 +875,59 @@
             console.log('✅ UI 업데이트 완료');
         }
         
-        // 로그아웃 함수
-        function handleLogout() {
-            console.log('🚪 로그아웃 처리 중...');
+        // Google Sheets API 로그아웃 함수
+        async function handleLogout() {
+            console.log('🚪 Google 로그아웃 처리 중...');
             
-            // 로컬 스토리지에서 현재 사용자 정보 제거
-            localStorage.removeItem('golf-current-user');
-            
-            // UI 복원
-            const loginBtn = document.getElementById('login-btn');
-            const registerBtn = document.getElementById('register-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (registerBtn) registerBtn.style.display = 'inline-block';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-            
-            // 로그인 안내 메시지 표시
-            const loginPrompt = document.querySelector('.login-prompt');
-            if (loginPrompt) loginPrompt.style.display = 'block';
-            
-            // 메인 콘텐츠 숨기기
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent) mainContent.style.display = 'none';
-            
-            console.log('✅ 로그아웃 완료');
-            alert('로그아웃되었습니다.');
+            try {
+                // Google OAuth 로그아웃
+                if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.googleSheetsAPI.isSignedIn) {
+                    await window.golfApp.googleSheetsAPI.signOut();
+                    console.log('✅ Google OAuth 로그아웃 성공');
+                }
+                
+                // UI 복원
+                const loginBtn = document.getElementById('login-btn');
+                const registerBtn = document.getElementById('register-btn');
+                const logoutBtn = document.getElementById('logout-btn');
+                
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (registerBtn) registerBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                
+                // 로그인 안내 메시지 표시
+                const loginPrompt = document.querySelector('.login-prompt');
+                if (loginPrompt) loginPrompt.style.display = 'block';
+                
+                // 메인 콘텐츠 숨기기
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) mainContent.style.display = 'none';
+                
+                console.log('✅ 로그아웃 완료');
+                alert('Google 로그아웃되었습니다.');
+                
+            } catch (error) {
+                console.error('❌ 로그아웃 오류:', error);
+                alert('로그아웃 중 오류가 발생했습니다.');
+            }
         }
         
-        // 페이지 로드 시 로그인 상태 확인
+        // Google Sheets API 로그인 상태 확인
         function checkLoginStatus() {
-            console.log('🔍 로그인 상태 확인 중...');
+            console.log('🔍 Google 로그인 상태 확인 중...');
             
-            const currentUser = localStorage.getItem('golf-current-user');
-            if (currentUser) {
-                try {
-                    const user = JSON.parse(currentUser);
-                    console.log('✅ 로그인된 사용자 발견:', user.username);
-                    updateUIAfterLogin(user);
-                } catch (error) {
-                    console.error('❌ 사용자 정보 파싱 오류:', error);
-                    localStorage.removeItem('golf-current-user');
+            // Google Sheets API 초기화 대기 후 확인
+            setTimeout(() => {
+                if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.googleSheetsAPI.isSignedIn) {
+                    console.log('✅ Google 로그인 상태 확인됨');
+                    const userProfile = window.golfApp.googleSheetsAPI.currentUser;
+                    if (userProfile) {
+                        updateUIAfterLogin(userProfile);
+                    }
+                } else {
+                    console.log('❌ Google 로그인되지 않음');
                 }
-            } else {
-                console.log('❌ 로그인된 사용자 없음');
-            }
+            }, 3000); // 3초 후 확인 (API 초기화 대기)
         }
         
         // 페이지 로드 완료 후 실행

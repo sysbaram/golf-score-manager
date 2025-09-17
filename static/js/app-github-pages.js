@@ -135,11 +135,13 @@ class GolfScoreApp {
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     return safeInit();
                 } else {
-                    console.log('❌ 최대 시도 횟수 초과, 로컬 모드로 전환');
-                    this.isInitialized = true;
+                    console.log('❌ 최대 시도 횟수 초과, Google Sheets API 초기화 실패');
                     this.hideLoadingStatus();
-                    this.showNotification('Google Sheets 연결에 실패했습니다. 로컬 모드로 작동합니다.', 'warning');
-                    console.log('✅ 로컬 모드로 안전하게 전환 완료');
+                    this.showNotification('Google Sheets API 연결에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요.', 'error');
+                    console.log('❌ Google Sheets API 초기화 완전 실패');
+                    
+                    // 초기화 실패 상태 유지
+                    this.isInitialized = false;
                 }
             }
         };
@@ -210,14 +212,14 @@ class GolfScoreApp {
             console.error('❌ Google Sheets 초기화 실패:', error);
             console.error('❌ 에러 상세:', error.stack);
             
-            // 실패 시 로컬 모드로 폴백
-            console.log('🔄 로컬 모드로 폴백 중...');
-            this.isInitialized = true;
+            // 초기화 실패 시 사용자에게 안내
             this.hideLoadingStatus();
+            this.showNotification('Google Sheets API 연결에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요.', 'error');
             
-            // 에러를 던지지 않고 로컬 모드로 정상 작동
-            this.showNotification('Google Sheets 연결에 실패했습니다. 로컬 모드로 작동합니다.', 'warning');
-            console.log('✅ 로컬 모드 초기화 완료');
+            // 초기화 실패 상태 유지
+            this.isInitialized = false;
+            
+            throw error; // 상위에서 처리하도록 에러 전파
         }
     }
 
