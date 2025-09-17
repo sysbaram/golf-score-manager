@@ -20,6 +20,34 @@ class GoogleSheetsAPI {
         
         console.log('🌐 GoogleSheetsAPI 환경:', this.isGitHubPages ? 'GitHub Pages' : '로컬');
         console.log('🔑 Client ID:', this.clientId);
+        
+        // URL에서 토큰 확인 (리디렉션 후)
+        this.checkUrlForToken();
+    }
+
+    // URL에서 OAuth 토큰 확인
+    checkUrlForToken() {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        
+        if (accessToken) {
+            console.log('🎯 URL에서 액세스 토큰 발견');
+            this.accessToken = accessToken;
+            this.isSignedIn = true;
+            
+            // API 클라이언트에 토큰 설정
+            if (window.gapi && window.gapi.client) {
+                window.gapi.client.setToken({
+                    access_token: this.accessToken
+                });
+            }
+            
+            // URL 정리 (토큰 제거)
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            console.log('✅ 리디렉션을 통한 로그인 성공');
+        }
     }
 
     async init() {
@@ -83,10 +111,11 @@ class GoogleSheetsAPI {
                         
                         // 인증 시스템 초기화
                         if (this.useGIS) {
-                            // GIS 방식
+                            // GIS 방식 - CORS 문제 해결을 위한 설정
                             this.tokenClient = window.google.accounts.oauth2.initTokenClient({
                                 client_id: this.clientId,
                                 scope: this.scope,
+                                include_granted_scopes: true,
                                 callback: (response) => {
                                     console.log('🎯 GIS OAuth 응답:', response);
                                     if (response.access_token) {
@@ -98,12 +127,17 @@ class GoogleSheetsAPI {
                                         window.gapi.client.setToken({
                                             access_token: this.accessToken
                                         });
+                                        
+                                        // 로그인 성공 이벤트 발생
+                                        this.onLoginSuccess && this.onLoginSuccess();
                                     } else if (response.error) {
                                         console.error('❌ GIS OAuth 토큰 획득 실패:', response.error);
+                                        this.onLoginError && this.onLoginError(response.error);
                                     }
                                 },
                                 error_callback: (error) => {
                                     console.error('❌ GIS OAuth 오류:', error);
+                                    this.onLoginError && this.onLoginError(error);
                                 }
                             });
                             
@@ -172,11 +206,17 @@ class GoogleSheetsAPI {
                     }
                 };
 
-                // 토큰 요청
+                // 토큰 요청 - CORS 문제 해결을 위한 설정
                 try {
                     console.log('🚀 GIS OAuth 토큰 요청 중...');
+                    
+                    // 콜백 설정
+                    this.onLoginSuccess = () => resolve(true);
+                    this.onLoginError = (error) => reject(new Error(`GIS 로그인 실패: ${error}`));
+                    
+                    // 사용자 동작으로 토큰 요청 (CORS 정책 준수)
                     this.tokenClient.requestAccessToken({
-                        prompt: 'consent' // 항상 동의 화면 표시
+                        prompt: 'select_account' // 계정 선택 화면
                     });
                 } catch (error) {
                     console.error('❌ GIS 토큰 요청 실패:', error);
@@ -193,7 +233,13 @@ class GoogleSheetsAPI {
 
                 try {
                     console.log('🚀 Legacy auth2 로그인 중...');
-                    this.authInstance.signIn().then((googleUser) => {
+                    
+                    // CORS 문제 해결을 위한 옵션 설정
+                    const signInOptions = {
+                        prompt: 'select_account'
+                    };
+                    
+                    this.authInstance.signIn(signInOptions).then((googleUser) => {
                         console.log('✅ Legacy 로그인 성공:', googleUser);
                         this.isSignedIn = true;
                         
@@ -209,7 +255,25 @@ class GoogleSheetsAPI {
                         resolve(true);
                     }).catch((error) => {
                         console.error('❌ Legacy 로그인 실패:', error);
-                        reject(new Error(`Legacy 로그인 실패: ${error.error || error.message}`));
+                        
+                        // CORS 오류인 경우 특별 처리
+                        if (error.error === 'popup_blocked_by_browser' || 
+                            error.error === 'popup_closed_by_user' ||
+                            (error.message && error.message.includes('Cross-Origin'))) {
+                            console.log('🔄 CORS 문제로 인한 팝업 차단 - 사용자에게 직접 링크 제공');
+                            
+                            // 직접 OAuth URL로 이동
+                            const authUrl = `https://accounts.google.com/oauth/v2/auth?` +
+                                `client_id=${this.clientId}&` +
+                                `redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&` +
+                                `response_type=token&` +
+                                `scope=${encodeURIComponent(this.scope)}&` +
+                                `prompt=select_account`;
+                            
+                            window.location.href = authUrl;
+                        } else {
+                            reject(new Error(`Legacy 로그인 실패: ${error.error || error.message}`));
+                        }
                     });
                 } catch (error) {
                     console.error('❌ Legacy 로그인 오류:', error);
