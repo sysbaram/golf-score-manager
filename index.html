@@ -763,16 +763,30 @@
                 // 3순위: 로컬 스토리지 데모 모드
                 console.log('🔄 로컬 스토리지 데모 모드 사용');
                 const users = JSON.parse(localStorage.getItem('golf_users') || '[]');
+                const demoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]');
+                
+                // 기존 사용자 확인
                 const user = users.find(u => 
                     (u.username === username || u.email === username) && u.password === password
+                );
+                
+                // 새로운 데모 사용자 확인 (비밀번호 없이)
+                const demoUser = demoUsers.find(u => 
+                    u.username === username || u.email === username
                 );
                 
                 if (user) {
                     alert('로그인 성공! (데모 모드)');
                     document.getElementById('login-modal').style.display = 'none';
                     console.log('✅ 데모 로그인 성공:', user);
+                    updateUIAfterLogin(user);
+                } else if (demoUser) {
+                    alert(`${demoUser.username}님, 로그인 성공! (데모 모드 - OAuth 설정 반영 대기 중)`);
+                    document.getElementById('login-modal').style.display = 'none';
+                    console.log('✅ 데모 로그인 성공:', demoUser);
+                    updateUIAfterLogin(demoUser);
                 } else {
-                    alert('로그인 실패: 사용자를 찾을 수 없거나 비밀번호가 틀렸습니다.');
+                    alert('로그인 실패: 사용자를 찾을 수 없습니다. 먼저 회원가입을 해주세요.');
                 }
                 
             } catch (error) {
@@ -848,13 +862,63 @@
                     }
                 } catch (error) {
                     console.error('❌ Google Sheets 회원가입 실패:', error);
-                    alert('Google Sheets 연결에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+                    console.log('🎭 데모 모드로 폴백 처리');
+                    
+                    // 데모 모드 폴백
+                    const demoUser = {
+                        username: username,
+                        email: email,
+                        registeredAt: new Date().toISOString()
+                    };
+                    
+                    // 로컬 스토리지에 임시 저장
+                    const existingUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]');
+                    
+                    // 중복 확인
+                    if (existingUsers.some(user => user.email === email)) {
+                        alert('이미 등록된 이메일입니다.');
+                        return;
+                    }
+                    
+                    existingUsers.push(demoUser);
+                    localStorage.setItem('demoUsers', JSON.stringify(existingUsers));
+                    
+                    console.log('✅ 데모 모드 회원가입 완료:', demoUser);
+                    alert(`${username}님, 회원가입이 완료되었습니다! (데모 모드 - OAuth 설정 반영 대기 중)`);
+                    document.getElementById('register-modal').style.display = 'none';
+                    document.getElementById('register-form').reset();
                     return;
                 }
             } else {
-                console.log('⚠️ Google Sheets API 사용 불가');
-                alert('Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
-                return;
+                console.log('⚠️ Google Sheets API 사용 불가, 데모 모드로 폴백');
+                
+                // 데모 모드 폴백
+                const demoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]');
+                const demoUser = demoUsers.find(user => user.email === email);
+                
+                if (demoUser) {
+                    console.log('✅ 데모 모드 회원가입 완료:', demoUser);
+                    alert(`${username}님, 회원가입이 완료되었습니다! (데모 모드 - OAuth 설정 반영 대기 중)`);
+                    document.getElementById('register-modal').style.display = 'none';
+                    document.getElementById('register-form').reset();
+                    return;
+                } else {
+                    // 새 데모 사용자 생성
+                    const newDemoUser = {
+                        username: username,
+                        email: email,
+                        registeredAt: new Date().toISOString()
+                    };
+                    
+                    demoUsers.push(newDemoUser);
+                    localStorage.setItem('demoUsers', JSON.stringify(demoUsers));
+                    
+                    console.log('✅ 데모 모드 회원가입 완료:', newDemoUser);
+                    alert(`${username}님, 회원가입이 완료되었습니다! (데모 모드 - OAuth 설정 반영 대기 중)`);
+                    document.getElementById('register-modal').style.display = 'none';
+                    document.getElementById('register-form').reset();
+                    return;
+                }
             }
                 
             } catch (error) {
