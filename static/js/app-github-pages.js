@@ -214,7 +214,19 @@ class GolfScoreApp {
             
             // 초기화 실패 시 사용자에게 안내
             this.hideLoadingStatus();
-            this.showNotification('Google Sheets API 연결에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요.', 'error');
+            
+            // OAuth 도메인 오류 특별 처리
+            if (error.message && error.message.includes('OAuth 클라이언트 도메인')) {
+                this.showNotification(
+                    'Google OAuth 설정이 필요합니다. Google Cloud Console에서 GitHub Pages 도메인을 승인된 원본으로 등록해주세요.', 
+                    'warning'
+                );
+                
+                // OAuth 설정 안내 표시
+                this.showOAuthSetupGuide();
+            } else {
+                this.showNotification('Google Sheets API 연결에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요.', 'error');
+            }
             
             // 초기화 실패 상태 유지
             this.isInitialized = false;
@@ -223,7 +235,57 @@ class GolfScoreApp {
         }
     }
 
-    // OAuth 설정 가이드 제거됨 - 직접 API 연동 시도
+    // OAuth 설정 안내 표시
+    showOAuthSetupGuide() {
+        console.log('📋 OAuth 설정 안내 표시');
+        
+        const guideHTML = `
+        <div class="oauth-setup-guide" style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 10000;
+            max-width: 600px;
+            text-align: left;
+        ">
+            <h3 style="color: #d32f2f; margin-bottom: 20px;">🚨 Google OAuth 설정 필요</h3>
+            <p style="margin-bottom: 15px;">GitHub Pages에서 Google Sheets API를 사용하려면 OAuth 클라이언트 설정이 필요합니다.</p>
+            
+            <h4 style="color: #1976d2; margin: 20px 0 10px 0;">📋 설정 방법:</h4>
+            <ol style="line-height: 1.6;">
+                <li><strong>Google Cloud Console</strong> 접속</li>
+                <li><strong>APIs & Services</strong> → <strong>Credentials</strong></li>
+                <li><strong>OAuth 2.0 클라이언트 ID</strong> 선택</li>
+                <li><strong>승인된 JavaScript 원본</strong>에 추가:
+                    <code style="background: #f5f5f5; padding: 2px 5px; border-radius: 3px;">https://sysbaram.github.io</code>
+                </li>
+                <li><strong>승인된 리디렉션 URI</strong>에 추가:
+                    <code style="background: #f5f5f5; padding: 2px 5px; border-radius: 3px;">https://sysbaram.github.io/golf-score-manager/</code>
+                </li>
+            </ol>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="
+                            background: #1976d2;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 14px;
+                        ">확인</button>
+            </div>
+        </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', guideHTML);
+    }
 
     async retryGoogleAPIConnection() {
         try {

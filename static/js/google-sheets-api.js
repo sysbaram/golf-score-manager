@@ -220,7 +220,20 @@ class GoogleSheetsAPI {
                         
                     } catch (error) {
                         console.error('❌ Google API 클라이언트 초기화 실패:', error);
-                        reject(new Error(`Google API 클라이언트 초기화 실패: ${error.message}`));
+                        
+                        // OAuth 도메인 오류 특별 처리
+                        if (error.error === 'idpiframe_initialization_failed') {
+                            console.error('🚨 OAuth 도메인 설정 오류 감지');
+                            console.error('📋 해결 방법:');
+                            console.error('1. Google Cloud Console → APIs & Services → Credentials');
+                            console.error('2. OAuth 2.0 클라이언트 ID 선택');
+                            console.error('3. 승인된 JavaScript 원본에 추가: https://sysbaram.github.io');
+                            console.error('4. 승인된 리디렉션 URI에 추가: https://sysbaram.github.io/golf-score-manager/');
+                            
+                            reject(new Error('OAuth 클라이언트 도메인 설정이 필요합니다. Google Cloud Console에서 GitHub Pages 도메인을 승인된 원본으로 등록해주세요.'));
+                        } else {
+                            reject(new Error(`Google API 클라이언트 초기화 실패: ${error.message}`));
+                        }
                     }
                 });
                 
