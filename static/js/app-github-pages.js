@@ -553,6 +553,31 @@ class GolfScoreApp {
         }
     }
 
+    // Google OAuth 전용 로그인
+    async handleGoogleLogin() {
+        console.log('🔐 handleGoogleLogin() 호출됨');
+        
+        try {
+            // Google Sheets API가 초기화되지 않은 경우
+            if (!this.googleSheetsAPI || !this.isInitialized) {
+                console.error('❌ Google Sheets API가 초기화되지 않았습니다');
+                this.showNotification('Google Sheets API가 초기화되지 않았습니다. 재시도 버튼을 클릭해주세요.', 'error');
+                return;
+            }
+
+            console.log('🔄 Google OAuth 로그인 시도...');
+            await this.googleSheetsAPI.signIn();
+            
+            console.log('✅ Google OAuth 로그인 성공');
+            this.hideModal(document.getElementById('login-modal'));
+            this.showNotification('Google 로그인 성공!', 'success');
+            
+        } catch (error) {
+            console.error('❌ Google 로그인 오류:', error);
+            this.showNotification('Google 로그인 중 오류가 발생했습니다: ' + error.message, 'error');
+        }
+    }
+
     // 알림 표시
     showNotification(message, type = 'info', duration = 5000) {
         const notification = document.getElementById('notification');
@@ -603,6 +628,19 @@ class GolfScoreApp {
 // 클래스를 전역에 노출
 window.GolfScoreApp = GolfScoreApp;
 console.log('✅ GolfScoreApp 클래스 전역 노출 완료:', typeof window.GolfScoreApp);
+
+// HTML에서 호출할 수 있도록 전역 함수로 노출
+window.handleGoogleLogin = function() {
+    console.log('🌐 전역 handleGoogleLogin() 호출됨');
+    
+    if (window.golfApp && typeof window.golfApp.handleGoogleLogin === 'function') {
+        console.log('🔄 golfApp.handleGoogleLogin() 호출');
+        return window.golfApp.handleGoogleLogin();
+    } else {
+        console.error('❌ golfApp 또는 handleGoogleLogin 메서드를 찾을 수 없음');
+        alert('앱이 초기화되지 않았습니다. 페이지를 새로고침해주세요.');
+    }
+};
 
 // DOM 로드 완료 후 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
