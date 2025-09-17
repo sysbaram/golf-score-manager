@@ -1613,3 +1613,150 @@ tr:last-child td {
         font-size: 1.5rem;
     }
 }
+
+/* 로그인 안내 메시지 스타일 */
+.login-prompt {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    margin: 2rem auto;
+    max-width: 800px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.login-prompt-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.login-prompt-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    box-shadow: 
+        0 8px 32px rgba(102, 126, 234, 0.3),
+        0 4px 16px rgba(102, 126, 234, 0.2);
+    animation: float 3s ease-in-out infinite;
+}
+
+.login-prompt-icon i {
+    font-size: 2rem;
+    color: white;
+}
+
+.login-prompt h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.login-prompt p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+}
+
+.login-prompt-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.feature-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item i {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.feature-item span {
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.login-prompt-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.login-prompt-actions .btn {
+    padding: 12px 32px;
+    font-size: 1.1rem;
+    min-width: 160px;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+    .login-prompt {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+        border-radius: 20px;
+    }
+    
+    .login-prompt h2 {
+        font-size: 2rem;
+    }
+    
+    .login-prompt p {
+        font-size: 1rem;
+    }
+    
+    .login-prompt-features {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .feature-item {
+        padding: 1rem;
+    }
+    
+    .login-prompt-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .login-prompt-actions .btn {
+        width: 100%;
+        max-width: 280px;
+    }
+}

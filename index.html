@@ -213,7 +213,7 @@
         </header>
 
         <!-- 네비게이션 -->
-        <nav class="nav-tabs">
+        <nav class="nav-tabs" style="display: none;">
             <button class="nav-tab active" data-tab="score-input">
                 <i class="fas fa-plus-circle"></i> 스코어 입력
             </button>
@@ -225,8 +225,42 @@
             </button>
         </nav>
 
+        <!-- 로그인 안내 메시지 -->
+        <div id="login-prompt" class="login-prompt">
+            <div class="login-prompt-content">
+                <div class="login-prompt-icon">
+                    <i class="fas fa-golf-ball-tee"></i>
+                </div>
+                <h2>골프 스코어 관리 시작하기</h2>
+                <p>Google Sheets와 연동된 스마트한 골프 스코어 관리 시스템입니다.<br>
+                로그인하시면 스코어 입력, 기록 관리, 통계 분석 기능을 이용하실 수 있습니다.</p>
+                <div class="login-prompt-features">
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>상세 통계 분석</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>클라우드 자동 저장</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>모바일 최적화</span>
+                    </div>
+                </div>
+                <div class="login-prompt-actions">
+                    <button class="btn btn-primary" onclick="showLoginModal()">
+                        <i class="fas fa-sign-in-alt"></i> 로그인하기
+                    </button>
+                    <button class="btn btn-outline" onclick="showRegisterModal()">
+                        <i class="fas fa-user-plus"></i> 회원가입
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- 메인 콘텐츠 -->
-        <main class="main-content">
+        <main class="main-content" style="display: none;">
             <!-- 스코어 입력 탭 -->
             <div id="score-input" class="tab-content active">
                 <div class="card">
