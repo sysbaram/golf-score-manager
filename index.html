@@ -898,10 +898,51 @@
             console.log('  - window.golfApp.googleSheetsAPI:', !!window.golfApp?.googleSheetsAPI);
             console.log('  - window.GoogleSheetsAPI:', !!window.GoogleSheetsAPI);
             console.log('  - golfApp.isInitialized:', window.golfApp?.isInitialized);
+            console.log('  - window.gapi:', !!window.gapi);
+            console.log('  - window.gapi.auth2:', !!window.gapi?.auth2);
             
             try {
+                // 🔧 Google Auth2 라이브러리가 없으면 강제 로딩
+                if (window.gapi && !window.gapi.auth2) {
+                    console.log('🔄 Google Auth2 라이브러리 강제 로딩 중...');
+                    
+                    await new Promise((resolve, reject) => {
+                        window.gapi.load('client:auth2', {
+                            callback: () => {
+                                console.log('✅ gapi.load 콜백 호출됨');
+                                console.log('🔍 로딩 후 gapi.auth2:', !!window.gapi.auth2);
+                                resolve();
+                            },
+                            onerror: (error) => {
+                                console.error('❌ gapi.load 오류:', error);
+                                reject(new Error('Google Auth2 라이브러리 로딩 실패'));
+                            },
+                            timeout: 10000,
+                            ontimeout: () => {
+                                console.error('❌ gapi.load 타임아웃');
+                                reject(new Error('Google Auth2 라이브러리 로딩 타임아웃'));
+                            }
+                        });
+                    });
+                    
+                    // 로딩 후 다시 확인
+                    console.log('🔍 강제 로딩 후 상태:');
+                    console.log('  - window.gapi.auth2:', !!window.gapi.auth2);
+                    
+                    if (!window.gapi.auth2) {
+                        throw new Error('Google Auth2 라이브러리 로딩에 실패했습니다.');
+                    }
+                }
+                
                 if (window.golfApp && window.golfApp.googleSheetsAPI) {
                     console.log('✅ golfApp.googleSheetsAPI 경로 사용');
+                    
+                    // GoogleSheetsAPI 강제 재초기화
+                    if (!window.golfApp.googleSheetsAPI.useLegacyAuth || !window.golfApp.googleSheetsAPI.authInstance) {
+                        console.log('🔄 GoogleSheetsAPI 강제 재초기화 중...');
+                        await window.golfApp.googleSheetsAPI.init();
+                    }
+                    
                     console.log('🔄 Google OAuth 로그인 시도...');
                     await window.golfApp.googleSheetsAPI.signIn();
                     console.log('✅ Google 로그인 성공!');
@@ -928,7 +969,13 @@
                 console.error('❌ Google 로그인 오류:', error);
                 console.error('❌ 오류 상세:', error.message);
                 console.error('❌ 스택 트레이스:', error.stack);
-                alert('Google 로그인 중 오류가 발생했습니다: ' + error.message);
+                
+                let errorMessage = 'Google 로그인 중 오류가 발생했습니다: ' + error.message;
+                if (error.message.includes('Auth2 라이브러리')) {
+                    errorMessage = 'Google 인증 라이브러리를 로드할 수 없습니다. 인터넷 연결을 확인하고 페이지를 새로고침해주세요.';
+                }
+                
+                alert(errorMessage);
             }
         }
         
