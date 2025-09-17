@@ -728,11 +728,12 @@
         }
         
         async function handleRegisterSubmit(event) {
-            console.log('🚨 handleRegisterSubmit() 시작 - 오류 감지 모드');
+            console.log('🚀🚀🚀 === 새로운 회원가입 함수 시작! ===');
+            console.log('📝 handleRegisterSubmit() 호출됨');
             
             try {
                 event.preventDefault();
-                console.log('📝 handleRegisterSubmit() 호출됨');
+                console.log('✅ 이벤트 preventDefault 완료');
                 
                 // 안전한 요소 접근
                 const usernameEl = document.getElementById('register-username');
@@ -891,19 +892,44 @@
             }
         }
         
-        // 🚀 완전히 새로운 직접 Google API 로딩 방식
+        // 🚀 완전히 새로운 동적 Google API 로딩 방식
         async function handleGoogleLogin() {
-            console.log('🚀🚀🚀 === 완전히 새로운 직접 Google API 로딩 방식! ===');
+            console.log('🚀🚀🚀 === 완전히 새로운 동적 Google API 로딩 방식! ===');
             console.log('🔐 handleGoogleLogin() 호출됨');
             
             try {
-                // 1단계: Google API 기본 라이브러리 확인
+                // 0단계: Google API 스크립트 동적 로딩 (필요한 경우)
                 if (!window.gapi) {
-                    console.error('❌ Google API 기본 라이브러리가 로드되지 않았습니다.');
-                    alert('Google API를 로드할 수 없습니다. 페이지를 새로고침해주세요.');
-                    return;
+                    console.log('🔄 Google API 스크립트 동적 로딩 중...');
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://apis.google.com/js/api.js';
+                        script.async = true;
+                        script.defer = true;
+                        script.onload = () => {
+                            console.log('✅ Google API 스크립트 동적 로딩 완료');
+                            resolve();
+                        };
+                        script.onerror = () => {
+                            console.error('❌ Google API 스크립트 동적 로딩 실패');
+                            reject(new Error('Google API 스크립트를 로드할 수 없습니다'));
+                        };
+                        document.head.appendChild(script);
+                    });
+                    
+                    // gapi 로딩 대기
+                    let waitCount = 0;
+                    while (!window.gapi && waitCount < 50) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        waitCount++;
+                    }
+                    
+                    if (!window.gapi) {
+                        throw new Error('Google API 스크립트 로딩 타임아웃');
+                    }
                 }
                 
+                // 1단계: Google API 기본 라이브러리 확인
                 console.log('✅ Google API 기본 라이브러리 확인됨');
                 
                 // 2단계: client:auth2 강제 로딩
