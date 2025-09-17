@@ -558,10 +558,45 @@ class GolfScoreApp {
         console.log('🔐 handleGoogleLogin() 호출됨');
         
         try {
+            // Google Sheets API 상태 상세 확인
+            console.log('🔍 Google Sheets API 상태 확인:');
+            console.log('  - googleSheetsAPI:', !!this.googleSheetsAPI);
+            console.log('  - isInitialized:', this.isInitialized);
+            console.log('  - useLegacyAuth:', this.googleSheetsAPI?.useLegacyAuth);
+            console.log('  - authInstance:', !!this.googleSheetsAPI?.authInstance);
+            
             // Google Sheets API가 초기화되지 않은 경우
             if (!this.googleSheetsAPI || !this.isInitialized) {
-                console.error('❌ Google Sheets API가 초기화되지 않았습니다');
-                this.showNotification('Google Sheets API가 초기화되지 않았습니다. 재시도 버튼을 클릭해주세요.', 'error');
+                console.warn('⚠️ Google Sheets API가 초기화되지 않음 - 강제 초기화 시도');
+                
+                // 강제 초기화 시도
+                try {
+                    if (window.GoogleSheetsAPI) {
+                        console.log('🔄 새 GoogleSheetsAPI 인스턴스 생성');
+                        this.googleSheetsAPI = new GoogleSheetsAPI();
+                        await this.googleSheetsAPI.init();
+                        this.isInitialized = true;
+                        console.log('✅ GoogleSheetsAPI 강제 초기화 완료');
+                    } else {
+                        throw new Error('GoogleSheetsAPI 클래스를 찾을 수 없습니다.');
+                    }
+                } catch (initError) {
+                    console.error('❌ GoogleSheetsAPI 강제 초기화 실패:', initError);
+                    this.showNotification('Google Sheets API 초기화에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
+                    return;
+                }
+            }
+
+            // 인증 방식 재확인
+            if (!this.googleSheetsAPI.useLegacyAuth || !this.googleSheetsAPI.authInstance) {
+                console.error('❌ Legacy 인증 방식이 설정되지 않음');
+                console.log('🔍 인증 상태:', {
+                    useLegacyAuth: this.googleSheetsAPI.useLegacyAuth,
+                    authInstance: !!this.googleSheetsAPI.authInstance,
+                    gapi: !!window.gapi,
+                    'gapi.auth2': !!window.gapi?.auth2
+                });
+                this.showNotification('Google 인증 시스템이 준비되지 않았습니다. 페이지를 새로고침해주세요.', 'error');
                 return;
             }
 
@@ -574,7 +609,15 @@ class GolfScoreApp {
             
         } catch (error) {
             console.error('❌ Google 로그인 오류:', error);
-            this.showNotification('Google 로그인 중 오류가 발생했습니다: ' + error.message, 'error');
+            
+            let errorMessage = 'Google 로그인 중 오류가 발생했습니다.';
+            if (error.message.includes('사용 가능한 인증 방식이 없습니다')) {
+                errorMessage = 'Google 인증 시스템이 초기화되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.';
+            } else if (error.message.includes('popup_closed_by_user')) {
+                errorMessage = '로그인 팝업이 닫혔습니다. 다시 시도해주세요.';
+            }
+            
+            this.showNotification(errorMessage, 'error');
         }
     }
 
