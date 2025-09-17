@@ -100,18 +100,80 @@ class GolfScoreApp {
     }
 
     async waitForGoogleAPIAndInit() {
-        console.log('🚫 Google API 초기화 비활성화됨 - 로컬 시스템 모드 사용');
-        console.log('✅ 로컬 스토리지 기반 시스템으로 작동 중');
+        console.log('🔄 안전한 Google API 초기화 시작...');
+        console.log('⚠️ 무한 루프 방지를 위한 안전 장치 활성화');
         
-        // Google API 관련 초기화를 완전히 건너뛰고 로컬 모드로 설정
-        this.isInitialized = true;
-        this.hideLoadingStatus();
+        const maxAttempts = 3;
+        const timeoutMs = 10000; // 10초 타임아웃
+        let attempts = 0;
         
-        return Promise.resolve();
+        const safeInit = async () => {
+            attempts++;
+            console.log(`🔍 Google API 확인 시도 ${attempts}/${maxAttempts}`);
+            
+            // 타임아웃 설정
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('초기화 타임아웃')), timeoutMs);
+            });
+            
+            try {
+                const initPromise = this.checkAndInitSafely();
+                await Promise.race([initPromise, timeoutPromise]);
+                
+                if (this.isInitialized) {
+                    console.log('✅ Google API 초기화 성공!');
+                    return;
+                }
+                
+                throw new Error('초기화 실패');
+                
+            } catch (error) {
+                console.log(`❌ 시도 ${attempts} 실패:`, error.message);
+                
+                if (attempts < maxAttempts) {
+                    console.log(`⏳ ${2}초 후 재시도...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    return safeInit();
+                } else {
+                    console.log('❌ 최대 시도 횟수 초과, 로컬 모드로 전환');
+                    this.isInitialized = true;
+                    this.hideLoadingStatus();
+                    this.showNotification('Google Sheets 연결에 실패했습니다. 로컬 모드로 작동합니다.', 'warning');
+                }
+            }
+        };
+        
+        return safeInit();
+    }
+    
+    async checkAndInitSafely() {
+        console.log('🔍 안전한 초기화 확인 중...');
+        
+        // 1단계: Google API 스크립트 확인
+        if (!window.gapi) {
+            throw new Error('Google API 스크립트가 로드되지 않음');
+        }
+        console.log('✅ 1단계: Google API 스크립트 확인됨');
+        
+        // 2단계: GoogleSheetsAPI 클래스 확인
+        if (!window.GoogleSheetsAPI) {
+            throw new Error('GoogleSheetsAPI 클래스가 로드되지 않음');
+        }
+        console.log('✅ 2단계: GoogleSheetsAPI 클래스 확인됨');
+        
+        // 3단계: 초기화 시도
+        console.log('🚀 3단계: Google Sheets API 초기화 시도...');
+        await this.init();
+        
+        if (!this.isInitialized) {
+            throw new Error('초기화 완료되지 않음');
+        }
+        
+        console.log('✅ 3단계: 초기화 완료');
     }
 
     async init() {
-        console.log('🚀 init() 메서드 호출됨 - 로컬 모드');
+        console.log('🚀 init() 메서드 호출됨 - Google Sheets 연동 모드');
         
         if (this.isInitialized) {
             console.log('⚠️ 이미 초기화됨, 중복 초기화 방지');
@@ -119,25 +181,67 @@ class GolfScoreApp {
         }
 
         try {
-            // 로컬 모드에서는 간단히 초기화 완료
+            console.log('🔄 Google Sheets API 초기화 중...');
+
+            // GoogleSheetsAPI 인스턴스 생성
+            console.log('🔍 GoogleSheetsAPI 인스턴스 생성...');
+            this.googleSheetsAPI = new GoogleSheetsAPI();
+            console.log('✅ GoogleSheetsAPI 인스턴스 생성 완료');
+
+            // Google API 초기화
+            console.log('📡 Google Sheets API 초기화 시작...');
+            await this.googleSheetsAPI.init();
+            console.log('✅ Google Sheets API 초기화 완료');
+
+            // 이벤트 리스너 설정
+            console.log('🔧 이벤트 리스너 설정...');
+            this.setupGoogleAPIEventListeners();
+            
             this.isInitialized = true;
-            console.log('✅ 로컬 시스템 초기화 완료! isInitialized =', this.isInitialized);
+            console.log('✅ 전체 초기화 완료! isInitialized =', this.isInitialized);
             
             // 로딩 상태 숨기기
             this.hideLoadingStatus();
             
+            this.showNotification('Google Sheets API 연결이 완료되었습니다!', 'success');
+            
         } catch (error) {
-            console.error('❌ 로컬 시스템 초기화 실패:', error);
-            this.isInitialized = true; // 로컬 모드에서는 항상 성공으로 처리
+            console.error('❌ Google Sheets 초기화 실패:', error);
+            console.error('❌ 에러 상세:', error.stack);
+            
+            // 실패 시 로컬 모드로 폴백
+            console.log('🔄 로컬 모드로 폴백...');
+            this.isInitialized = true;
+            this.hideLoadingStatus();
+            
+            throw error; // 상위에서 처리하도록 에러 전파
         }
     }
 
     // OAuth 설정 가이드 제거됨 - 직접 API 연동 시도
 
     async retryGoogleAPIConnection() {
-        console.log('🚫 API 재연결 비활성화 - 로컬 시스템 모드');
-        console.log('✅ 로컬 시스템은 재연결이 필요하지 않습니다');
-        this.showNotification('로컬 시스템 모드에서는 재연결이 필요하지 않습니다.', 'info');
+        try {
+            console.log('🔄 Google API 재연결 시도 중...');
+            this.showNotification('Google API 재연결을 시도하고 있습니다...', 'info');
+            
+            // 초기화 상태 리셋
+            this.isInitialized = false;
+            this.googleSheetsAPI = null;
+            
+            // 안전한 재초기화 시도
+            await this.waitForGoogleAPIAndInit();
+            
+            if (this.isInitialized && this.googleSheetsAPI) {
+                this.showNotification('Google API 재연결이 성공적으로 완료되었습니다!', 'success');
+                console.log('✅ Google API 재연결 성공');
+            } else {
+                this.showNotification('재연결에 실패했지만 로컬 모드로 작동합니다.', 'warning');
+            }
+        } catch (error) {
+            console.error('❌ Google API 재연결 실패:', error);
+            this.showNotification('재연결에 실패했습니다. 로컬 모드로 작동합니다.', 'warning');
+        }
     }
 
     setupEventListeners() {
@@ -628,6 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.golfApp = new GolfScoreApp();
     window.golfApp.setupBasicUI();
     
-    // Google API 초기화 비활성화 - 로컬 시스템 사용
-    console.log('✅ 로컬 시스템 모드: Google API 초기화 건너뜀');
+    // 안전한 Google API 초기화 시작
+    console.log('🚀 안전한 Google API 초기화 시작...');
+    window.golfApp.waitForGoogleAPIAndInit();
 });

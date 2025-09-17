@@ -766,45 +766,70 @@
             
             console.log('📡 회원가입 시도:', username, email);
             
-            // 로컬 스토리지를 통한 간단한 회원가입 처리
-            console.log('🔄 로컬 스토리지 회원가입 처리 중...');
+            // Google Sheets API를 통한 회원가입 처리
+            console.log('🔄 Google Sheets API 회원가입 처리 중...');
             
-            // 기존 사용자 목록 가져오기
+            // Google Sheets API 사용 가능 여부 확인
+            if (window.golfApp && window.golfApp.isInitialized && window.golfApp.googleSheetsAPI) {
+                console.log('✅ Google Sheets API 사용 가능');
+                
+                try {
+                    // Google OAuth 로그인 확인
+                    if (!window.golfApp.googleSheetsAPI.isSignedIn) {
+                        console.log('🔐 Google OAuth 로그인 필요...');
+                        await window.golfApp.googleSheetsAPI.signIn();
+                    }
+                    
+                    console.log('📝 Google Sheets에 사용자 등록 중...');
+                    const result = await window.golfApp.googleSheetsAPI.registerUser(username, email, password);
+                    
+                    if (result && result.success) {
+                        console.log('✅ Google Sheets 회원가입 성공!');
+                        alert(`${username}님, Google Sheets에 회원가입이 완료되었습니다!`);
+                        document.getElementById('register-modal').style.display = 'none';
+                        document.getElementById('register-form').reset();
+                        return;
+                    } else {
+                        throw new Error(result?.error || 'Google Sheets 등록 실패');
+                    }
+                } catch (error) {
+                    console.error('❌ Google Sheets 회원가입 실패:', error);
+                    console.log('🔄 로컬 스토리지로 폴백...');
+                }
+            } else {
+                console.log('⚠️ Google Sheets API 사용 불가, 로컬 스토리지 사용');
+            }
+            
+            // 로컬 스토리지 폴백 (Google Sheets 실패 시)
+            console.log('🔄 로컬 스토리지 폴백 처리 중...');
+            
             const users = JSON.parse(localStorage.getItem('golf-users') || '[]');
             
-            // 이메일 중복 확인
             if (users.find(u => u.email === email)) {
                 alert('이미 등록된 이메일입니다.');
                 return;
             }
             
-            // 사용자명 중복 확인
             if (users.find(u => u.username === username)) {
                 alert('이미 사용 중인 사용자명입니다.');
                 return;
             }
             
-            // 새 사용자 정보 생성
             const newUser = {
                 id: Date.now().toString(),
                 username: username,
                 email: email,
-                password: password, // 실제 서비스에서는 해시화 필요
+                password: password,
                 createdAt: new Date().toISOString(),
                 rounds: []
             };
             
-            // 사용자 목록에 추가
             users.push(newUser);
             localStorage.setItem('golf-users', JSON.stringify(users));
             
-            console.log('✅ 회원가입 성공!');
-            console.log('📊 등록된 사용자 수:', users.length);
-            
-            alert(`${username}님, 회원가입이 완료되었습니다! 로그인해주세요.`);
+            console.log('✅ 로컬 스토리지 회원가입 성공!');
+            alert(`${username}님, 회원가입이 완료되었습니다! (로컬 저장)`);
             document.getElementById('register-modal').style.display = 'none';
-            
-            // 폼 초기화
             document.getElementById('register-form').reset();
                 
             } catch (error) {
