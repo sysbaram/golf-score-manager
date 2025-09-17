@@ -494,18 +494,13 @@
             console.log(`📜 외부 스크립트: ${scripts.length}개 로드됨`);
         }
         
-        // 페이지 로드 완료 후 확인 및 Google API 로딩 시작
+        // 페이지 로드 완료 후 확인 (Google API 로딩 임시 비활성화)
         function initializeAfterPageLoad() {
             checkPageStatus();
             
-            // Google API 즉시 로딩 시작
-            console.log('🚀 페이지 로드 완료 - Google API 로딩 시작');
-            setTimeout(() => {
-                if (!window.googleApiLoaded && window.googleApiLoadAttempts === 0) {
-                    console.log('📡 Google API 자동 로딩 시작...');
-                    loadGoogleApiAlternative();
-                }
-            }, 1000); // 1초 후 시작
+            // Google API 로딩 임시 비활성화
+            console.log('🎭 페이지 로드 완료 - 데모 모드 (Google API 로딩 임시 비활성화)');
+            console.log('⚠️ OAuth 설정 반영 대기 중 - 깔끔한 데모 모드로 운영');
         }
         
         if (document.readyState === 'loading') {

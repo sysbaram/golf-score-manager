@@ -799,7 +799,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.golfApp = new GolfScoreApp();
     window.golfApp.setupBasicUI();
     
-    // 안전한 Google API 초기화 시작
-    console.log('🚀 안전한 Google API 초기화 시작...');
-    window.golfApp.waitForGoogleAPIAndInit();
+    // 안전한 Google API 초기화 시작 (임시 비활성화)
+    console.log('🎭 데모 모드 - Google API 초기화 임시 비활성화');
+    console.log('⚠️ OAuth 설정 반영 대기 중 - 데모 모드로 운영');
+    
+    // 데모 모드 상태 설정
+    window.golfApp.isInitialized = false;
+    window.golfApp.hideLoadingStatus();
+    window.golfApp.showNotification('데모 모드로 운영 중입니다. OAuth 설정 반영 대기 중입니다.', 'info');
 });
