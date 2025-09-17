@@ -47,6 +47,11 @@ class GoogleSheetsAPI {
             window.history.replaceState({}, document.title, window.location.pathname);
             
             console.log('✅ 리디렉션을 통한 로그인 성공');
+            
+            // UI 업데이트 트리거 (약간의 지연 후)
+            setTimeout(() => {
+                this.triggerUIUpdate();
+            }, 500);
         }
     }
 
@@ -130,6 +135,9 @@ class GoogleSheetsAPI {
                                         
                                         // 로그인 성공 이벤트 발생
                                         this.onLoginSuccess && this.onLoginSuccess();
+                                        
+                                        // UI 업데이트 트리거
+                                        this.triggerUIUpdate();
                                     } else if (response.error) {
                                         console.error('❌ GIS OAuth 토큰 획득 실패:', response.error);
                                         this.onLoginError && this.onLoginError(response.error);
@@ -196,6 +204,9 @@ class GoogleSheetsAPI {
                             access_token: this.accessToken
                         });
                         
+                        // UI 업데이트 트리거
+                        this.triggerUIUpdate();
+                        
                         resolve(true);
                     } else if (response.error) {
                         console.error('❌ GIS 로그인 실패:', response.error);
@@ -251,6 +262,9 @@ class GoogleSheetsAPI {
                         window.gapi.client.setToken({
                             access_token: this.accessToken
                         });
+                        
+                        // UI 업데이트 트리거
+                        this.triggerUIUpdate();
                         
                         resolve(true);
                     }).catch((error) => {
@@ -317,6 +331,9 @@ class GoogleSheetsAPI {
             window.gapi.client.setToken(null);
         }
         
+        // UI 업데이트 트리거
+        this.triggerUIUpdate();
+        
         console.log('✅ 로그아웃 완료');
     }
 
@@ -326,6 +343,66 @@ class GoogleSheetsAPI {
 
     getCurrentUser() {
         return this.currentUser;
+    }
+
+    // UI 업데이트 트리거
+    triggerUIUpdate() {
+        console.log('🔄 UI 업데이트 트리거');
+        
+        // GolfApp 인스턴스가 있으면 UI 업데이트 호출
+        if (window.golfApp && typeof window.golfApp.updateUIForLoggedInUser === 'function') {
+            console.log('✅ GolfApp UI 업데이트 호출');
+            window.golfApp.updateUIForLoggedInUser();
+            
+            // 사용자 정보도 설정
+            if (window.golfApp.currentUser) {
+                window.golfApp.currentUser = this.currentUser;
+            }
+        } else {
+            console.warn('⚠️ GolfApp 인스턴스 또는 updateUIForLoggedInUser 메서드를 찾을 수 없음');
+            
+            // 직접 UI 업데이트
+            this.directUIUpdate();
+        }
+    }
+
+    // 직접 UI 업데이트 (백업 방식)
+    directUIUpdate() {
+        console.log('🔧 직접 UI 업데이트 실행');
+        
+        try {
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
+            
+            if (this.isSignedIn) {
+                // 로그인 상태 UI
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (registerBtn) registerBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                
+                if (userInfo && this.currentUser) {
+                    userInfo.textContent = `안녕하세요, ${this.currentUser.username || 'Google 사용자'}님!`;
+                    userInfo.style.display = 'block';
+                }
+                
+                console.log('✅ 로그인 상태 UI 업데이트 완료');
+            } else {
+                // 로그아웃 상태 UI
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (registerBtn) registerBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                
+                if (userInfo) {
+                    userInfo.style.display = 'none';
+                }
+                
+                console.log('✅ 로그아웃 상태 UI 업데이트 완료');
+            }
+        } catch (error) {
+            console.error('❌ 직접 UI 업데이트 실패:', error);
+        }
     }
 
     // 사용자 등록
