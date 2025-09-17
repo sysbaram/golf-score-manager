@@ -83,20 +83,21 @@ class GoogleSheetsAPI {
                 const hasLegacyAuth = window.gapi && window.gapi.auth2;
                 
                 console.log('🔍 인증 방식 확인:');
-                console.log('  - Google Identity Services (GIS):', hasGIS ? '✅' : '❌');
+                console.log('  - Google Identity Services (GIS):', hasGIS ? '✅ (강제 비활성화)' : '❌');
                 console.log('  - Legacy gapi.auth2:', hasLegacyAuth ? '✅' : '❌');
                 
-                if (!hasGIS && !hasLegacyAuth) {
-                    console.error('❌ 사용 가능한 인증 방식이 없습니다.');
+                if (!hasLegacyAuth) {
+                    console.error('❌ Legacy gapi.auth2가 없습니다.');
                     reject(new Error('Google 인증 시스템을 로드할 수 없습니다. 네트워크 연결을 확인하거나 페이지를 새로고침해주세요.'));
                     return;
                 }
 
                 console.log('✅ Google API 클라이언트 로드 완료');
                 
-                // 인증 방식 결정
-                this.useGIS = hasGIS;
-                this.useLegacyAuth = !hasGIS && hasLegacyAuth;
+                // 🚨 GitHub Pages CORS 문제로 인해 GIS 강제 비활성화
+                this.useGIS = false;
+                this.useLegacyAuth = true;
+                console.log('🎯 GitHub Pages CORS 문제로 인해 Legacy gapi.auth2 방식 강제 사용');
                 
                 if (this.useGIS) {
                     console.log('🎯 Google Identity Services (GIS) 방식 사용');
@@ -125,43 +126,8 @@ class GoogleSheetsAPI {
                         
                         console.log('✅ Google API 클라이언트 초기화 완료');
                         
-                        // 인증 시스템 초기화
-                        if (this.useGIS) {
-                            // GIS 방식 - CORS 문제 해결을 위한 설정
-                            this.tokenClient = window.google.accounts.oauth2.initTokenClient({
-                                client_id: this.clientId,
-                                scope: this.scope,
-                                include_granted_scopes: true,
-                                callback: (response) => {
-                                    console.log('🎯 GIS OAuth 응답:', response);
-                                    if (response.access_token) {
-                                        this.accessToken = response.access_token;
-                                        this.isSignedIn = true;
-                                        console.log('✅ GIS OAuth 토큰 획득 성공');
-                                        
-                                        // API 클라이언트에 토큰 설정
-                                        window.gapi.client.setToken({
-                                            access_token: this.accessToken
-                                        });
-                                        
-                                        // 로그인 성공 이벤트 발생
-                                        this.onLoginSuccess && this.onLoginSuccess();
-                                        
-                                        // UI 업데이트 트리거
-                                        this.triggerUIUpdate();
-                                    } else if (response.error) {
-                                        console.error('❌ GIS OAuth 토큰 획득 실패:', response.error);
-                                        this.onLoginError && this.onLoginError(response.error);
-                                    }
-                                },
-                                error_callback: (error) => {
-                                    console.error('❌ GIS OAuth 오류:', error);
-                                    this.onLoginError && this.onLoginError(error);
-                                }
-                            });
-                            
-                            console.log('✅ Google Identity Services 토큰 클라이언트 초기화 완료');
-                        } else if (this.useLegacyAuth) {
+                        // 🚨 GitHub Pages CORS 문제로 인해 Legacy 방식만 사용
+                        if (this.useLegacyAuth) {
                             // Legacy 방식
                             this.authInstance = window.gapi.auth2.getAuthInstance();
                             console.log('✅ Legacy gapi.auth2 인스턴스 획득 완료');
@@ -194,58 +160,8 @@ class GoogleSheetsAPI {
                 return;
             }
 
-            if (this.useGIS) {
-                // Google Identity Services 방식
-                if (!this.tokenClient) {
-                    console.error('❌ GIS 토큰 클라이언트가 초기화되지 않았습니다.');
-                    reject(new Error('GIS 토큰 클라이언트가 초기화되지 않았습니다.'));
-                    return;
-                }
-
-                // 토큰 클라이언트 콜백 업데이트
-                this.tokenClient.callback = (response) => {
-                    console.log('🎯 GIS 로그인 OAuth 응답:', response);
-                    if (response.access_token) {
-                        this.accessToken = response.access_token;
-                        this.isSignedIn = true;
-                        console.log('✅ GIS 로그인 성공');
-                        
-                        // API 클라이언트에 토큰 설정
-                        window.gapi.client.setToken({
-                            access_token: this.accessToken
-                        });
-                        
-                        // UI 업데이트 트리거
-                        this.triggerUIUpdate();
-                        
-                        resolve(true);
-                    } else if (response.error) {
-                        console.error('❌ GIS 로그인 실패:', response.error);
-                        reject(new Error(`GIS 로그인 실패: ${response.error}`));
-                    } else {
-                        console.error('❌ 알 수 없는 GIS 로그인 오류');
-                        reject(new Error('알 수 없는 GIS 로그인 오류가 발생했습니다.'));
-                    }
-                };
-
-                // 토큰 요청 - CORS 문제 해결을 위한 설정
-                try {
-                    console.log('🚀 GIS OAuth 토큰 요청 중...');
-                    
-                    // 콜백 설정
-                    this.onLoginSuccess = () => resolve(true);
-                    this.onLoginError = (error) => reject(new Error(`GIS 로그인 실패: ${error}`));
-                    
-                    // 사용자 동작으로 토큰 요청 (CORS 정책 준수)
-                    this.tokenClient.requestAccessToken({
-                        prompt: 'select_account' // 계정 선택 화면
-                    });
-                } catch (error) {
-                    console.error('❌ GIS 토큰 요청 실패:', error);
-                    reject(new Error(`GIS 토큰 요청 실패: ${error.message}`));
-                }
-                
-            } else if (this.useLegacyAuth) {
+            // 🚨 GitHub Pages CORS 문제로 인해 Legacy 방식만 사용
+            if (this.useLegacyAuth) {
                 // Legacy gapi.auth2 방식
                 if (!this.authInstance) {
                     console.error('❌ Legacy auth2 인스턴스가 초기화되지 않았습니다.');
@@ -313,16 +229,8 @@ class GoogleSheetsAPI {
     signOut() {
         console.log('🚪 Google OAuth 로그아웃...');
         
-        if (this.useGIS && this.accessToken) {
-            // GIS 방식 - 토큰 폐기
-            try {
-                window.google.accounts.oauth2.revoke(this.accessToken, () => {
-                    console.log('✅ GIS 토큰 폐기 완료');
-                });
-            } catch (error) {
-                console.log('⚠️ GIS 토큰 폐기 실패 (무시):', error);
-            }
-        } else if (this.useLegacyAuth && this.authInstance) {
+        // 🚨 GitHub Pages CORS 문제로 인해 Legacy 방식만 사용
+        if (this.useLegacyAuth && this.authInstance) {
             // Legacy 방식 - 로그아웃
             try {
                 this.authInstance.signOut();
