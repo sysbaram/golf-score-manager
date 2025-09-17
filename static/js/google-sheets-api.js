@@ -86,7 +86,7 @@ class GoogleSheetsAPI {
                 console.log('  - Google Identity Services (GIS):', hasGIS ? '✅ (강제 비활성화)' : '❌');
                 console.log('  - Legacy gapi.auth2:', hasLegacyAuth ? '✅' : '❌');
                 
-                // gapi.auth2가 없으면 제한된 재시도
+                // gapi.auth2가 없으면 강제 로드 시도
                 if (!hasLegacyAuth) {
                     // 시도 횟수 추적
                     if (!this.initAttempts) {
@@ -104,8 +104,43 @@ class GoogleSheetsAPI {
                         return;
                     }
                     
-                    // 제한된 재시도
-                    console.log(`⏳ ${2}초 후 재시도...`);
+                    // gapi.load를 통한 강제 로드 시도
+                    console.log('🔄 gapi.load를 통한 auth2 모듈 강제 로드 시도...');
+                    
+                    if (window.gapi && window.gapi.load) {
+                        try {
+                            window.gapi.load('auth2', {
+                                callback: () => {
+                                    console.log('✅ gapi.auth2 모듈 로드 성공');
+                                    // 1초 후 재시도
+                                    setTimeout(() => {
+                                        this.init().then(resolve).catch(reject);
+                                    }, 1000);
+                                },
+                                onerror: () => {
+                                    console.error('❌ gapi.auth2 모듈 로드 실패');
+                                    // 2초 후 재시도
+                                    setTimeout(() => {
+                                        this.init().then(resolve).catch(reject);
+                                    }, 2000);
+                                },
+                                timeout: 10000, // 10초 타임아웃
+                                ontimeout: () => {
+                                    console.error('⏰ gapi.auth2 모듈 로드 타임아웃');
+                                    // 2초 후 재시도
+                                    setTimeout(() => {
+                                        this.init().then(resolve).catch(reject);
+                                    }, 2000);
+                                }
+                            });
+                            return;
+                        } catch (error) {
+                            console.error('❌ gapi.load 호출 실패:', error);
+                        }
+                    }
+                    
+                    // gapi.load 실패 시 기본 재시도
+                    console.log(`⏳ ${2}초 후 기본 재시도...`);
                     setTimeout(() => {
                         this.init().then(resolve).catch(reject);
                     }, 2000);
