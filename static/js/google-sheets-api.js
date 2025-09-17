@@ -86,9 +86,14 @@ class GoogleSheetsAPI {
                 console.log('  - Google Identity Services (GIS):', hasGIS ? '✅ (강제 비활성화)' : '❌');
                 console.log('  - Legacy gapi.auth2:', hasLegacyAuth ? '✅' : '❌');
                 
+                // gapi.auth2가 없으면 강제 로딩 시도
                 if (!hasLegacyAuth) {
-                    console.error('❌ Legacy gapi.auth2가 없습니다.');
-                    reject(new Error('Google 인증 시스템을 로드할 수 없습니다. 네트워크 연결을 확인하거나 페이지를 새로고침해주세요.'));
+                    console.warn('⚠️ gapi.auth2가 아직 로드되지 않음 - 강제 로딩 시도');
+                    
+                    // 강제 로딩 후 재시도
+                    setTimeout(() => {
+                        this.init().then(resolve).catch(reject);
+                    }, 1000);
                     return;
                 }
 
@@ -105,10 +110,10 @@ class GoogleSheetsAPI {
                     console.log('🎯 Legacy gapi.auth2 방식 사용');
                 }
                 
-                // Google API 클라이언트 초기화
-                const loadList = this.useLegacyAuth ? ['client', 'auth2'] : ['client'];
+                // 🚨 강제로 auth2 포함하여 로딩
+                console.log('🔄 강제로 client:auth2 로딩 시도...');
                 
-                window.gapi.load(loadList.join(':'), async () => {
+                window.gapi.load('client:auth2', async () => {
                     try {
                         console.log('🔧 Google API 클라이언트 초기화 중...');
                         
@@ -128,9 +133,33 @@ class GoogleSheetsAPI {
                         
                         // 🚨 GitHub Pages CORS 문제로 인해 Legacy 방식만 사용
                         if (this.useLegacyAuth) {
-                            // Legacy 방식
-                            this.authInstance = window.gapi.auth2.getAuthInstance();
-                            console.log('✅ Legacy gapi.auth2 인스턴스 획득 완료');
+                            // auth2가 로드되었는지 재확인
+                            if (!window.gapi.auth2) {
+                                console.error('❌ gapi.auth2가 여전히 로드되지 않음');
+                                reject(new Error('Google 인증 라이브러리(gapi.auth2)를 로드할 수 없습니다. 네트워크 상태를 확인해주세요.'));
+                                return;
+                            }
+                            
+                            // Legacy 방식 - 인스턴스 획득
+                            try {
+                                this.authInstance = window.gapi.auth2.getAuthInstance();
+                                
+                                if (!this.authInstance) {
+                                    console.error('❌ gapi.auth2 인스턴스 획득 실패');
+                                    reject(new Error('Google 인증 인스턴스를 초기화할 수 없습니다.'));
+                                    return;
+                                }
+                                
+                                console.log('✅ Legacy gapi.auth2 인스턴스 획득 완료');
+                                console.log('🔍 Auth 인스턴스 상태:', {
+                                    isSignedIn: this.authInstance.isSignedIn.get(),
+                                    currentUser: this.authInstance.currentUser.get()?.getBasicProfile()?.getName()
+                                });
+                            } catch (error) {
+                                console.error('❌ gapi.auth2 인스턴스 오류:', error);
+                                reject(new Error(`Google 인증 인스턴스 오류: ${error.message}`));
+                                return;
+                            }
                         }
                         
                         console.log('🎉 Google API 초기화 성공!');
