@@ -119,17 +119,19 @@
         
         // Google Identity Services 실패 콜백
         window.onGoogleGisError = function(error) {
-            console.error('❌ Google Identity Services 로딩 실패:', error);
+            console.warn('⚠️ Google Identity Services 로딩 실패 (Legacy 방식 사용 예정):', error);
             window.googleGisLoadAttempts++;
             
-            if (window.googleGisLoadAttempts < 3) {
-                console.log(`🔄 Google Identity Services 재시도 ${window.googleGisLoadAttempts}/3`);
-                setTimeout(loadGoogleGisAlternative, 2000);
+            if (window.googleGisLoadAttempts < 2) { // 재시도 횟수 줄임
+                console.log(`🔄 Google Identity Services 재시도 ${window.googleGisLoadAttempts}/2`);
+                setTimeout(loadGoogleGisAlternative, 1000);
             } else {
-                console.log('❌ Google Identity Services 로딩 완전 실패');
+                console.log('⚠️ Google Identity Services 로딩 실패 - Legacy 방식으로 대체');
                 if (window.scriptLoadStatus) {
                     window.scriptLoadStatus.gis = false;
                 }
+                // GIS 실패해도 앱 초기화 진행
+                checkAllScriptsLoaded();
             }
         };
         
@@ -483,10 +485,12 @@
         };
         
         function checkAllScriptsLoaded() {
-            const allLoaded = window.scriptLoadStatus.gapi && 
-                            window.scriptLoadStatus.gis &&
-                            window.scriptLoadStatus.googleSheetsAPI && 
-                            window.scriptLoadStatus.appGitHubPages;
+            // GIS는 선택적이므로 필수가 아님
+            const requiredLoaded = window.scriptLoadStatus.gapi && 
+                                  window.scriptLoadStatus.googleSheetsAPI && 
+                                  window.scriptLoadStatus.appGitHubPages;
+            
+            const allLoaded = requiredLoaded;
             
             console.log('📊 스크립트 로딩 상태:', window.scriptLoadStatus);
             
