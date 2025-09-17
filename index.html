@@ -200,12 +200,19 @@
                     </button>
                 </div>
                 <div id="login-section" class="login-section">
+                    <!-- 🔧 디버깅용 테스트 버튼 -->
+                    <button class="btn btn-primary" 
+                            onclick="console.log('🧪 테스트 버튼 클릭됨!'); alert('테스트 버튼 작동 확인!'); return false;"
+                            style="margin-bottom: 10px; background: red;">
+                        🧪 테스트 버튼
+                    </button>
+                    
                     <button id="login-btn" class="btn btn-outline" 
-                            onclick="showLoginModal(); return false;">
+                            onclick="console.log('🔐 로그인 버튼 클릭됨!'); showLoginModal(); return false;">
                         <i class="fas fa-sign-in-alt"></i> 로그인
                     </button>
                     <button id="register-btn" class="btn btn-outline"
-                            onclick="showRegisterModal(); return false;">
+                            onclick="console.log('📝 회원가입 버튼 클릭됨!'); showRegisterModal(); return false;">
                         <i class="fas fa-user-plus"></i> 회원가입
                     </button>
                 </div>
