@@ -135,16 +135,57 @@
             }
         };
         
-        // Google API 클라이언트 대안 로딩
+        // Google API 클라이언트 대안 로딩 (다중 CDN 시도)
         function loadGoogleApiAlternative() {
+            const apiUrls = [
+                'https://apis.google.com/js/api.js',
+                'https://apis.google.com/js/api.js?onload=onGoogleApiLoad&onerror=onGoogleApiError',
+                'https://apis.google.com/js/client.js',
+                'https://www.gstatic.com/charts/loader.js' // 대체 Google 스크립트
+            ];
+            
+            const currentUrl = apiUrls[window.googleApiLoadAttempts % apiUrls.length];
+            console.log(`🔄 Google API 로딩 시도 ${window.googleApiLoadAttempts + 1}/3 - URL: ${currentUrl}`);
+            
             const script = document.createElement('script');
-            script.src = 'https://apis.google.com/js/api.js';
+            script.src = currentUrl;
             script.async = true;
             script.defer = true;
-            script.onload = window.onGoogleApiLoad;
-            script.onerror = window.onGoogleApiError;
+            
+            // 타임아웃 설정 (10초)
+            const timeout = setTimeout(() => {
+                console.warn('⏰ Google API 로딩 타임아웃');
+                script.remove();
+                window.onGoogleApiError(new Error('로딩 타임아웃'));
+            }, 10000);
+            
+            script.onload = function() {
+                clearTimeout(timeout);
+                console.log('✅ Google API 스크립트 로드 성공');
+                
+                // gapi 객체 확인
+                if (window.gapi) {
+                    window.onGoogleApiLoad();
+                } else {
+                    // gapi 객체가 없으면 수동으로 로드 시도
+                    setTimeout(() => {
+                        if (window.gapi) {
+                            window.onGoogleApiLoad();
+                        } else {
+                            window.onGoogleApiError(new Error('gapi 객체 없음'));
+                        }
+                    }, 1000);
+                }
+            };
+            
+            script.onerror = function(error) {
+                clearTimeout(timeout);
+                console.error('❌ Google API 스크립트 로드 실패:', error);
+                script.remove();
+                window.onGoogleApiError(error);
+            };
+            
             document.head.appendChild(script);
-            console.log('🔄 Google API 클라이언트 로딩 시도...');
         }
         
         // Google Identity Services 대안 로딩
@@ -453,11 +494,24 @@
             console.log(`📜 외부 스크립트: ${scripts.length}개 로드됨`);
         }
         
-        // 페이지 로드 완료 후 확인
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', checkPageStatus);
-        } else {
+        // 페이지 로드 완료 후 확인 및 Google API 로딩 시작
+        function initializeAfterPageLoad() {
             checkPageStatus();
+            
+            // Google API 즉시 로딩 시작
+            console.log('🚀 페이지 로드 완료 - Google API 로딩 시작');
+            setTimeout(() => {
+                if (!window.googleApiLoaded && window.googleApiLoadAttempts === 0) {
+                    console.log('📡 Google API 자동 로딩 시작...');
+                    loadGoogleApiAlternative();
+                }
+            }, 1000); // 1초 후 시작
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAfterPageLoad);
+        } else {
+            initializeAfterPageLoad();
         }
     </script>
 
