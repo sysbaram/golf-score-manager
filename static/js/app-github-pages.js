@@ -139,6 +139,7 @@ class GolfScoreApp {
                     this.isInitialized = true;
                     this.hideLoadingStatus();
                     this.showNotification('Google Sheets 연결에 실패했습니다. 로컬 모드로 작동합니다.', 'warning');
+                    console.log('✅ 로컬 모드로 안전하게 전환 완료');
                 }
             }
         };
@@ -210,11 +211,13 @@ class GolfScoreApp {
             console.error('❌ 에러 상세:', error.stack);
             
             // 실패 시 로컬 모드로 폴백
-            console.log('🔄 로컬 모드로 폴백...');
+            console.log('🔄 로컬 모드로 폴백 중...');
             this.isInitialized = true;
             this.hideLoadingStatus();
             
-            throw error; // 상위에서 처리하도록 에러 전파
+            // 에러를 던지지 않고 로컬 모드로 정상 작동
+            this.showNotification('Google Sheets 연결에 실패했습니다. 로컬 모드로 작동합니다.', 'warning');
+            console.log('✅ 로컬 모드 초기화 완료');
         }
     }
 
