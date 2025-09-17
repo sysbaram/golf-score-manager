@@ -1009,6 +1009,24 @@
                 console.error('❌ GolfScoreApp 클래스가 로드되지 않았습니다');
                 console.log('📊 스크립트 로딩 상태:', window.scriptLoadStatus);
             }
+            
+            // 🔧 로그인 상태 강제 확인 및 UI 업데이트
+            setTimeout(() => {
+                console.log('🔍 페이지 로드 완료 후 로그인 상태 확인');
+                if (window.googleSheetsAPI) {
+                    console.log('🔍 GoogleSheetsAPI 상태:', {
+                        isSignedIn: window.googleSheetsAPI.isSignedIn,
+                        hasToken: !!window.googleSheetsAPI.accessToken,
+                        currentUser: window.googleSheetsAPI.currentUser
+                    });
+                    
+                    // 로그인 상태면 강제 UI 업데이트
+                    if (window.googleSheetsAPI.isSignedIn && window.googleSheetsAPI.accessToken) {
+                        console.log('🎯 로그인 상태 감지 - 강제 UI 업데이트 실행');
+                        window.googleSheetsAPI.triggerUIUpdate();
+                    }
+                }
+            }, 2000); // 2초 후 확인
         }, 1000);
     </script>
 </body>

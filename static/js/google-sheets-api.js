@@ -48,10 +48,21 @@ class GoogleSheetsAPI {
             
             console.log('✅ 리디렉션을 통한 로그인 성공');
             
-            // UI 업데이트 트리거 (약간의 지연 후)
+            // 강제 UI 업데이트 (다중 시도)
             setTimeout(() => {
+                console.log('🔄 1차 UI 업데이트 시도');
+                this.triggerUIUpdate();
+            }, 100);
+            
+            setTimeout(() => {
+                console.log('🔄 2차 UI 업데이트 시도');
                 this.triggerUIUpdate();
             }, 500);
+            
+            setTimeout(() => {
+                console.log('🔄 3차 UI 업데이트 시도 (최종)');
+                this.triggerUIUpdate();
+            }, 1000);
         }
     }
 
@@ -369,6 +380,9 @@ class GoogleSheetsAPI {
     // 직접 UI 업데이트 (백업 방식)
     directUIUpdate() {
         console.log('🔧 직접 UI 업데이트 실행');
+        console.log('🔍 현재 로그인 상태:', this.isSignedIn);
+        console.log('🔍 현재 토큰:', !!this.accessToken);
+        console.log('🔍 현재 사용자:', this.currentUser);
         
         try {
             const loginBtn = document.getElementById('login-btn');
@@ -378,19 +392,49 @@ class GoogleSheetsAPI {
             const loginSection = document.getElementById('login-section');
             const usernameDisplay = document.getElementById('username-display');
             
+            console.log('🔍 DOM 요소 확인:');
+            console.log('  - loginBtn:', !!loginBtn);
+            console.log('  - registerBtn:', !!registerBtn);
+            console.log('  - logoutBtn:', !!logoutBtn);
+            console.log('  - userInfo:', !!userInfo);
+            console.log('  - loginSection:', !!loginSection);
+            console.log('  - usernameDisplay:', !!usernameDisplay);
+            
             if (this.isSignedIn) {
-                // 로그인 상태 UI
-                if (loginBtn) loginBtn.style.display = 'none';
-                if (registerBtn) registerBtn.style.display = 'none';
-                if (loginSection) loginSection.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                console.log('🎯 로그인 상태 UI 업데이트 시작');
+                
+                // 로그인 상태 UI - 강제 적용
+                if (loginBtn) {
+                    loginBtn.style.display = 'none';
+                    loginBtn.style.visibility = 'hidden';
+                    console.log('✅ 로그인 버튼 숨김');
+                }
+                if (registerBtn) {
+                    registerBtn.style.display = 'none';
+                    registerBtn.style.visibility = 'hidden';
+                    console.log('✅ 회원가입 버튼 숨김');
+                }
+                if (loginSection) {
+                    loginSection.style.display = 'none';
+                    loginSection.style.visibility = 'hidden';
+                    console.log('✅ 로그인 섹션 숨김');
+                }
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'inline-block';
+                    logoutBtn.style.visibility = 'visible';
+                    console.log('✅ 로그아웃 버튼 표시');
+                }
                 
                 // 사용자 정보 표시
                 if (userInfo) {
                     userInfo.style.display = 'flex';
+                    userInfo.style.visibility = 'visible';
+                    console.log('✅ 사용자 정보 표시');
                     
-                    if (usernameDisplay && this.currentUser) {
-                        usernameDisplay.textContent = this.currentUser.username || 'Google 사용자';
+                    if (usernameDisplay) {
+                        const username = this.currentUser?.username || 'Google 사용자';
+                        usernameDisplay.textContent = username;
+                        console.log('✅ 사용자명 설정:', username);
                     }
                 }
                 
@@ -399,14 +443,29 @@ class GoogleSheetsAPI {
                 
                 console.log('✅ 로그인 상태 UI 업데이트 완료');
             } else {
+                console.log('🔒 로그아웃 상태 UI 업데이트 시작');
+                
                 // 로그아웃 상태 UI
-                if (loginBtn) loginBtn.style.display = 'inline-block';
-                if (registerBtn) registerBtn.style.display = 'inline-block';
-                if (loginSection) loginSection.style.display = 'flex';
-                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (loginBtn) {
+                    loginBtn.style.display = 'inline-block';
+                    loginBtn.style.visibility = 'visible';
+                }
+                if (registerBtn) {
+                    registerBtn.style.display = 'inline-block';
+                    registerBtn.style.visibility = 'visible';
+                }
+                if (loginSection) {
+                    loginSection.style.display = 'flex';
+                    loginSection.style.visibility = 'visible';
+                }
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'none';
+                    logoutBtn.style.visibility = 'hidden';
+                }
                 
                 if (userInfo) {
                     userInfo.style.display = 'none';
+                    userInfo.style.visibility = 'hidden';
                 }
                 
                 // 메인 콘텐츠 숨김 (로그아웃 후)
@@ -416,29 +475,45 @@ class GoogleSheetsAPI {
             }
         } catch (error) {
             console.error('❌ 직접 UI 업데이트 실패:', error);
+            console.error('❌ 오류 상세:', error.stack);
         }
     }
 
     // 메인 콘텐츠 표시
     showMainContent() {
-        console.log('🎯 메인 콘텐츠 표시');
+        console.log('🎯 메인 콘텐츠 표시 시작');
         
         const navTabs = document.querySelector('.nav-tabs');
         const mainContent = document.querySelector('.main-content');
         const loginPrompt = document.getElementById('login-prompt');
         
-        // 로그인 안내 메시지 숨김
+        console.log('🔍 메인 콘텐츠 DOM 요소 확인:');
+        console.log('  - navTabs:', !!navTabs);
+        console.log('  - mainContent:', !!mainContent);
+        console.log('  - loginPrompt:', !!loginPrompt);
+        
+        // 로그인 안내 메시지 강제 숨김
         if (loginPrompt) {
             loginPrompt.style.display = 'none';
+            loginPrompt.style.visibility = 'hidden';
+            loginPrompt.style.opacity = '0';
+            console.log('✅ 로그인 안내 메시지 숨김');
         }
         
-        // 네비게이션과 메인 콘텐츠 표시
+        // 네비게이션 강제 표시
         if (navTabs) {
             navTabs.style.display = 'flex';
+            navTabs.style.visibility = 'visible';
+            navTabs.style.opacity = '1';
+            console.log('✅ 네비게이션 탭 표시');
         }
         
+        // 메인 콘텐츠 강제 표시
         if (mainContent) {
             mainContent.style.display = 'block';
+            mainContent.style.visibility = 'visible';
+            mainContent.style.opacity = '1';
+            console.log('✅ 메인 콘텐츠 표시');
         }
         
         // 스코어 입력 폼 활성화
@@ -448,7 +523,16 @@ class GoogleSheetsAPI {
             inputs.forEach(input => {
                 input.disabled = false;
             });
+            console.log('✅ 스코어 입력 폼 활성화:', inputs.length, '개 요소');
         }
+        
+        // 추가 강제 새로고침
+        setTimeout(() => {
+            if (loginPrompt) loginPrompt.style.display = 'none';
+            if (navTabs) navTabs.style.display = 'flex';
+            if (mainContent) mainContent.style.display = 'block';
+            console.log('🔄 메인 콘텐츠 재확인 완료');
+        }, 100);
         
         console.log('✅ 메인 콘텐츠 표시 완료');
     }
