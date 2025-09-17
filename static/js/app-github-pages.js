@@ -100,38 +100,18 @@ class GolfScoreApp {
     }
 
     async waitForGoogleAPIAndInit() {
-        console.log('⏳ Google API 및 GoogleSheetsAPI 클래스 대기 중...');
+        console.log('🚫 Google API 초기화 비활성화됨 - 로컬 시스템 모드 사용');
+        console.log('✅ 로컬 스토리지 기반 시스템으로 작동 중');
         
-        const checkAndInit = async () => {
-            const gapiStatus = window.gapi ? '✅' : '❌';
-            
-            if (window.googleSheetsAPI && window.gapi) {
-                console.log('✅ Google API 및 GoogleSheetsAPI 클래스 준비 완료');
-                this.showLoadingStatus('Google Sheets API 연결 중...');
-                await this.init();
-            } else {
-                this.initializationAttempts++;
-                const apiClassStatus = window.googleSheetsAPI ? '✅' : '❌';
-                console.log(`⏳ 대기 중... gapi: ${gapiStatus}, GoogleSheetsAPI: ${apiClassStatus} (${this.initializationAttempts}/${this.maxInitializationAttempts})`);
-                
-                if (this.initializationAttempts < this.maxInitializationAttempts) {
-                    setTimeout(checkAndInit, 1000);
-                } else {
-                    console.log('❌ API 로딩 시간 초과, 재시도 옵션 제공');
-                    this.showLoadingStatus('Google API 연결에 실패했습니다. 재시도해주세요.', true);
-                }
-            }
-        };
+        // Google API 관련 초기화를 완전히 건너뛰고 로컬 모드로 설정
+        this.isInitialized = true;
+        this.hideLoadingStatus();
         
-        setTimeout(checkAndInit, 100);
+        return Promise.resolve();
     }
 
     async init() {
-        console.log('🚀 init() 메서드 호출됨');
-        console.log('📊 init() 시작 시 상태:');
-        console.log('  - isInitialized:', this.isInitialized);
-        console.log('  - window.gapi:', !!window.gapi);
-        console.log('  - window.googleSheetsAPI:', !!window.googleSheetsAPI);
+        console.log('🚀 init() 메서드 호출됨 - 로컬 모드');
         
         if (this.isInitialized) {
             console.log('⚠️ 이미 초기화됨, 중복 초기화 방지');
@@ -139,78 +119,25 @@ class GolfScoreApp {
         }
 
         try {
-            console.log('🚀 Google Sheets API 초기화 시작...');
-
-            // Google Sheets API 클래스 생성
-            console.log('🔍 GoogleSheetsAPI 클래스 생성 중...');
-            if (typeof GoogleSheetsAPI === 'undefined') {
-                console.error('❌ GoogleSheetsAPI 클래스가 로드되지 않았습니다');
-                throw new Error('GoogleSheetsAPI 클래스가 로드되지 않았습니다.');
-            }
-            this.googleSheetsAPI = new GoogleSheetsAPI();
-            console.log('✅ GoogleSheetsAPI 클래스 생성 완료');
-
-            // Google API 확인
-            console.log('🔍 Google API (gapi) 확인 중...');
-            if (!window.gapi) {
-                console.error('❌ Google API (gapi)가 로드되지 않았습니다');
-                throw new Error('Google API (gapi)가 로드되지 않았습니다.');
-            }
-            console.log('✅ Google API (gapi) 확인 완료');
-
-            console.log('📡 Google Sheets API 초기화 시작...');
-            await this.googleSheetsAPI.init();
-            console.log('✅ Google Sheets API 초기화 완료');
-
-            // Google API 관련 이벤트 리스너 추가
-            console.log('🔧 Google API 이벤트 리스너 설정...');
-            this.setupGoogleAPIEventListeners();
-            
-            console.log('🔐 인증 상태 확인...');
-            this.checkAuthStatus();
-            
+            // 로컬 모드에서는 간단히 초기화 완료
             this.isInitialized = true;
-            console.log('✅ 전체 초기화 완료! isInitialized =', this.isInitialized);
+            console.log('✅ 로컬 시스템 초기화 완료! isInitialized =', this.isInitialized);
             
             // 로딩 상태 숨기기
             this.hideLoadingStatus();
             
-            this.showNotification('Google Sheets API 연결이 완료되었습니다!', 'success');
-            
         } catch (error) {
-            console.error('❌ 초기화 실패:', error);
-            console.error('❌ 에러 상세:', error.stack);
-            
-            // OAuth 관련 오류도 재시도 가능하도록 처리
-            this.showLoadingStatus(`API 초기화 실패: ${error.message}`, true);
+            console.error('❌ 로컬 시스템 초기화 실패:', error);
+            this.isInitialized = true; // 로컬 모드에서는 항상 성공으로 처리
         }
     }
 
     // OAuth 설정 가이드 제거됨 - 직접 API 연동 시도
 
     async retryGoogleAPIConnection() {
-        try {
-            console.log('🔄 API 초기화 재시도 중...');
-            this.showNotification('API 초기화를 재시도하고 있습니다...', 'info');
-            
-            this.isInitialized = false;
-            this.initializationAttempts = 0;
-            
-            // 기존 Google Sheets API 인스턴스 제거
-            this.googleSheetsAPI = null;
-            
-            await this.init();
-            
-            if (this.isInitialized && this.googleSheetsAPI) {
-                this.showNotification('API 초기화가 성공적으로 완료되었습니다!', 'success');
-                console.log('✅ API 재초기화 성공');
-            } else {
-                throw new Error('GoogleSheetsAPI가 초기화되지 않았습니다.');
-            }
-        } catch (error) {
-            console.error('❌ API 재초기화 실패:', error);
-            this.showNotification('API 재초기화에 실패했습니다. 페이지를 새로고침해주세요.', 'error');
-        }
+        console.log('🚫 API 재연결 비활성화 - 로컬 시스템 모드');
+        console.log('✅ 로컬 시스템은 재연결이 필요하지 않습니다');
+        this.showNotification('로컬 시스템 모드에서는 재연결이 필요하지 않습니다.', 'info');
     }
 
     setupEventListeners() {
@@ -701,6 +628,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.golfApp = new GolfScoreApp();
     window.golfApp.setupBasicUI();
     
-    // Google API 로딩 대기 후 초기화
-    window.golfApp.waitForGoogleAPIAndInit();
+    // Google API 초기화 비활성화 - 로컬 시스템 사용
+    console.log('✅ 로컬 시스템 모드: Google API 초기화 건너뜀');
 });
