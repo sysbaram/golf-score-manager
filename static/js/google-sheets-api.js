@@ -189,14 +189,31 @@ class GoogleSheetsAPI {
                 return;
             }
 
-            // 🚨 GitHub Pages CORS 문제로 인해 Legacy 방식만 사용
-            if (this.useLegacyAuth) {
-                // Legacy gapi.auth2 방식
+            // 🔍 인증 상태 재확인 및 강제 설정
+            console.log('🔍 signIn에서 인증 상태 확인:');
+            console.log('  - useLegacyAuth:', this.useLegacyAuth);
+            console.log('  - authInstance:', !!this.authInstance);
+            console.log('  - gapi.auth2:', !!window.gapi?.auth2);
+
+            // gapi.auth2가 있으면 강제로 Legacy 방식 활성화
+            if (!this.useLegacyAuth && window.gapi && window.gapi.auth2) {
+                console.warn('⚠️ useLegacyAuth가 false지만 gapi.auth2가 존재 - 강제 활성화');
+                this.useLegacyAuth = true;
+                
+                // authInstance도 없으면 다시 획득
                 if (!this.authInstance) {
-                    console.error('❌ Legacy auth2 인스턴스가 초기화되지 않았습니다.');
-                    reject(new Error('Legacy auth2 인스턴스가 초기화되지 않았습니다.'));
-                    return;
+                    try {
+                        this.authInstance = window.gapi.auth2.getAuthInstance();
+                        console.log('✅ authInstance 강제 획득 완료');
+                    } catch (error) {
+                        console.error('❌ authInstance 강제 획득 실패:', error);
+                    }
                 }
+            }
+
+            // 🚨 GitHub Pages CORS 문제로 인해 Legacy 방식만 사용
+            if (this.useLegacyAuth && this.authInstance) {
+                console.log('✅ Legacy 인증 방식 사용 준비 완료');
 
                 try {
                     console.log('🚀 Legacy auth2 로그인 중...');
@@ -250,7 +267,25 @@ class GoogleSheetsAPI {
                     reject(new Error(`Legacy 로그인 오류: ${error.message}`));
                 }
             } else {
-                reject(new Error('사용 가능한 인증 방식이 없습니다.'));
+                console.error('❌ 사용 가능한 인증 방식이 없습니다:');
+                console.error('  - useLegacyAuth:', this.useLegacyAuth);
+                console.error('  - authInstance:', !!this.authInstance);
+                console.error('  - gapi:', !!window.gapi);
+                console.error('  - gapi.auth2:', !!window.gapi?.auth2);
+                
+                let errorMessage = '사용 가능한 인증 방식이 없습니다.';
+                
+                if (!window.gapi) {
+                    errorMessage = 'Google API 클라이언트가 로드되지 않았습니다.';
+                } else if (!window.gapi.auth2) {
+                    errorMessage = 'Google Auth2 라이브러리가 로드되지 않았습니다.';
+                } else if (!this.useLegacyAuth) {
+                    errorMessage = 'Legacy 인증 방식이 활성화되지 않았습니다.';
+                } else if (!this.authInstance) {
+                    errorMessage = 'Google Auth2 인스턴스를 찾을 수 없습니다.';
+                }
+                
+                reject(new Error(errorMessage));
             }
         });
     }
