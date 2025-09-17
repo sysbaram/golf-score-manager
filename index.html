@@ -374,37 +374,11 @@
         }
     </script>
 
-    <!-- Google API 간소화된 초기화 -->
+    <!-- 데모 모드 - Google API 초기화 완전 비활성화 -->
     <script>
-        // 간단한 Google API 대기
-        function initGoogleAPI() {
-            let attempts = 0;
-            const maxAttempts = 30; // 3초 대기
-            
-            const checkGapi = () => {
-                if (window.gapi && window.golfApp) {
-                    console.log('✅ Google API 및 앱 준비 완료');
-                    window.golfApp.init();
-                } else if (attempts < maxAttempts) {
-                    attempts++;
-                    setTimeout(checkGapi, 100);
-                } else {
-                    console.log('⏳ Google API 대기 시간 초과 - 오프라인 모드');
-                    if (window.golfApp) {
-                        window.golfApp.enableFallbackMode();
-                    }
-                }
-            };
-            
-            setTimeout(checkGapi, 500);
-        }
-        
-        // 페이지 로드 후 초기화
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initGoogleAPI);
-        } else {
-            initGoogleAPI();
-        }
+        // 데모 모드 - Google API 초기화 완전 비활성화
+        console.log('🎭 데모 모드 - Google API 초기화 완전 비활성화');
+        console.log('⚠️ OAuth 설정 반영 대기 중 - 깔끔한 데모 모드로 운영');
     </script>
     
     <!-- JavaScript 로드 확인 스크립트 (임시 디버깅) -->
@@ -427,53 +401,18 @@
             console.log('🌐 window.load 이벤트 발생');
             console.log('🔍 JavaScript 파일 로드 상태:');
             console.log('  - window.golfApp:', typeof window.golfApp);
-            console.log('  - window.GoogleSheetsAPI:', typeof window.GoogleSheetsAPI);
-            console.log('  - window.gapi:', typeof window.gapi);
+            console.log('  - 데모 모드 운영 중');
         });
     </script>
     
     <!-- 앱 스크립트들 (GitHub Pages 최적화) - 순서 중요 -->
     <script>
-        // 스크립트 로딩 상태 추적
-        window.scriptLoadStatus = {
-            gapi: false,
-            gis: false,
-            googleSheetsAPI: false,
-            appGitHubPages: false
-        };
-        
-        function checkAllScriptsLoaded() {
-            // GIS는 선택적이므로 필수가 아님
-            const requiredLoaded = window.scriptLoadStatus.gapi && 
-                                  window.scriptLoadStatus.googleSheetsAPI && 
-                                  window.scriptLoadStatus.appGitHubPages;
-            
-            const allLoaded = requiredLoaded;
-            
-            console.log('📊 스크립트 로딩 상태:', window.scriptLoadStatus);
-            
-            if (allLoaded) {
-                console.log('🎉 모든 스크립트 로딩 완료!');
-                // 모든 스크립트가 로드된 후 앱 초기화
-                if (typeof window.golfApp === 'undefined') {
-                    console.log('🚀 GolfApp 초기화 시작...');
-                    setTimeout(() => {
-                        if (window.GolfScoreApp) {
-                            window.golfApp = new GolfScoreApp();
-                            console.log('✅ GolfApp 초기화 완료');
-                        }
-                    }, 100);
-                }
-            }
-        }
+        // 데모 모드 - 스크립트 로딩 추적 비활성화
+        console.log('🎭 데모 모드 - 스크립트 로딩 추적 비활성화');
     </script>
     
-    <script src="/golf-score-manager/static/js/google-sheets-api.js" 
-            onload="console.log('✅ google-sheets-api.js 로드 완료'); window.scriptLoadStatus.googleSheetsAPI = true; checkAllScriptsLoaded();"
-            onerror="console.error('❌ google-sheets-api.js 로드 실패'); window.scriptLoadStatus.googleSheetsAPI = false;"></script>
-    <script src="/golf-score-manager/static/js/app-github-pages.js" 
-            onload="console.log('✅ app-github-pages.js 로드 완료'); window.scriptLoadStatus.appGitHubPages = true; checkAllScriptsLoaded();"
-            onerror="console.error('❌ app-github-pages.js 로드 실패'); window.scriptLoadStatus.appGitHubPages = false;"></script>
+    <!-- 데모 모드 - Google Sheets API 스크립트 로딩 비활성화 -->
+    <script src="/golf-score-manager/static/js/app-github-pages.js"></script>
             
     <!-- 긴급 수정: 직접 모달 함수 정의 -->
     <script>
