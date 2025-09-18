@@ -62,12 +62,9 @@
     <link rel="dns-prefetch" href="//apis.google.com">
     <link rel="dns-prefetch" href="//accounts.google.com">
     
-    <!-- 데모 모드 - Google API 로딩 비활성화 -->
-    <script>
-        // 데모 모드 - Google API 로딩 완전 비활성화
-        console.log('🎭 데모 모드 - Google API 로딩 완전 비활성화');
-        console.log('⚠️ OAuth 설정 반영 대기 중 - 깔끔한 데모 모드로 운영');
-    </script>
+    <!-- Google API 로딩 -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
     <div class="container">
@@ -358,13 +355,10 @@
             console.log(`📜 외부 스크립트: ${scripts.length}개 로드됨`);
         }
         
-        // 페이지 로드 완료 후 확인 (Google API 로딩 임시 비활성화)
+        // 페이지 로드 완료 후 확인
         function initializeAfterPageLoad() {
             checkPageStatus();
-            
-            // Google API 로딩 임시 비활성화
-            console.log('🎭 페이지 로드 완료 - 데모 모드 (Google API 로딩 임시 비활성화)');
-            console.log('⚠️ OAuth 설정 반영 대기 중 - 깔끔한 데모 모드로 운영');
+            console.log('🚀 페이지 로드 완료 - Google API 초기화 진행');
         }
         
         if (document.readyState === 'loading') {
@@ -374,11 +368,9 @@
         }
     </script>
 
-    <!-- 데모 모드 - Google API 초기화 완전 비활성화 -->
+    <!-- Google API 초기화 -->
     <script>
-        // 데모 모드 - Google API 초기화 완전 비활성화
-        console.log('🎭 데모 모드 - Google API 초기화 완전 비활성화');
-        console.log('⚠️ OAuth 설정 반영 대기 중 - 깔끔한 데모 모드로 운영');
+        console.log('🚀 Google API 초기화 준비 완료');
     </script>
     
     <!-- JavaScript 로드 확인 스크립트 (임시 디버깅) -->
@@ -407,11 +399,25 @@
     
     <!-- 앱 스크립트들 (GitHub Pages 최적화) - 순서 중요 -->
     <script>
-        // 데모 모드 - 스크립트 로딩 추적 비활성화
-        console.log('🎭 데모 모드 - 스크립트 로딩 추적 비활성화');
+        // 스크립트 로딩 상태 추적
+        window.scriptLoadStatus = {
+            googleSheetsAPI: false,
+            appGitHubPages: false
+        };
+        
+        function checkAllScriptsLoaded() {
+            const allLoaded = window.scriptLoadStatus.googleSheetsAPI && 
+                             window.scriptLoadStatus.appGitHubPages;
+            
+            console.log('📊 스크립트 로딩 상태:', window.scriptLoadStatus);
+            
+            if (allLoaded) {
+                console.log('🎉 모든 스크립트 로딩 완료!');
+            }
+        }
     </script>
     
-    <!-- 데모 모드 - Google Sheets API 스크립트 로딩 비활성화 -->
+    <script src="/golf-score-manager/static/js/google-sheets-api.js"></script>
     <script src="/golf-score-manager/static/js/app-github-pages.js"></script>
             
     <!-- 긴급 수정: 직접 모달 함수 정의 -->
@@ -499,36 +505,39 @@
             console.log('📡 로그인 시도:', username);
             
             try {
-                // 데모 모드 - Google API 호출 비활성화
-                console.log('🎭 데모 모드 - Google API 호출 비활성화');
+                let api = null;
                 
-                // 로컬 스토리지 데모 모드
-                console.log('🔄 로컬 스토리지 데모 모드 사용');
-                const users = JSON.parse(localStorage.getItem('golf_users') || '[]');
-                const demoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]');
+                // 1순위: golfApp의 googleSheetsAPI 사용
+                if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.isInitialized) {
+                    console.log('🔄 golfApp.googleSheetsAPI 사용');
+                    api = window.golfApp.googleSheetsAPI;
+                } 
                 
-                // 기존 사용자 확인
-                const user = users.find(u => 
-                    (u.username === username || u.email === username) && u.password === password
-                );
-                
-                // 새로운 데모 사용자 확인 (비밀번호 없이)
-                const demoUser = demoUsers.find(u => 
-                    u.username === username || u.email === username
-                );
-                
-                if (user) {
-                    alert('로그인 성공! (데모 모드)');
-                    document.getElementById('login-modal').style.display = 'none';
-                    console.log('✅ 데모 로그인 성공:', user);
-                    updateUIAfterLogin(user);
-                } else if (demoUser) {
-                    alert(`${demoUser.username}님, 로그인 성공! (데모 모드 - OAuth 설정 반영 대기 중)`);
-                    document.getElementById('login-modal').style.display = 'none';
-                    console.log('✅ 데모 로그인 성공:', demoUser);
-                    updateUIAfterLogin(demoUser);
+                // Google Sheets API 사용 가능한 경우
+                if (api) {
+                    console.log('📡 Google Sheets API로 로그인 시도...');
+                    
+                    // Google OAuth 로그인이 필요한 경우
+                    if (!api.isSignedIn) {
+                        console.log('🔐 Google OAuth 로그인 필요');
+                        await api.signIn();
+                    }
+                    
+                    const result = await api.loginUser(username, password);
+                    
+                    if (result && result.success) {
+                        alert('Google Sheets 로그인 성공!');
+                        document.getElementById('login-modal').style.display = 'none';
+                        console.log('✅ Google Sheets 로그인 성공:', result.user);
+                        updateUIAfterLogin(result.user);
+                        return;
+                    } else {
+                        console.log('❌ Google Sheets 로그인 실패');
+                        alert('Google Sheets 로그인 실패: ' + (result.error || '알 수 없는 오류'));
+                    }
                 } else {
-                    alert('로그인 실패: 사용자를 찾을 수 없습니다. 먼저 회원가입을 해주세요.');
+                    console.log('⚠️ Google Sheets API 사용 불가');
+                    alert('Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
                 }
                 
             } catch (error) {
@@ -576,32 +585,42 @@
             
             console.log('📡 회원가입 시도:', username, email);
             
-            // 데모 모드 - Google Sheets API 호출 비활성화
-            console.log('🎭 데모 모드 - Google Sheets API 호출 비활성화');
+            // Google Sheets API를 통한 회원가입 처리
+            console.log('🔄 Google Sheets API 회원가입 처리 중...');
             
-            // 데모 모드 회원가입 처리
-            const demoUsers = JSON.parse(localStorage.getItem('demoUsers') || '[]');
-            
-            // 중복 확인
-            if (demoUsers.some(user => user.email === email)) {
-                alert('이미 등록된 이메일입니다.');
+            // Google Sheets API 사용 가능 여부 확인
+            if (window.golfApp && window.golfApp.isInitialized && window.golfApp.googleSheetsAPI) {
+                console.log('✅ Google Sheets API 사용 가능');
+                
+                try {
+                    // Google OAuth 로그인 확인
+                    if (!window.golfApp.googleSheetsAPI.isSignedIn) {
+                        console.log('🔐 Google OAuth 로그인 필요...');
+                        await window.golfApp.googleSheetsAPI.signIn();
+                    }
+                    
+                    console.log('📝 Google Sheets에 사용자 등록 중...');
+                    const result = await window.golfApp.googleSheetsAPI.registerUser(username, email, password);
+                    
+                    if (result && result.success) {
+                        console.log('✅ Google Sheets 회원가입 성공!');
+                        alert(`${username}님, Google Sheets에 회원가입이 완료되었습니다!`);
+                        document.getElementById('register-modal').style.display = 'none';
+                        document.getElementById('register-form').reset();
+                        return;
+                    } else {
+                        throw new Error(result?.error || 'Google Sheets 등록 실패');
+                    }
+                } catch (error) {
+                    console.error('❌ Google Sheets 회원가입 실패:', error);
+                    alert('Google Sheets 연결에 실패했습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+                    return;
+                }
+            } else {
+                console.log('⚠️ Google Sheets API 사용 불가');
+                alert('Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
                 return;
             }
-            
-            // 새 데모 사용자 생성
-            const newDemoUser = {
-                username: username,
-                email: email,
-                registeredAt: new Date().toISOString()
-            };
-            
-            demoUsers.push(newDemoUser);
-            localStorage.setItem('demoUsers', JSON.stringify(demoUsers));
-            
-            console.log('✅ 데모 모드 회원가입 완료:', newDemoUser);
-            alert(`${username}님, 회원가입이 완료되었습니다! (데모 모드 - OAuth 설정 반영 대기 중)`);
-            document.getElementById('register-modal').style.display = 'none';
-            document.getElementById('register-form').reset();
                 
             } catch (error) {
                 console.error('❌ 회원가입 오류:', error);
@@ -610,30 +629,40 @@
             }
         }
         
-        // 🎭 데모 모드 로그인 시스템
+        // 🚀 Google Sheets API 로그인 시스템
         async function handleGoogleLogin() {
-            console.log('🎭 데모 모드 로그인 시작');
+            console.log('🔐 Google Sheets API 로그인 시작');
             
             try {
-                // 데모 모드 - Google API 호출 비활성화
-                console.log('🎭 데모 모드 - Google API 호출 비활성화');
+                // Google Sheets API 사용 가능 여부 확인
+                if (!window.golfApp || !window.golfApp.isInitialized || !window.golfApp.googleSheetsAPI) {
+                    alert('Google Sheets API가 초기화되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+                    return;
+                }
                 
-                // 데모용 사용자 정보 생성
-                const demoUser = {
-                    username: 'DemoUser',
-                    email: 'demo@example.com'
-                };
+                console.log('✅ Google Sheets API 사용 가능');
                 
-                console.log('✅ 데모 모드 로그인 성공');
-                alert('데모 모드 로그인이 성공했습니다!');
-                document.getElementById('login-modal').style.display = 'none';
+                // Google OAuth 로그인
+                if (!window.golfApp.googleSheetsAPI.isSignedIn) {
+                    console.log('🔐 Google OAuth 로그인 필요...');
+                    await window.golfApp.googleSheetsAPI.signIn();
+                }
                 
-                // UI 업데이트 (데모 사용자 정보 기반)
-                updateUIAfterLogin(demoUser);
+                if (window.golfApp.googleSheetsAPI.isSignedIn) {
+                    console.log('✅ Google OAuth 로그인 성공');
+                    alert('Google 로그인이 성공했습니다!');
+                    document.getElementById('login-modal').style.display = 'none';
+                    
+                    // UI 업데이트 (Google 계정 정보 기반)
+                    const userProfile = window.golfApp.googleSheetsAPI.currentUser;
+                    updateUIAfterLogin(userProfile);
+                } else {
+                    throw new Error('Google OAuth 로그인 실패');
+                }
                 
             } catch (error) {
-                console.error('❌ 데모 로그인 오류:', error);
-                alert('데모 로그인 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+                console.error('❌ 로그인 오류:', error);
+                alert('Google 로그인 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
             }
         }
         
@@ -665,13 +694,16 @@
             console.log('✅ UI 업데이트 완료');
         }
         
-        // 🎭 데모 모드 로그아웃 함수
+        // 🚀 Google Sheets API 로그아웃 함수
         async function handleLogout() {
-            console.log('🎭 데모 모드 로그아웃 처리 중...');
+            console.log('🚪 Google 로그아웃 처리 중...');
             
             try {
-                // 데모 모드 - Google API 호출 비활성화
-                console.log('🎭 데모 모드 - Google API 호출 비활성화');
+                // Google OAuth 로그아웃
+                if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.googleSheetsAPI.isSignedIn) {
+                    await window.golfApp.googleSheetsAPI.signOut();
+                    console.log('✅ Google OAuth 로그아웃 성공');
+                }
                 
                 // UI 복원
                 const loginBtn = document.getElementById('login-btn');
@@ -690,22 +722,31 @@
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) mainContent.style.display = 'none';
                 
-                console.log('✅ 데모 모드 로그아웃 완료');
-                alert('데모 모드 로그아웃되었습니다.');
+                console.log('✅ 로그아웃 완료');
+                alert('Google 로그아웃되었습니다.');
                 
             } catch (error) {
-                console.error('❌ 데모 로그아웃 오류:', error);
-                alert('데모 로그아웃 중 오류가 발생했습니다.');
+                console.error('❌ 로그아웃 오류:', error);
+                alert('로그아웃 중 오류가 발생했습니다.');
             }
         }
         
-        // 🎭 데모 모드 로그인 상태 확인
+        // 🚀 Google Sheets API 로그인 상태 확인
         function checkLoginStatus() {
-            console.log('🎭 데모 모드 로그인 상태 확인 중...');
+            console.log('🔍 Google 로그인 상태 확인 중...');
             
-            // 데모 모드 - Google API 호출 비활성화
-            console.log('🎭 데모 모드 - Google API 호출 비활성화');
-            console.log('❌ 데모 모드 - 로그인되지 않음');
+            // Google Sheets API 초기화 대기 후 확인
+            setTimeout(() => {
+                if (window.golfApp && window.golfApp.googleSheetsAPI && window.golfApp.googleSheetsAPI.isSignedIn) {
+                    console.log('✅ Google 로그인 상태 확인됨');
+                    const userProfile = window.golfApp.googleSheetsAPI.currentUser;
+                    if (userProfile) {
+                        updateUIAfterLogin(userProfile);
+                    }
+                } else {
+                    console.log('❌ Google 로그인되지 않음');
+                }
+            }, 3000); // 3초 후 확인 (API 초기화 대기)
         }
         
         // 페이지 로드 완료 후 실행
