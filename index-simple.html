@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>골프 스코어 관리 시스템 - 간소화 버전</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 { text-align: center; margin-bottom: 2rem; color: #333; }
+        .form-group { margin: 1rem 0; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus { 
+            outline: none; 
+            border-color: #667eea; 
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 10px 0;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+            transform: none;
+        }
+        .status {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .debug { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            font-family: monospace; 
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏌️ 골프 스코어 관리</h1>
+        
+        <div class="form-group">
+            <label for="username">사용자명</label>
+            <input type="text" id="username" placeholder="사용자명을 입력하세요" value="testuser5">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">이메일</label>
+            <input type="email" id="email" placeholder="이메일을 입력하세요" value="test5@example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호를 입력하세요" value="password123">
+        </div>
+        
+        <button onclick="registerUser()" id="register-btn">회원가입</button>
+        <button onclick="checkStatus()" style="background: #6c757d;">상태 확인</button>
+        
+        <div id="status" class="status info" style="display: none;"></div>
+    </div>
+
+    <!-- Google API Scripts -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <script>
+        // 전역 변수
+        let tokenClient = null;
+        let isSignedIn = false;
+        let accessToken = null;
+        let gapiInitialized = false;
+        
+        const CLIENT_ID = '38824619592-npt5ckpvnqjleo82j7onsrvqi7r39q0h.apps.googleusercontent.com';
+        const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+        const SPREADSHEET_ID = '1-8URFWExJVHp-V3bnB-zFtBaxMZUZ5QKvvEVo0CGz10';
+        
+        // 상태 표시 함수
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            console.log(`[${type.toUpperCase()}]`, message.replace(/<[^>]*>/g, ''));
+        }
+        
+        // 상태 확인
+        function checkStatus() {
+            const status = {
+                'Google API (gapi)': !!window.gapi,
+                'Google Identity Services': !!window.google?.accounts,
+                'GAPI 초기화됨': gapiInitialized,
+                '토큰 클라이언트': !!tokenClient,
+                '로그인 상태': isSignedIn,
+                '액세스 토큰': !!accessToken
+            };
+            
+            let html = '<strong>📊 현재 상태:</strong><br>';
+            for (const [key, value] of Object.entries(status)) {
+                const icon = value ? '✅' : '❌';
+                html += `${icon} ${key}: ${value}<br>`;
+            }
+            
+            showStatus(html, 'debug');
+        }
+        
+        // GAPI 초기화
+        async function initGAPI() {
+            if (gapiInitialized) return true;
+            
+            return new Promise((resolve, reject) => {
+                if (!window.gapi) {
+                    reject(new Error('Google API가 로드되지 않았습니다.'));
+                    return;
+                }
+                
+                gapi.load('client', async () => {
+                    try {
+                        await gapi.client.init({
+                            discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+                        });
+                        gapiInitialized = true;
+                        console.log('✅ GAPI 초기화 완료');
+                        resolve(true);
+                    } catch (error) {
+                        console.error('❌ GAPI 초기화 실패:', error);
+                        reject(error);
+                    }
+                });
+            });
+        }
+        
+        // GIS 초기화
+        function initGIS() {
+            if (tokenClient) return true;
+            
+            if (!window.google?.accounts?.oauth2) {
+                throw new Error('Google Identity Services가 로드되지 않았습니다.');
+            }
+            
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPE,
+                callback: (tokenResponse) => {
+                    console.log('🔐 토큰 응답:', tokenResponse);
+                    if (tokenResponse.access_token) {
+                        accessToken = tokenResponse.access_token;
+                        isSignedIn = true;
+                        gapi.client.setToken({ access_token: accessToken });
+                        showStatus('✅ Google 로그인 성공!', 'success');
+                    } else {
+                        showStatus('❌ 토큰 획득 실패', 'error');
+                    }
+                }
+            });
+            
+            console.log('✅ GIS 초기화 완료');
+            return true;
+        }
+        
+        // 로그인
+        async function signIn() {
+            if (isSignedIn) return true;
+            
+            // 기존 토큰 확인
+            const existingToken = gapi.client.getToken();
+            if (existingToken?.access_token) {
+                isSignedIn = true;
+                accessToken = existingToken.access_token;
+                return true;
+            }
+            
+            // 새 토큰 요청
+            showStatus('🔐 Google 로그인 팝업을 열고 있습니다...', 'info');
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+            
+            // 토큰 획득 대기
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    if (isSignedIn) {
+                        clearInterval(checkInterval);
+                        resolve(true);
+                    }
+                }, 1000);
+                
+                // 30초 타임아웃
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    if (!isSignedIn) {
+                        showStatus('❌ 로그인 타임아웃. 팝업을 허용하고 다시 시도해주세요.', 'error');
+                        resolve(false);
+                    }
+                }, 30000);
+            });
+        }
+        
+        // 회원가입
+        async function registerUser() {
+            const registerBtn = document.getElementById('register-btn');
+            
+            try {
+                // 입력값 검증
+                const username = document.getElementById('username').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                if (!username || !email || !password) {
+                    showStatus('❌ 모든 필드를 입력해주세요.', 'error');
+                    return;
+                }
+                
+                // 버튼 비활성화
+                registerBtn.disabled = true;
+                registerBtn.textContent = '처리 중...';
+                
+                showStatus('🚀 회원가입을 시작합니다...', 'info');
+                
+                // 1. API 초기화
+                if (!gapiInitialized) {
+                    showStatus('📡 Google API 초기화 중...', 'info');
+                    await initGAPI();
+                }
+                
+                if (!tokenClient) {
+                    showStatus('🔧 Google Identity Services 초기화 중...', 'info');
+                    initGIS();
+                }
+                
+                // 2. 로그인
+                if (!isSignedIn) {
+                    showStatus('🔐 Google 로그인이 필요합니다...', 'info');
+                    const loginSuccess = await signIn();
+                    if (!loginSuccess) {
+                        throw new Error('Google 로그인이 완료되지 않았습니다.');
+                    }
+                }
+                
+                showStatus('📝 Google Sheets에 데이터를 추가하고 있습니다...', 'info');
+                
+                // 3. 헤더 확인 및 생성
+                try {
+                    const headerResponse = await gapi.client.sheets.spreadsheets.values.get({
+                        spreadsheetId: SPREADSHEET_ID,
+                        range: 'Users!A1:E1'
+                    });
+                    
+                    if (!headerResponse.result.values || headerResponse.result.values.length === 0) {
+                        await gapi.client.sheets.spreadsheets.values.update({
+                            spreadsheetId: SPREADSHEET_ID,
+                            range: 'Users!A1:E1',
+                            valueInputOption: 'USER_ENTERED',
+                            resource: {
+                                values: [['Username', 'Email', 'Password', 'Created At', 'Status']]
+                            }
+                        });
+                        console.log('✅ 헤더 생성 완료');
+                    }
+                } catch (headerError) {
+                    console.warn('⚠️ 헤더 처리 중 오류:', headerError);
+                }
+                
+                // 4. 사용자 데이터 추가
+                const userData = [
+                    username,
+                    email,
+                    password,
+                    new Date().toISOString(),
+                    'active'
+                ];
+                
+                const response = await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Users!A:E',
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [userData]
+                    }
+                });
+                
+                console.log('✅ Google Sheets 응답:', response);
+                
+                showStatus(`🎉 회원가입 성공!<br>
+                    <strong>사용자:</strong> ${username}<br>
+                    <strong>이메일:</strong> ${email}<br>
+                    <strong>등록 시간:</strong> ${new Date().toLocaleString()}`, 'success');
+                
+            } catch (error) {
+                console.error('❌ 회원가입 실패:', error);
+                showStatus(`❌ 회원가입 실패: ${error.message}`, 'error');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.textContent = '회원가입';
+            }
+        }
+        
+        // 페이지 로드 시 자동 초기화
+        window.addEventListener('load', async () => {
+            console.log('🚀 페이지 로드 완료');
+            showStatus('🔄 시스템을 초기화하고 있습니다...', 'info');
+            
+            try {
+                // 1초 대기 후 초기화 (Google API 로딩 대기)
+                setTimeout(async () => {
+                    try {
+                        await initGAPI();
+                        initGIS();
+                        showStatus('✅ 시스템 초기화 완료! 회원가입을 시도해보세요.', 'success');
+                    } catch (error) {
+                        showStatus(`❌ 초기화 실패: ${error.message}`, 'error');
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                showStatus(`❌ 시스템 초기화 실패: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
