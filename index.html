@@ -73,30 +73,108 @@
             max-height: 200px;
             overflow-y: auto;
         }
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e1e5e9;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 0;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .user-info {
+            background: #e8f5e8;
+            border: 1px solid #c3e6cb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .user-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #155724;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏌️ 골프 스코어 관리 (긴급 수정)</h1>
+        <h1>🏌️ 골프 스코어 관리</h1>
         
-        <div class="form-group">
-            <label for="username">사용자명</label>
-            <input type="text" id="username" placeholder="사용자명을 입력하세요" value="testuser6">
+        <!-- 로그인된 사용자 정보 표시 영역 -->
+        <div id="user-info" class="user-info" style="display: none;">
+            <h3>👋 환영합니다!</h3>
+            <p><strong>사용자:</strong> <span id="current-username"></span></p>
+            <p><strong>이메일:</strong> <span id="current-email"></span></p>
+            <button onclick="logout()" style="background: #dc3545; width: auto; padding: 8px 16px;">로그아웃</button>
         </div>
         
-        <div class="form-group">
-            <label for="email">이메일</label>
-            <input type="email" id="email" placeholder="이메일을 입력하세요" value="test6@example.com">
+        <!-- 로그인/회원가입 탭 -->
+        <div id="auth-section">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('login')">로그인</button>
+                <button class="tab" onclick="switchTab('register')">회원가입</button>
+            </div>
+            
+            <!-- 로그인 탭 -->
+            <div id="login-tab" class="tab-content active">
+                <div class="form-group">
+                    <label for="login-email">이메일</label>
+                    <input type="email" id="login-email" placeholder="이메일을 입력하세요" value="test6@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="login-password">비밀번호</label>
+                    <input type="password" id="login-password" placeholder="비밀번호를 입력하세요" value="password123">
+                </div>
+                
+                <button onclick="loginUser()" id="login-btn">로그인</button>
+            </div>
+            
+            <!-- 회원가입 탭 -->
+            <div id="register-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="register-username">사용자명</label>
+                    <input type="text" id="register-username" placeholder="사용자명을 입력하세요" value="testuser7">
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-email">이메일</label>
+                    <input type="email" id="register-email" placeholder="이메일을 입력하세요" value="test7@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-password">비밀번호</label>
+                    <input type="password" id="register-password" placeholder="비밀번호를 입력하세요" value="password123">
+                </div>
+                
+                <button onclick="registerUser()" id="register-btn">회원가입</button>
+            </div>
         </div>
         
-        <div class="form-group">
-            <label for="password">비밀번호</label>
-            <input type="password" id="password" placeholder="비밀번호를 입력하세요" value="password123">
+        <!-- 관리자 버튼들 -->
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e1e5e9;">
+            <button onclick="checkStatus()" style="background: #6c757d;">상태 확인</button>
+            <button onclick="forceInit()" style="background: #dc3545;">강제 초기화</button>
         </div>
-        
-        <button onclick="registerUser()" id="register-btn">회원가입</button>
-        <button onclick="checkStatus()" style="background: #6c757d;">상태 확인</button>
-        <button onclick="forceInit()" style="background: #dc3545;">강제 초기화</button>
         
         <div id="status" class="status info">
             🔄 시스템 로딩 중... 잠시만 기다려주세요.
@@ -107,6 +185,7 @@
         // 전역 변수
         let isReady = false;
         let initAttempts = 0;
+        let currentUser = null; // 현재 로그인된 사용자
         
         const CLIENT_ID = '38824619592-npt5ckpvnqjleo82j7onsrvqi7r39q0h.apps.googleusercontent.com';
         const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
@@ -118,6 +197,42 @@
             statusDiv.className = `status ${type}`;
             statusDiv.innerHTML = message;
             console.log(`[${type.toUpperCase()}]`, message.replace(/<[^>]*>/g, ''));
+        }
+        
+        // 탭 전환 함수
+        function switchTab(tabName) {
+            // 모든 탭 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 선택된 탭 활성화
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        // 사용자 UI 업데이트
+        function updateUserUI(user) {
+            if (user) {
+                // 로그인된 상태
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('current-username').textContent = user.username;
+                document.getElementById('current-email').textContent = user.email;
+                currentUser = user;
+                
+                showStatus(`✅ ${user.username}님, 환영합니다!`, 'success');
+            } else {
+                // 로그아웃된 상태
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('auth-section').style.display = 'block';
+                currentUser = null;
+            }
+        }
+        
+        // 로그아웃 함수
+        function logout() {
+            updateUserUI(null);
+            showStatus('✅ 로그아웃되었습니다.', 'info');
         }
         
         // 상태 확인
@@ -210,15 +325,116 @@
             });
         }
         
+        // 로그인 함수
+        async function loginUser() {
+            const loginBtn = document.getElementById('login-btn');
+            
+            try {
+                // 입력값 검증
+                const email = document.getElementById('login-email').value.trim();
+                const password = document.getElementById('login-password').value.trim();
+                
+                if (!email || !password) {
+                    showStatus('❌ 이메일과 비밀번호를 입력해주세요.', 'error');
+                    return;
+                }
+                
+                // 시스템 준비 확인
+                if (!isReady) {
+                    showStatus('⚠️ 시스템이 준비되지 않았습니다. 강제 초기화를 시도합니다...', 'info');
+                    await forceInit();
+                    
+                    if (!isReady) {
+                        throw new Error('시스템 초기화에 실패했습니다.');
+                    }
+                }
+                
+                // 버튼 비활성화
+                loginBtn.disabled = true;
+                loginBtn.textContent = '로그인 중...';
+                
+                showStatus('🔐 Google 로그인 팝업을 열고 있습니다...', 'info');
+                
+                // OAuth 토큰 요청
+                const tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPE,
+                    callback: async (tokenResponse) => {
+                        if (tokenResponse.access_token) {
+                            try {
+                                // 토큰 설정
+                                gapi.client.setToken({ access_token: tokenResponse.access_token });
+                                
+                                showStatus('📋 사용자 정보를 확인하고 있습니다...', 'info');
+                                
+                                // Google Sheets에서 사용자 조회
+                                const response = await gapi.client.sheets.spreadsheets.values.get({
+                                    spreadsheetId: SPREADSHEET_ID,
+                                    range: 'Users!A:E'
+                                });
+                                
+                                const rows = response.result.values || [];
+                                if (rows.length <= 1) {
+                                    throw new Error('등록된 사용자가 없습니다. 먼저 회원가입을 해주세요.');
+                                }
+                                
+                                // 사용자 찾기 (헤더 제외)
+                                const users = rows.slice(1);
+                                const user = users.find(row => 
+                                    row[1] && row[1].toLowerCase() === email.toLowerCase() &&
+                                    row[2] === password
+                                );
+                                
+                                if (!user) {
+                                    throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+                                }
+                                
+                                if (user[4] !== 'active') {
+                                    throw new Error('비활성화된 계정입니다.');
+                                }
+                                
+                                // 로그인 성공
+                                const userData = {
+                                    username: user[0],
+                                    email: user[1],
+                                    createdAt: user[3]
+                                };
+                                
+                                updateUserUI(userData);
+                                console.log('✅ 로그인 성공:', userData);
+                                
+                            } catch (loginError) {
+                                console.error('❌ 로그인 처리 오류:', loginError);
+                                showStatus(`❌ 로그인 실패: ${loginError.message}`, 'error');
+                            }
+                        } else {
+                            showStatus('❌ Google 로그인 실패', 'error');
+                        }
+                        
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '로그인';
+                    }
+                });
+                
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+                
+            } catch (error) {
+                console.error('❌ 로그인 실패:', error);
+                showStatus(`❌ 로그인 실패: ${error.message}`, 'error');
+                loginBtn.disabled = false;
+                loginBtn.textContent = '로그인';
+            }
+        }
+        
         // 회원가입
         async function registerUser() {
             const registerBtn = document.getElementById('register-btn');
             
             try {
                 // 입력값 검증
-                const username = document.getElementById('username').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value.trim();
+                const username = document.getElementById('register-username').value.trim();
+                const email = document.getElementById('register-email').value.trim();
+                const password = document.getElementById('register-password').value.trim();
                 
                 if (!username || !email || !password) {
                     showStatus('❌ 모든 필드를 입력해주세요.', 'error');
@@ -273,10 +489,15 @@
                                 
                                 console.log('✅ Google Sheets 응답:', response);
                                 
-                                showStatus(`🎉 회원가입 성공!<br>
-                                    <strong>사용자:</strong> ${username}<br>
-                                    <strong>이메일:</strong> ${email}<br>
-                                    <strong>등록 시간:</strong> ${new Date().toLocaleString()}`, 'success');
+                                // 회원가입 성공 후 자동 로그인
+                                const userData = {
+                                    username: username,
+                                    email: email,
+                                    createdAt: new Date().toISOString()
+                                };
+                                
+                                updateUserUI(userData);
+                                console.log('✅ 회원가입 및 자동 로그인 성공:', userData);
                                 
                             } catch (sheetsError) {
                                 console.error('❌ Google Sheets 오류:', sheetsError);
