@@ -113,6 +113,91 @@
             margin: 0 0 0.5rem 0;
             color: #155724;
         }
+        .golf-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        .golf-section h2 {
+            margin: 0 0 1.5rem 0;
+            color: #495057;
+            text-align: center;
+        }
+        .round-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .round-info input, .round-info select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .holes-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .hole-input {
+            text-align: center;
+        }
+        .hole-input label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #6c757d;
+        }
+        .hole-input input {
+            width: 100%;
+            padding: 8px 4px;
+            text-align: center;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .hole-input.par-3 { background-color: #e8f5e8; }
+        .hole-input.par-4 { background-color: #fff3cd; }
+        .hole-input.par-5 { background-color: #f8d7da; }
+        .score-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .score-summary div {
+            text-align: center;
+        }
+        .score-summary .label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        .score-summary .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+        }
+        .front-nine, .back-nine {
+            margin-bottom: 1rem;
+        }
+        .nine-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #495057;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -120,62 +205,136 @@
         <h1>🏌️ 골프 스코어 관리</h1>
         
         <!-- 로그인된 사용자 정보 표시 영역 -->
-        <div id="user-info" class="user-info" style="display: none;">
+                <div id="user-info" class="user-info" style="display: none;">
             <h3>👋 환영합니다!</h3>
             <p><strong>사용자:</strong> <span id="current-username"></span></p>
             <p><strong>이메일:</strong> <span id="current-email"></span></p>
             <button onclick="logout()" style="background: #dc3545; width: auto; padding: 8px 16px;">로그아웃</button>
-        </div>
+                    </div>
         
+        <!-- 골프 스코어 입력 섹션 (로그인된 사용자만 표시) -->
+        <div id="golf-section" class="golf-section" style="display: none;">
+            <h2>⛳ 골프 스코어 입력</h2>
+            
+            <!-- 라운드 정보 -->
+            <div class="round-info">
+                <div>
+                    <label for="golf-course">골프장명</label>
+                    <input type="text" id="golf-course" placeholder="골프장명을 입력하세요" value="샘플 골프클럽">
+                </div>
+                <div>
+                    <label for="play-date">플레이 날짜</label>
+                    <input type="date" id="play-date">
+                    </div>
+                <div>
+                    <label for="tee-box">티박스</label>
+                    <select id="tee-box">
+                        <option value="레드">레드 티</option>
+                        <option value="화이트" selected>화이트 티</option>
+                        <option value="블루">블루 티</option>
+                        <option value="블랙">블랙 티</option>
+                    </select>
+                    </div>
+                <div>
+                    <label for="weather">날씨</label>
+                    <select id="weather">
+                        <option value="맑음" selected>맑음</option>
+                        <option value="흐림">흐림</option>
+                        <option value="비">비</option>
+                        <option value="바람">바람</option>
+                    </select>
+            </div>
+        </div>
+
+            <!-- 전반 9홀 -->
+            <div class="front-nine">
+                <div class="nine-title">🏌️ 전반 9홀 (Front Nine)</div>
+                <div class="holes-grid" id="front-nine-grid">
+                    <!-- JavaScript로 동적 생성 -->
+                            </div>
+                        </div>
+                        
+            <!-- 후반 9홀 -->
+            <div class="back-nine">
+                <div class="nine-title">🏌️ 후반 9홀 (Back Nine)</div>
+                <div class="holes-grid" id="back-nine-grid">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+
+            <!-- 스코어 요약 -->
+            <div class="score-summary" id="score-summary">
+                <div>
+                    <div class="label">전반</div>
+                    <div class="value" id="front-total">0</div>
+                    </div>
+                <div>
+                    <div class="label">후반</div>
+                    <div class="value" id="back-total">0</div>
+                </div>
+                <div>
+                    <div class="label">총합</div>
+                    <div class="value" id="total-score">0</div>
+            </div>
+                <div>
+                    <div class="label">파 대비</div>
+                    <div class="value" id="par-diff">E</div>
+                    </div>
+                    </div>
+            
+            <!-- 저장 버튼 -->
+            <button onclick="saveGolfScore()" id="save-score-btn" style="margin-top: 1rem;">스코어 저장</button>
+        </div>
+
         <!-- 로그인/회원가입 탭 -->
         <div id="auth-section">
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('login')">로그인</button>
                 <button class="tab" onclick="switchTab('register')">회원가입</button>
-            </div>
-            
+        </div>
+
             <!-- 로그인 탭 -->
             <div id="login-tab" class="tab-content active">
-                <div class="form-group">
+                    <div class="form-group">
                     <label for="login-email">이메일</label>
                     <input type="email" id="login-email" placeholder="이메일을 입력하세요" value="test6@example.com">
-                </div>
+                    </div>
                 
-                <div class="form-group">
-                    <label for="login-password">비밀번호</label>
+                    <div class="form-group">
+                        <label for="login-password">비밀번호</label>
                     <input type="password" id="login-password" placeholder="비밀번호를 입력하세요" value="password123">
-                </div>
-                
+        </div>
+
                 <button onclick="loginUser()" id="login-btn">로그인</button>
-            </div>
-            
+                </div>
+
             <!-- 회원가입 탭 -->
             <div id="register-tab" class="tab-content">
-                <div class="form-group">
-                    <label for="register-username">사용자명</label>
+                    <div class="form-group">
+                        <label for="register-username">사용자명</label>
                     <input type="text" id="register-username" placeholder="사용자명을 입력하세요" value="testuser7">
-                </div>
-                
-                <div class="form-group">
-                    <label for="register-email">이메일</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-email">이메일</label>
                     <input type="email" id="register-email" placeholder="이메일을 입력하세요" value="test7@example.com">
-                </div>
-                
-                <div class="form-group">
-                    <label for="register-password">비밀번호</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password">비밀번호</label>
                     <input type="password" id="register-password" placeholder="비밀번호를 입력하세요" value="password123">
-                </div>
+                    </div>
                 
                 <button onclick="registerUser()" id="register-btn">회원가입</button>
-            </div>
-        </div>
-        
+                    </div>
+                    </div>
+
         <!-- 관리자 버튼들 -->
         <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e1e5e9;">
             <button onclick="checkStatus()" style="background: #6c757d;">상태 확인</button>
             <button onclick="forceInit()" style="background: #dc3545;">강제 초기화</button>
-        </div>
-        
+            </div>
+
         <div id="status" class="status info">
             🔄 시스템 로딩 중... 잠시만 기다려주세요.
         </div>
@@ -215,15 +374,20 @@
             if (user) {
                 // 로그인된 상태
                 document.getElementById('user-info').style.display = 'block';
+                document.getElementById('golf-section').style.display = 'block';
                 document.getElementById('auth-section').style.display = 'none';
                 document.getElementById('current-username').textContent = user.username;
                 document.getElementById('current-email').textContent = user.email;
                 currentUser = user;
                 
+                // 골프 스코어 입력 폼 초기화
+                initializeGolfScoreForm();
+                
                 showStatus(`✅ ${user.username}님, 환영합니다!`, 'success');
             } else {
                 // 로그아웃된 상태
                 document.getElementById('user-info').style.display = 'none';
+                document.getElementById('golf-section').style.display = 'none';
                 document.getElementById('auth-section').style.display = 'block';
                 currentUser = null;
             }
@@ -233,6 +397,317 @@
         function logout() {
             updateUserUI(null);
             showStatus('✅ 로그아웃되었습니다.', 'info');
+        }
+        
+        // 골프 스코어 폼 초기화
+        function initializeGolfScoreForm() {
+            // 오늘 날짜 설정
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('play-date').value = today;
+            
+            // 18홀 입력 필드 생성
+            createHoleInputs();
+            
+            // 스코어 계산 이벤트 리스너 추가
+            addScoreEventListeners();
+        }
+        
+        // 홀 입력 필드 생성
+        function createHoleInputs() {
+            // 표준 파 설정 (일반적인 골프장 파 구성)
+            const standardPars = [4, 4, 3, 5, 4, 3, 4, 4, 5, 4, 3, 4, 5, 4, 3, 4, 4, 5];
+            
+            // 전반 9홀
+            const frontGrid = document.getElementById('front-nine-grid');
+            frontGrid.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const par = standardPars[i - 1];
+                const holeDiv = document.createElement('div');
+                holeDiv.className = `hole-input par-${par}`;
+                holeDiv.innerHTML = `
+                    <label>홀 ${i}</label>
+                    <input type="number" id="hole-${i}" min="1" max="15" placeholder="${par}" data-par="${par}">
+                    <div style="font-size: 10px; color: #6c757d;">Par ${par}</div>
+                `;
+                frontGrid.appendChild(holeDiv);
+            }
+            
+            // 후반 9홀
+            const backGrid = document.getElementById('back-nine-grid');
+            backGrid.innerHTML = '';
+            for (let i = 10; i <= 18; i++) {
+                const par = standardPars[i - 1];
+                const holeDiv = document.createElement('div');
+                holeDiv.className = `hole-input par-${par}`;
+                holeDiv.innerHTML = `
+                    <label>홀 ${i}</label>
+                    <input type="number" id="hole-${i}" min="1" max="15" placeholder="${par}" data-par="${par}">
+                    <div style="font-size: 10px; color: #6c757d;">Par ${par}</div>
+                `;
+                backGrid.appendChild(holeDiv);
+            }
+        }
+        
+        // 스코어 계산 이벤트 리스너 추가
+        function addScoreEventListeners() {
+            for (let i = 1; i <= 18; i++) {
+                const input = document.getElementById(`hole-${i}`);
+                if (input) {
+                    input.addEventListener('input', calculateScores);
+                    input.addEventListener('change', calculateScores);
+                }
+            }
+        }
+        
+        // 스코어 계산
+        function calculateScores() {
+            let frontTotal = 0;
+            let backTotal = 0;
+            let frontPar = 0;
+            let backPar = 0;
+            let frontCount = 0;
+            let backCount = 0;
+            
+            // 전반 9홀 계산
+            for (let i = 1; i <= 9; i++) {
+                const input = document.getElementById(`hole-${i}`);
+                const score = parseInt(input.value) || 0;
+                const par = parseInt(input.dataset.par) || 0;
+                
+                if (score > 0) {
+                    frontTotal += score;
+                    frontCount++;
+                }
+                frontPar += par;
+            }
+            
+            // 후반 9홀 계산
+            for (let i = 10; i <= 18; i++) {
+                const input = document.getElementById(`hole-${i}`);
+                const score = parseInt(input.value) || 0;
+                const par = parseInt(input.dataset.par) || 0;
+                
+                if (score > 0) {
+                    backTotal += score;
+                    backCount++;
+                }
+                backPar += par;
+            }
+            
+            const totalScore = frontTotal + backTotal;
+            const totalPar = frontPar + backPar;
+            const parDiff = totalScore - totalPar;
+            
+            // UI 업데이트
+            document.getElementById('front-total').textContent = frontTotal || '0';
+            document.getElementById('back-total').textContent = backTotal || '0';
+            document.getElementById('total-score').textContent = totalScore || '0';
+            
+            // 파 대비 표시
+            let parDiffText = 'E';
+            if (parDiff > 0) {
+                parDiffText = `+${parDiff}`;
+            } else if (parDiff < 0) {
+                parDiffText = `${parDiff}`;
+            }
+            document.getElementById('par-diff').textContent = parDiffText;
+            
+            // 파 대비에 따른 색상 변경
+            const parDiffElement = document.getElementById('par-diff');
+            if (parDiff < 0) {
+                parDiffElement.style.color = '#28a745'; // 언더파 - 녹색
+            } else if (parDiff > 0) {
+                parDiffElement.style.color = '#dc3545'; // 오버파 - 빨간색
+            } else {
+                parDiffElement.style.color = '#495057'; // 이븐파 - 기본색
+            }
+        }
+        
+        // 골프 스코어 저장
+        async function saveGolfScore() {
+            const saveBtn = document.getElementById('save-score-btn');
+            
+            try {
+                if (!currentUser) {
+                    showStatus('❌ 로그인이 필요합니다.', 'error');
+                    return;
+                }
+                
+                // 입력값 검증
+                const golfCourse = document.getElementById('golf-course').value.trim();
+                const playDate = document.getElementById('play-date').value;
+                const teeBox = document.getElementById('tee-box').value;
+                const weather = document.getElementById('weather').value;
+                
+                if (!golfCourse || !playDate) {
+                    showStatus('❌ 골프장명과 플레이 날짜를 입력해주세요.', 'error');
+                    return;
+                }
+                
+                // 스코어 데이터 수집
+                const scores = [];
+                let totalScore = 0;
+                let completedHoles = 0;
+                
+                for (let i = 1; i <= 18; i++) {
+                    const input = document.getElementById(`hole-${i}`);
+                    const score = parseInt(input.value) || 0;
+                    scores.push(score);
+                    
+                    if (score > 0) {
+                        totalScore += score;
+                        completedHoles++;
+                    }
+                }
+                
+                if (completedHoles === 0) {
+                    showStatus('❌ 최소 1홀 이상의 스코어를 입력해주세요.', 'error');
+                    return;
+                }
+                
+                // 시스템 준비 확인
+                if (!isReady) {
+                    showStatus('⚠️ 시스템이 준비되지 않았습니다. 강제 초기화를 시도합니다...', 'info');
+                    await forceInit();
+                    
+                    if (!isReady) {
+                        throw new Error('시스템 초기화에 실패했습니다.');
+                    }
+                }
+                
+                // 버튼 비활성화
+                saveBtn.disabled = true;
+                saveBtn.textContent = '저장 중...';
+                
+                showStatus('🔐 Google 로그인 팝업을 열고 있습니다...', 'info');
+                
+                // OAuth 토큰 요청
+                const tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPE,
+                    callback: async (tokenResponse) => {
+                        if (tokenResponse.access_token) {
+                            try {
+                                // 토큰 설정
+                                gapi.client.setToken({ access_token: tokenResponse.access_token });
+                                
+                                showStatus('📝 골프 스코어를 저장하고 있습니다...', 'info');
+                                
+                                // 스코어 데이터 준비
+                                const scoreData = [
+                                    currentUser.username,
+                                    currentUser.email,
+                                    playDate,
+                                    golfCourse,
+                                    teeBox,
+                                    weather,
+                                    ...scores, // 18홀 스코어
+                                    totalScore,
+                                    completedHoles,
+                                    new Date().toISOString() // 저장 시간
+                                ];
+                                
+                                // Scores 시트에 헤더 확인 및 생성
+                                await ensureScoresSheetHeaders();
+                                
+                                // Google Sheets에 데이터 추가
+                                const response = await gapi.client.sheets.spreadsheets.values.append({
+                                    spreadsheetId: SPREADSHEET_ID,
+                                    range: 'Scores!A:W', // A부터 W까지 (사용자정보 + 18홀 + 총합 + 기타)
+                                    valueInputOption: 'USER_ENTERED',
+                                    resource: {
+                                        values: [scoreData]
+                                    }
+                                });
+                                
+                                console.log('✅ 골프 스코어 저장 응답:', response);
+                                
+                                showStatus(`🎉 골프 스코어 저장 성공!<br>
+                                    <strong>골프장:</strong> ${golfCourse}<br>
+                                    <strong>날짜:</strong> ${playDate}<br>
+                                    <strong>총 스코어:</strong> ${totalScore} (${completedHoles}홀 완료)`, 'success');
+                                
+                                // 폼 초기화 (선택사항)
+                                // resetGolfScoreForm();
+                                
+                            } catch (sheetsError) {
+                                console.error('❌ 골프 스코어 저장 오류:', sheetsError);
+                                showStatus(`❌ 스코어 저장 실패: ${sheetsError.message}`, 'error');
+                            }
+                        } else {
+                            showStatus('❌ Google 로그인 실패', 'error');
+                        }
+                        
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = '스코어 저장';
+                    }
+                });
+                
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+                
+            } catch (error) {
+                console.error('❌ 스코어 저장 실패:', error);
+                showStatus(`❌ 스코어 저장 실패: ${error.message}`, 'error');
+                saveBtn.disabled = false;
+                saveBtn.textContent = '스코어 저장';
+            }
+        }
+        
+        // Scores 시트 헤더 확인 및 생성
+        async function ensureScoresSheetHeaders() {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Scores!A1:W1'
+                });
+                
+                const values = response.result.values;
+                
+                if (!values || values.length === 0) {
+                    console.log('📋 Scores 시트 헤더 생성...');
+                    
+                    const headers = [
+                        'Username', 'Email', 'Play Date', 'Golf Course', 'Tee Box', 'Weather',
+                        'Hole 1', 'Hole 2', 'Hole 3', 'Hole 4', 'Hole 5', 'Hole 6', 'Hole 7', 'Hole 8', 'Hole 9',
+                        'Hole 10', 'Hole 11', 'Hole 12', 'Hole 13', 'Hole 14', 'Hole 15', 'Hole 16', 'Hole 17', 'Hole 18',
+                        'Total Score', 'Completed Holes', 'Created At'
+                    ];
+                    
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: SPREADSHEET_ID,
+                        range: 'Scores!A1:W1',
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [headers]
+                        }
+                    });
+                    
+                    console.log('✅ Scores 시트 헤더 생성 완료');
+                }
+            } catch (error) {
+                console.warn('⚠️ Scores 시트 헤더 처리 중 오류:', error);
+                // 헤더 생성 실패는 치명적이지 않으므로 계속 진행
+            }
+        }
+        
+        // 골프 스코어 폼 초기화
+        function resetGolfScoreForm() {
+            // 라운드 정보 초기화
+            document.getElementById('golf-course').value = '';
+            document.getElementById('play-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('tee-box').value = '화이트';
+            document.getElementById('weather').value = '맑음';
+            
+            // 스코어 초기화
+            for (let i = 1; i <= 18; i++) {
+                const input = document.getElementById(`hole-${i}`);
+                if (input) {
+                    input.value = '';
+                }
+            }
+            
+            // 요약 초기화
+            calculateScores();
         }
         
         // 상태 확인
@@ -283,7 +758,7 @@
                                     discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
                                 });
                                 resolve();
-                            } catch (error) {
+            } catch (error) {
                                 reject(error);
                             }
                         });
@@ -314,9 +789,9 @@
                 // 이미 로드된 스크립트인지 확인
                 if (document.querySelector(`script[src="${src}"]`)) {
                     resolve();
-                    return;
-                }
-                
+                return;
+            }
+            
                 const script = document.createElement('script');
                 script.src = src;
                 script.onload = resolve;
@@ -336,8 +811,8 @@
                 
                 if (!email || !password) {
                     showStatus('❌ 이메일과 비밀번호를 입력해주세요.', 'error');
-                    return;
-                }
+                return;
+            }
                 
                 // 시스템 준비 확인
                 if (!isReady) {
@@ -407,7 +882,7 @@
                                 console.error('❌ 로그인 처리 오류:', loginError);
                                 showStatus(`❌ 로그인 실패: ${loginError.message}`, 'error');
                             }
-                        } else {
+                } else {
                             showStatus('❌ Google 로그인 실패', 'error');
                         }
                         
@@ -514,7 +989,7 @@
                 
                 tokenClient.requestAccessToken({ prompt: 'consent' });
                 
-            } catch (error) {
+                } catch (error) {
                 console.error('❌ 회원가입 실패:', error);
                 showStatus(`❌ 회원가입 실패: ${error.message}`, 'error');
                 registerBtn.disabled = false;
