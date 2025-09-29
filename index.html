@@ -779,28 +779,41 @@
             updateSummaries();
         }
         
-        // 클럽 옵션 선택 (Driver, Wood, Putter용)
+        // 클럽 옵션 선택 (Driver, Wood, Putter용) - 토글 기능 포함
         function selectClubOption(holeNumber, clubType, value, score) {
-            // 같은 클럽 타입의 다른 옵션들 비활성화
             const holeCard = document.getElementById(`hole-card-${holeNumber}`);
+            const clickedOption = event.target;
             const clubOptions = holeCard.querySelectorAll(`[data-club="${clubType}"]`);
-            clubOptions.forEach(option => option.classList.remove('selected'));
             
-            // 선택된 옵션 활성화
-            event.target.classList.add('selected');
-            
-            // 데이터 업데이트
-            golfScoreData[holeNumber][clubType] = {
-                value: value,
-                score: score
-            };
-            
-            // 2Put 자동 체크 (퍼터가 2 이하인 경우)
-            if (clubType === 'putter') {
-                const twoPutCheckbox = document.getElementById(`2put-${holeNumber}`);
-                const twoPut = score <= 2;
-                twoPutCheckbox.checked = twoPut;
-                golfScoreData[holeNumber].twoPut = twoPut;
+            // 이미 선택된 옵션을 다시 클릭한 경우 - 선택 해제 (토글)
+            if (clickedOption.classList.contains('selected')) {
+                clickedOption.classList.remove('selected');
+                golfScoreData[holeNumber][clubType] = null;
+                
+                // 퍼터 해제 시 2Put도 해제
+                if (clubType === 'putter') {
+                    const twoPutCheckbox = document.getElementById(`2put-${holeNumber}`);
+                    twoPutCheckbox.checked = false;
+                    golfScoreData[holeNumber].twoPut = false;
+                }
+            } else {
+                // 새로운 옵션 선택 - 다른 옵션들 비활성화 후 선택
+                clubOptions.forEach(option => option.classList.remove('selected'));
+                clickedOption.classList.add('selected');
+                
+                // 데이터 업데이트
+                golfScoreData[holeNumber][clubType] = {
+                    value: value,
+                    score: score
+                };
+                
+                // 2Put 자동 체크 (퍼터가 2 이하인 경우)
+                if (clubType === 'putter') {
+                    const twoPutCheckbox = document.getElementById(`2put-${holeNumber}`);
+                    const twoPut = score <= 2;
+                    twoPutCheckbox.checked = twoPut;
+                    golfScoreData[holeNumber].twoPut = twoPut;
+                }
             }
             
             // 홀 스코어 계산
@@ -959,9 +972,11 @@
                                 ];
                                 
                                 // HoleScores 시트에 헤더 확인 및 생성
+                                console.log(`📝 홀 ${holeNumber} 저장 데이터:`, holeScoreData);
                                 await ensureHoleScoresSheetHeaders();
                                 
                                 // Google Sheets에 데이터 추가
+                                console.log(`📤 Google Sheets에 데이터 전송 중... (홀 ${holeNumber})`);
                                 const response = await gapi.client.sheets.spreadsheets.values.append({
                                     spreadsheetId: SPREADSHEET_ID,
                                     range: 'HoleScores!A:T',
@@ -972,6 +987,13 @@
                                 });
                                 
                                 console.log(`✅ 홀 ${holeNumber} 스코어 저장 응답:`, response);
+                                
+                                // 응답 검증
+                                if (response && response.result && response.result.updates) {
+                                    console.log(`📊 저장된 행 수: ${response.result.updates.updatedRows}`);
+                                } else {
+                                    console.warn('⚠️ 응답 구조가 예상과 다릅니다:', response);
+                                }
                                 
                                 // 저장 완료 표시
                                 holeData.saved = true;
@@ -1011,15 +1033,17 @@
         // HoleScores 시트 헤더 확인 및 생성
         async function ensureHoleScoresSheetHeaders() {
             try {
+                console.log('🔍 HoleScores 시트 헤더 확인 중...');
                 const response = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: SPREADSHEET_ID,
                     range: 'HoleScores!A1:T1'
                 });
                 
+                console.log('📋 HoleScores 헤더 응답:', response);
                 const values = response.result.values;
                 
                 if (!values || values.length === 0) {
-                    console.log('📋 HoleScores 시트 헤더 생성...');
+                    console.log('📋 HoleScores 시트 헤더가 없습니다. 생성 중...');
                     
                     const headers = [
                         'Username', 'Email', 'Play Date', 'Golf Course', 'Tee Box', 'Weather',
@@ -1031,7 +1055,8 @@
                         'Total Score', 'Regular On', '2 Put', 'Created At'
                     ];
                     
-                    await gapi.client.sheets.spreadsheets.values.update({
+                    console.log('📝 헤더 생성 중:', headers);
+                    const headerResponse = await gapi.client.sheets.spreadsheets.values.update({
                         spreadsheetId: SPREADSHEET_ID,
                         range: 'HoleScores!A1:T1',
                         valueInputOption: 'USER_ENTERED',
@@ -1040,10 +1065,70 @@
                         }
                     });
                     
-                    console.log('✅ HoleScores 시트 헤더 생성 완료');
+                    console.log('✅ HoleScores 시트 헤더 생성 완료:', headerResponse);
+                } else {
+                    console.log('✅ HoleScores 시트 헤더 이미 존재:', values[0]);
                 }
             } catch (error) {
-                console.warn('⚠️ HoleScores 시트 헤더 처리 중 오류:', error);
+                console.error('❌ HoleScores 시트 헤더 처리 중 오류:', error);
+                
+                // 시트가 존재하지 않는 경우 시트 생성 시도
+                if (error.status === 400 && error.result && error.result.error && 
+                    error.result.error.message.includes('Unable to parse range')) {
+                    console.log('🆕 HoleScores 시트가 존재하지 않습니다. 시트 생성을 시도합니다...');
+                    await createHoleScoresSheet();
+                } else {
+                    throw error; // 다른 오류는 상위로 전파
+                }
+            }
+        }
+        
+        // HoleScores 시트 생성
+        async function createHoleScoresSheet() {
+            try {
+                console.log('🆕 HoleScores 시트 생성 중...');
+                
+                // 시트 추가
+                const addSheetResponse = await gapi.client.sheets.spreadsheets.batchUpdate({
+                    spreadsheetId: SPREADSHEET_ID,
+                    resource: {
+                        requests: [{
+                            addSheet: {
+                                properties: {
+                                    title: 'HoleScores'
+                                }
+                            }
+                        }]
+                    }
+                });
+                
+                console.log('✅ HoleScores 시트 생성 완료:', addSheetResponse);
+                
+                // 헤더 추가
+                const headers = [
+                    'Username', 'Email', 'Play Date', 'Golf Course', 'Tee Box', 'Weather',
+                    'Hole Number', 'Par', 
+                    'Driver Value', 'Driver Score', 
+                    'Wood Value', 'Wood Score',
+                    'Iron Values', 'Iron Total Score',
+                    'Putter Value', 'Putter Score',
+                    'Total Score', 'Regular On', '2 Put', 'Created At'
+                ];
+                
+                const headerResponse = await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'HoleScores!A1:T1',
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [headers]
+                    }
+                });
+                
+                console.log('✅ HoleScores 시트 헤더 추가 완료:', headerResponse);
+                
+            } catch (createError) {
+                console.error('❌ HoleScores 시트 생성 실패:', createError);
+                throw createError;
             }
         }
         
