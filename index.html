@@ -394,14 +394,14 @@
                                 }
                                 
                                 // 로그인 성공
-                                const userData = {
+                                const loginUserData = {
                                     username: user[0],
                                     email: user[1],
                                     createdAt: user[3]
                                 };
                                 
-                                updateUserUI(userData);
-                                console.log('✅ 로그인 성공:', userData);
+                                updateUserUI(loginUserData);
+                                console.log('✅ 로그인 성공:', loginUserData);
                                 
                             } catch (loginError) {
                                 console.error('❌ 로그인 처리 오류:', loginError);
@@ -470,7 +470,7 @@
                                 showStatus('📝 Google Sheets에 데이터를 추가하고 있습니다...', 'info');
                                 
                                 // 사용자 데이터 추가
-                                const userData = [
+                                const newUserData = [
                                     username,
                                     email,
                                     password,
@@ -483,21 +483,21 @@
                                     range: 'Users!A:E',
                                     valueInputOption: 'USER_ENTERED',
                                     resource: {
-                                        values: [userData]
+                                        values: [newUserData]
                                     }
                                 });
                                 
                                 console.log('✅ Google Sheets 응답:', response);
                                 
                                 // 회원가입 성공 후 자동 로그인
-                                const userData = {
+                                const registeredUserData = {
                                     username: username,
                                     email: email,
                                     createdAt: new Date().toISOString()
                                 };
                                 
-                                updateUserUI(userData);
-                                console.log('✅ 회원가입 및 자동 로그인 성공:', userData);
+                                updateUserUI(registeredUserData);
+                                console.log('✅ 회원가입 및 자동 로그인 성공:', registeredUserData);
                                 
                             } catch (sheetsError) {
                                 console.error('❌ Google Sheets 오류:', sheetsError);
