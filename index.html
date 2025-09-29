@@ -975,22 +975,44 @@
                                 console.log(`📝 홀 ${holeNumber} 저장 데이터:`, holeScoreData);
                                 await ensureHoleScoresSheetHeaders();
                                 
-                                // Google Sheets에 데이터 추가
-                                console.log(`📤 Google Sheets에 데이터 전송 중... (홀 ${holeNumber})`);
-                                const response = await gapi.client.sheets.spreadsheets.values.append({
-                                    spreadsheetId: SPREADSHEET_ID,
-                                    range: 'HoleScores!A:T',
-                                    valueInputOption: 'USER_ENTERED',
-                                    resource: {
-                                        values: [holeScoreData]
-                                    }
-                                });
+                                // 기존 데이터 확인 (중복 방지)
+                                console.log(`🔍 홀 ${holeNumber} 기존 데이터 확인 중...`);
+                                const existingRowIndex = await findExistingHoleScore(currentUser.username, currentUser.email, playDate || new Date().toISOString().split('T')[0], holeNumber);
                                 
-                                console.log(`✅ 홀 ${holeNumber} 스코어 저장 응답:`, response);
+                                let response;
+                                if (existingRowIndex > 0) {
+                                    // 기존 데이터 업데이트
+                                    console.log(`🔄 홀 ${holeNumber} 기존 데이터 업데이트 (행: ${existingRowIndex})`);
+                                    response = await gapi.client.sheets.spreadsheets.values.update({
+                                        spreadsheetId: SPREADSHEET_ID,
+                                        range: `HoleScores!A${existingRowIndex}:T${existingRowIndex}`,
+                                        valueInputOption: 'USER_ENTERED',
+                                        resource: {
+                                            values: [holeScoreData]
+                                        }
+                                    });
+                                    console.log(`✅ 홀 ${holeNumber} 스코어 업데이트 완료:`, response);
+                                } else {
+                                    // 새 데이터 추가
+                                    console.log(`📤 홀 ${holeNumber} 새 데이터 추가 중...`);
+                                    response = await gapi.client.sheets.spreadsheets.values.append({
+                                        spreadsheetId: SPREADSHEET_ID,
+                                        range: 'HoleScores!A:T',
+                                        valueInputOption: 'USER_ENTERED',
+                                        resource: {
+                                            values: [holeScoreData]
+                                        }
+                                    });
+                                    console.log(`✅ 홀 ${holeNumber} 스코어 저장 완료:`, response);
+                                }
                                 
                                 // 응답 검증
-                                if (response && response.result && response.result.updates) {
-                                    console.log(`📊 저장된 행 수: ${response.result.updates.updatedRows}`);
+                                if (response && response.result) {
+                                    if (response.result.updates) {
+                                        console.log(`📊 처리된 행 수: ${response.result.updates.updatedRows || response.result.updates.updatedCells}`);
+                                    } else if (response.result.updatedRows) {
+                                        console.log(`📊 업데이트된 행 수: ${response.result.updatedRows}`);
+                                    }
                                 } else {
                                     console.warn('⚠️ 응답 구조가 예상과 다릅니다:', response);
                                 }
@@ -1000,7 +1022,9 @@
                                 saveBtn.classList.add('saved');
                                 saveBtn.textContent = '저장됨';
                                 
-                                showStatus(`✅ 홀 ${holeNumber} 스코어 저장 완료! (${holeData.totalScore}타)`, 'success');
+                                // 성공 메시지 (업데이트/신규에 따라 다르게 표시)
+                                const actionText = existingRowIndex > 0 ? '업데이트' : '저장';
+                                showStatus(`✅ 홀 ${holeNumber} 스코어 ${actionText} 완료! (${holeData.totalScore}타)`, 'success');
                                 
                                 // 요약 업데이트
                                 updateSummaries();
@@ -1129,6 +1153,52 @@
             } catch (createError) {
                 console.error('❌ HoleScores 시트 생성 실패:', createError);
                 throw createError;
+            }
+        }
+        
+        // 기존 홀 스코어 찾기 (중복 방지용)
+        async function findExistingHoleScore(username, email, playDate, holeNumber) {
+            try {
+                console.log(`🔍 기존 데이터 검색: ${username}, ${email}, ${playDate}, 홀 ${holeNumber}`);
+                
+                // 전체 데이터 가져오기
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'HoleScores!A:G' // Username, Email, Play Date, Golf Course, Tee Box, Weather, Hole Number까지
+                });
+                
+                const rows = response.result.values || [];
+                console.log(`📊 총 ${rows.length}개 행 검색 중...`);
+                
+                // 헤더 제외하고 검색 (2행부터)
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.length >= 7) {
+                        const rowUsername = row[0];
+                        const rowEmail = row[1];
+                        const rowPlayDate = row[2];
+                        const rowHoleNumber = parseInt(row[6]);
+                        
+                        // 사용자명, 이메일, 플레이 날짜, 홀 번호가 모두 일치하는지 확인
+                        if (rowUsername === username && 
+                            rowEmail === email && 
+                            rowPlayDate === playDate && 
+                            rowHoleNumber === holeNumber) {
+                            
+                            const foundRowIndex = i + 1; // 1-based index for Google Sheets
+                            console.log(`✅ 기존 데이터 발견: 행 ${foundRowIndex}`);
+                            return foundRowIndex;
+                        }
+                    }
+                }
+                
+                console.log('📝 기존 데이터 없음 - 새로 추가됩니다.');
+                return 0; // 기존 데이터 없음
+                
+            } catch (error) {
+                console.error('❌ 기존 데이터 검색 실패:', error);
+                // 검색 실패 시에도 새로 추가하도록 0 반환
+                return 0;
             }
         }
         
