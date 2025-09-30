@@ -1158,6 +1158,104 @@
             }
         }
         
+        // Users 시트 헤더 확인 및 생성
+        async function ensureUsersSheetHeaders() {
+            try {
+                console.log('🔍 Users 시트 헤더 확인 중...');
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Users!A1:E1'
+                });
+                
+                console.log('📋 Users 헤더 응답:', response);
+                const values = response.result.values;
+                
+                if (!values || values.length === 0) {
+                    console.log('📋 Users 시트 헤더가 없습니다. 생성 중...');
+                    
+                    const headers = [
+                        'Username',     // A
+                        'Email',        // B
+                        'Password',     // C
+                        'Created At',   // D
+                        'Status'        // E
+                    ];
+                    
+                    console.log('📝 Users 헤더 생성 중:', headers);
+                    const headerResponse = await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: SPREADSHEET_ID,
+                        range: 'Users!A1:E1',
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [headers]
+                        }
+                    });
+                    
+                    console.log('✅ Users 시트 헤더 생성 완료:', headerResponse);
+                } else {
+                    console.log('✅ Users 시트 헤더 이미 존재:', values[0]);
+                }
+            } catch (error) {
+                console.error('❌ Users 시트 헤더 처리 중 오류:', error);
+                
+                // 시트가 존재하지 않는 경우 시트 생성 시도
+                if (error.status === 400 && error.result && error.result.error && 
+                    error.result.error.message.includes('Unable to parse range')) {
+                    console.log('🆕 Users 시트가 존재하지 않습니다. 시트 생성을 시도합니다...');
+                    await createUsersSheet();
+                } else {
+                    throw error; // 다른 오류는 상위로 전파
+                }
+            }
+        }
+        
+        // Users 시트 생성
+        async function createUsersSheet() {
+            try {
+                console.log('🆕 Users 시트 생성 중...');
+                
+                // 시트 추가
+                const addSheetResponse = await gapi.client.sheets.spreadsheets.batchUpdate({
+                    spreadsheetId: SPREADSHEET_ID,
+                    resource: {
+                        requests: [{
+                            addSheet: {
+                                properties: {
+                                    title: 'Users'
+                                }
+                            }
+                        }]
+                    }
+                });
+                
+                console.log('✅ Users 시트 생성 완료:', addSheetResponse);
+                
+                // 헤더 추가
+                const headers = [
+                    'Username',     // A
+                    'Email',        // B
+                    'Password',     // C
+                    'Created At',   // D
+                    'Status'        // E
+                ];
+                
+                const headerResponse = await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Users!A1:E1',
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [headers]
+                    }
+                });
+                
+                console.log('✅ Users 시트 헤더 추가 완료:', headerResponse);
+                
+            } catch (createError) {
+                console.error('❌ Users 시트 생성 실패:', createError);
+                throw createError;
+            }
+        }
+        
         // 기존 홀 스코어 찾기 (중복 방지용)
         async function findExistingHoleScore(username, email, playDate, holeNumber) {
             try {
@@ -1594,16 +1692,41 @@
                                 // 토큰 설정
                                 gapi.client.setToken({ access_token: tokenResponse.access_token });
                                 
+                                // Users 시트 헤더 확인 및 생성
+                                await ensureUsersSheetHeaders();
+                                
+                                showStatus('📋 사용자 중복 확인 중...', 'info');
+                                
+                                // 기존 사용자 중복 확인
+                                const existingUsersResponse = await gapi.client.sheets.spreadsheets.values.get({
+                                    spreadsheetId: SPREADSHEET_ID,
+                                    range: 'Users!A:E'
+                                });
+                                const existingRows = existingUsersResponse.result.values || [];
+                                const existingUsers = existingRows.slice(1); // 헤더 제외
+                                
+                                const isUsernameTaken = existingUsers.some(row => row[0] && row[0].toLowerCase() === username.toLowerCase());
+                                const isEmailRegistered = existingUsers.some(row => row[1] && row[1].toLowerCase() === email.toLowerCase());
+                                
+                                if (isUsernameTaken) {
+                                    throw new Error('이미 사용 중인 사용자명입니다.');
+                                }
+                                if (isEmailRegistered) {
+                                    throw new Error('이미 등록된 이메일입니다.');
+                                }
+                                
                                 showStatus('📝 Google Sheets에 데이터를 추가하고 있습니다...', 'info');
                                 
-                                // 사용자 데이터 추가
+                                // 사용자 데이터 준비 (필드 순서 맞춤)
                                 const newUserData = [
-                                    username,
-                                    email,
-                                    password,
-                                    new Date().toISOString(),
-                                    'active'
+                                    username,           // A: Username
+                                    email,             // B: Email  
+                                    password,          // C: Password
+                                    new Date().toISOString(), // D: Created At
+                                    'active'           // E: Status
                                 ];
+                                
+                                console.log('📝 저장할 사용자 데이터:', newUserData);
                                 
                                 const response = await gapi.client.sheets.spreadsheets.values.append({
                                     spreadsheetId: SPREADSHEET_ID,
@@ -1616,6 +1739,11 @@
                                 
                                 console.log('✅ Google Sheets 응답:', response);
                                 
+                                // 응답 검증
+                                if (response && response.result && response.result.updates) {
+                                    console.log(`📊 저장된 행 수: ${response.result.updates.updatedRows}`);
+                                }
+                                
                                 // 회원가입 성공 후 자동 로그인
                                 const registeredUserData = {
                                     username: username,
@@ -1624,6 +1752,10 @@
                                 };
                                 
                                 updateUserUI(registeredUserData);
+                                showStatus(`🎉 회원가입 성공!<br>
+                                    <strong>사용자명:</strong> ${username}<br>
+                                    <strong>이메일:</strong> ${email}<br>
+                                    자동으로 로그인되었습니다.`, 'success');
                                 console.log('✅ 회원가입 및 자동 로그인 성공:', registeredUserData);
                                 
                             } catch (sheetsError) {
