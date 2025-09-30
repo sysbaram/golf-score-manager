@@ -369,11 +369,11 @@
                 <div>
                     <label for="golf-course">골프장명</label>
                     <input type="text" id="golf-course" placeholder="골프장명을 입력하세요" value="샘플 골프클럽">
-                </div>
+                    </div>
                 <div>
                     <label for="play-date">플레이 날짜</label>
                     <input type="date" id="play-date">
-                    </div>
+                </div>
                 <div>
                     <label for="tee-box">티박스</label>
                     <select id="tee-box">
@@ -382,7 +382,7 @@
                         <option value="블루">블루 티</option>
                         <option value="블랙">블랙 티</option>
                     </select>
-                    </div>
+                </div>
                 <div>
                     <label for="weather">날씨</label>
                     <select id="weather">
@@ -392,78 +392,6 @@
                         <option value="바람">바람</option>
                     </select>
             </div>
-        </div>
-
-            <!-- 전반 9홀 -->
-            <div class="summary-section">
-                <div class="summary-title">🏌️ 전반 9홀 (Front Nine)</div>
-                <div class="holes-grid" id="front-nine-grid">
-                    <!-- JavaScript로 동적 생성 -->
-                </div>
-                
-                <!-- 전반 요약 -->
-                <div class="score-summary" id="front-summary">
-                    <div>
-                        <div class="label">정규타수</div>
-                        <div class="value" id="front-par">36</div>
-                    </div>
-                    <div>
-                        <div class="label">스코어</div>
-                        <div class="value" id="front-score">0</div>
-                    </div>
-                    <div>
-                        <div class="label">파 대비</div>
-                        <div class="value" id="front-diff">E</div>
-                    </div>
-                    <div>
-                        <div class="label">R/O</div>
-                        <div class="value" id="front-ro">0</div>
-                    </div>
-                    <div>
-                        <div class="label">2Put</div>
-                        <div class="value" id="front-2put">0</div>
-                    </div>
-                    <div>
-                        <div class="label">저장됨</div>
-                        <div class="value" id="front-saved">0/9</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 후반 9홀 -->
-            <div class="summary-section">
-                <div class="summary-title">🏌️ 후반 9홀 (Back Nine)</div>
-                <div class="holes-grid" id="back-nine-grid">
-                    <!-- JavaScript로 동적 생성 -->
-                </div>
-                
-                <!-- 후반 요약 -->
-                <div class="score-summary" id="back-summary">
-                    <div>
-                        <div class="label">정규타수</div>
-                        <div class="value" id="back-par">36</div>
-                    </div>
-                    <div>
-                        <div class="label">스코어</div>
-                        <div class="value" id="back-score">0</div>
-                    </div>
-                    <div>
-                        <div class="label">파 대비</div>
-                        <div class="value" id="back-diff">E</div>
-                    </div>
-                    <div>
-                        <div class="label">R/O</div>
-                        <div class="value" id="back-ro">0</div>
-                    </div>
-                    <div>
-                        <div class="label">2Put</div>
-                        <div class="value" id="back-2put">0</div>
-                    </div>
-                    <div>
-                        <div class="label">저장됨</div>
-                        <div class="value" id="back-saved">0/9</div>
-                    </div>
-                </div>
             </div>
             
             <!-- 18홀 전체 요약 -->
@@ -473,7 +401,7 @@
                     <div>
                         <div class="label">정규타수</div>
                         <div class="value" id="total-par">72</div>
-                    </div>
+                </div>
                     <div>
                         <div class="label">스코어</div>
                         <div class="value" id="total-score">0</div>
@@ -489,14 +417,86 @@
                     <div>
                         <div class="label">2Put</div>
                         <div class="value" id="total-2put">0</div>
-                    </div>
+                </div>
                     <div>
                         <div class="label">저장됨</div>
                         <div class="value" id="total-saved">0/18</div>
-                    </div>
                 </div>
             </div>
-            
+        </div>
+
+            <!-- 전반 9홀 -->
+            <div class="summary-section">
+                <div class="summary-title">🏌️ 전반 9홀 (Front Nine)</div>
+                <div class="holes-grid" id="front-nine-grid">
+                    <!-- JavaScript로 동적 생성 -->
+                        </div>
+                        
+                <!-- 전반 요약 -->
+                <div class="score-summary" id="front-summary">
+                    <div>
+                        <div class="label">정규타수</div>
+                        <div class="value" id="front-par">36</div>
+                                        </div>
+                    <div>
+                        <div class="label">스코어</div>
+                        <div class="value" id="front-score">0</div>
+                                    </div>
+                    <div>
+                        <div class="label">파 대비</div>
+                        <div class="value" id="front-diff">E</div>
+                                        </div>
+                    <div>
+                        <div class="label">R/O</div>
+                        <div class="value" id="front-ro">0</div>
+                                    </div>
+                    <div>
+                        <div class="label">2Put</div>
+                        <div class="value" id="front-2put">0</div>
+                    </div>
+                    <div>
+                        <div class="label">저장됨</div>
+                        <div class="value" id="front-saved">0/9</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+            <!-- 후반 9홀 -->
+            <div class="summary-section">
+                <div class="summary-title">🏌️ 후반 9홀 (Back Nine)</div>
+                <div class="holes-grid" id="back-nine-grid">
+                    <!-- JavaScript로 동적 생성 -->
+            </div>
+
+                <!-- 후반 요약 -->
+                <div class="score-summary" id="back-summary">
+                    <div>
+                        <div class="label">정규타수</div>
+                        <div class="value" id="back-par">36</div>
+                    </div>
+                    <div>
+                        <div class="label">스코어</div>
+                        <div class="value" id="back-score">0</div>
+                </div>
+                    <div>
+                        <div class="label">파 대비</div>
+                        <div class="value" id="back-diff">E</div>
+            </div>
+                    <div>
+                        <div class="label">R/O</div>
+                        <div class="value" id="back-ro">0</div>
+                    </div>
+                    <div>
+                        <div class="label">2Put</div>
+                        <div class="value" id="back-2put">0</div>
+                    </div>
+                    <div>
+                        <div class="label">저장됨</div>
+                        <div class="value" id="back-saved">0/9</div>
+                </div>
+            </div>
+        </div>
+
             <!-- 저장 버튼 -->
             <button onclick="saveGolfScore()" id="save-score-btn" style="margin-top: 1rem;">스코어 저장</button>
         </div>
@@ -506,7 +506,7 @@
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('login')">로그인</button>
                 <button class="tab" onclick="switchTab('register')">회원가입</button>
-        </div>
+                </div>
 
             <!-- 로그인 탭 -->
             <div id="login-tab" class="tab-content active">
@@ -599,7 +599,7 @@
                 initializeGolfScoreForm();
                 
                 showStatus(`✅ ${user.username}님, 환영합니다!`, 'success');
-            } else {
+        } else {
                 // 로그아웃된 상태
                 document.getElementById('user-info').style.display = 'none';
                 document.getElementById('golf-section').style.display = 'none';
@@ -992,7 +992,7 @@
                                         }
                                     });
                                     console.log(`✅ 홀 ${holeNumber} 스코어 업데이트 완료:`, response);
-                                } else {
+                } else {
                                     // 새 데이터 추가
                                     console.log(`📤 홀 ${holeNumber} 새 데이터 추가 중...`);
                                     response = await gapi.client.sheets.spreadsheets.values.append({
@@ -1090,10 +1090,10 @@
                     });
                     
                     console.log('✅ HoleScores 시트 헤더 생성 완료:', headerResponse);
-                } else {
+                    } else {
                     console.log('✅ HoleScores 시트 헤더 이미 존재:', values[0]);
-                }
-            } catch (error) {
+                    }
+                } catch (error) {
                 console.error('❌ HoleScores 시트 헤더 처리 중 오류:', error);
                 
                 // 시트가 존재하지 않는 경우 시트 생성 시도
@@ -1101,7 +1101,7 @@
                     error.result.error.message.includes('Unable to parse range')) {
                     console.log('🆕 HoleScores 시트가 존재하지 않습니다. 시트 생성을 시도합니다...');
                     await createHoleScoresSheet();
-                } else {
+            } else {
                     throw error; // 다른 오류는 상위로 전파
                 }
             }
@@ -1408,7 +1408,7 @@
                                     discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
                                 });
                                 resolve();
-            } catch (error) {
+                } catch (error) {
                                 reject(error);
                             }
                         });
@@ -1543,7 +1543,7 @@
                 
                 tokenClient.requestAccessToken({ prompt: 'consent' });
                 
-            } catch (error) {
+                } catch (error) {
                 console.error('❌ 로그인 실패:', error);
                 showStatus(`❌ 로그인 실패: ${error.message}`, 'error');
                 loginBtn.disabled = false;
