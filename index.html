@@ -428,28 +428,25 @@
             <!-- 전반 9홀 -->
             <div class="summary-section">
                 <div class="summary-title">🏌️ 전반 9홀 (Front Nine)</div>
-                <div class="holes-grid" id="front-nine-grid">
-                    <!-- JavaScript로 동적 생성 -->
-                        </div>
-                        
+                
                 <!-- 전반 요약 -->
                 <div class="score-summary" id="front-summary">
                     <div>
                         <div class="label">정규타수</div>
                         <div class="value" id="front-par">36</div>
-                                        </div>
+                    </div>
                     <div>
                         <div class="label">스코어</div>
                         <div class="value" id="front-score">0</div>
-                                    </div>
+                    </div>
                     <div>
                         <div class="label">파 대비</div>
                         <div class="value" id="front-diff">E</div>
-                                        </div>
+                    </div>
                     <div>
                         <div class="label">R/O</div>
                         <div class="value" id="front-ro">0</div>
-                                    </div>
+                    </div>
                     <div>
                         <div class="label">2Put</div>
                         <div class="value" id="front-2put">0</div>
@@ -457,17 +454,18 @@
                     <div>
                         <div class="label">저장됨</div>
                         <div class="value" id="front-saved">0/9</div>
-                                </div>
-                            </div>
-                        </div>
+                    </div>
+                </div>
+                
+                <div class="holes-grid" id="front-nine-grid">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
                         
             <!-- 후반 9홀 -->
             <div class="summary-section">
                 <div class="summary-title">🏌️ 후반 9홀 (Back Nine)</div>
-                <div class="holes-grid" id="back-nine-grid">
-                    <!-- JavaScript로 동적 생성 -->
-            </div>
-
+                
                 <!-- 후반 요약 -->
                 <div class="score-summary" id="back-summary">
                     <div>
@@ -477,11 +475,11 @@
                     <div>
                         <div class="label">스코어</div>
                         <div class="value" id="back-score">0</div>
-                </div>
+                    </div>
                     <div>
                         <div class="label">파 대비</div>
                         <div class="value" id="back-diff">E</div>
-            </div>
+                    </div>
                     <div>
                         <div class="label">R/O</div>
                         <div class="value" id="back-ro">0</div>
@@ -493,9 +491,13 @@
                     <div>
                         <div class="label">저장됨</div>
                         <div class="value" id="back-saved">0/9</div>
+                    </div>
+                </div>
+                
+                <div class="holes-grid" id="back-nine-grid">
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
             </div>
-        </div>
 
             <!-- 저장 버튼 -->
             <button onclick="saveGolfScore()" id="save-score-btn" style="margin-top: 1rem;">스코어 저장</button>
