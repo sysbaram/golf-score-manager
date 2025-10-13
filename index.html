@@ -252,6 +252,26 @@
             font-weight: bold;
         }
         
+        /* O/B와 P/A 옵션 스타일 (높은 점수 표시) */
+        .club-option[data-value="O/B"] {
+            background-color: #fff5f5;
+            border-color: #dc3545;
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .club-option[data-value="P/A"] {
+            background-color: #fff8e1;
+            border-color: #ffc107;
+            color: #856404;
+            font-weight: bold;
+        }
+        .club-option[data-value="O/B"]:hover {
+            background-color: #f8d7da;
+        }
+        .club-option[data-value="P/A"]:hover {
+            background-color: #ffeaa7;
+        }
+        
         .indicators {
             display: flex;
             justify-content: space-between;
@@ -716,8 +736,10 @@
                         <div class="club-option" data-club="iron" data-value="8" data-score="1" onclick="selectIronOption(${holeNumber}, '8', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '8');">8</div>
                         <div class="club-option" data-club="iron" data-value="9" data-score="1" onclick="selectIronOption(${holeNumber}, '9', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '9');">9</div>
                         <div class="club-option" data-club="iron" data-value="P" data-score="1" onclick="selectIronOption(${holeNumber}, 'P', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'P');">P</div>
-                        <div class="club-option" data-club="iron" data-value="52" data-score="1" onclick="selectIronOption(${holeNumber}, '52', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '52');">52</div>
-                        <div class="club-option" data-club="iron" data-value="56" data-score="1" onclick="selectIronOption(${holeNumber}, '56', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '56');">56</div>
+                        <div class="club-option" data-club="iron" data-value="A" data-score="1" onclick="selectIronOption(${holeNumber}, 'A', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'A');">A</div>
+                        <div class="club-option" data-club="iron" data-value="S" data-score="1" onclick="selectIronOption(${holeNumber}, 'S', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'S');">S</div>
+                        <div class="club-option" data-club="iron" data-value="O/B" data-score="3" onclick="selectIronOption(${holeNumber}, 'O/B', 3)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'O/B');">O/B</div>
+                        <div class="club-option" data-club="iron" data-value="P/A" data-score="2" onclick="selectIronOption(${holeNumber}, 'P/A', 2)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'P/A');">P/A</div>
                     </div>
                 </div>
                 
