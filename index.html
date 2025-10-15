@@ -756,6 +756,9 @@
                 const par = standardPars[i - 1];
                 frontGrid.appendChild(createHoleCard(i, par));
                 initializeHoleData(i, par);
+                
+                // DOM에 추가된 후 아이언 옵션 생성
+                setTimeout(() => createIronOptions(i), 0);
             }
             
             // 후반 9홀
@@ -765,6 +768,9 @@
                 const par = standardPars[i - 1];
                 backGrid.appendChild(createHoleCard(i, par));
                 initializeHoleData(i, par);
+                
+                // DOM에 추가된 후 아이언 옵션 생성
+                setTimeout(() => createIronOptions(i), 0);
             }
         }
         
@@ -854,15 +860,25 @@
                 </div>
             `;
             
-            // 아이언 옵션 동적 생성
-            createIronOptions(holeNumber);
-            
             return holeCard;
         }
         
         // 아이언 옵션 동적 생성 (모바일 최적화)
         function createIronOptions(holeNumber) {
             const ironContainer = document.getElementById(`iron-options-${holeNumber}`);
+            
+            // 안전성 검사
+            if (!ironContainer) {
+                console.warn(`Iron container not found for hole ${holeNumber}`);
+                return;
+            }
+            
+            // 이미 생성된 경우 중복 생성 방지
+            if (ironContainer.children.length > 0) {
+                console.log(`Iron options already created for hole ${holeNumber}`);
+                return;
+            }
+            
             const ironOptions = [
                 {value: '3', score: 1}, {value: '4', score: 1}, {value: '5', score: 1}, 
                 {value: '6', score: 1}, {value: '7', score: 1}, {value: '8', score: 1}, 
@@ -896,6 +912,8 @@
                 
                 ironContainer.appendChild(optionContainer);
             });
+            
+            console.log(`Iron options created for hole ${holeNumber}`);
         }
         
         // 스코어 계산 이벤트 리스너 추가
