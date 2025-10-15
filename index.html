@@ -272,6 +272,98 @@
             background-color: #ffeaa7;
         }
         
+        /* 모바일 아이언 선택 개선 */
+        .iron-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+        .iron-add-btn, .iron-remove-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .iron-add-btn {
+            background: #28a745;
+            color: white;
+        }
+        .iron-add-btn:hover {
+            background: #218838;
+        }
+        .iron-remove-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .iron-remove-btn:hover {
+            background: #c82333;
+        }
+        .iron-remove-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        /* 아이언 옵션 모바일 최적화 */
+        .iron-option-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            min-width: 60px;
+        }
+        .iron-option-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            text-align: center;
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .iron-count-display {
+            font-size: 12px;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+        .iron-count-display.has-count {
+            background: #28a745;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* 모바일에서 터치 영역 확대 */
+        @media (max-width: 768px) {
+            .iron-add-btn, .iron-remove-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+            .iron-option-container {
+                min-width: 70px;
+                padding: 0.5rem 0.25rem;
+            }
+            .club-options {
+                gap: 0.5rem;
+            }
+        }
+        
         .indicators {
             display: flex;
             justify-content: space-between;
@@ -726,20 +818,9 @@
                 </div>
                 
                 <div class="club-section">
-                    <div class="club-title">⚡ Iron (다중 선택 가능) - 우클릭으로 제거</div>
-                    <div class="club-options">
-                        <div class="club-option" data-club="iron" data-value="3" data-score="1" onclick="selectIronOption(${holeNumber}, '3', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '3');">3</div>
-                        <div class="club-option" data-club="iron" data-value="4" data-score="1" onclick="selectIronOption(${holeNumber}, '4', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '4');">4</div>
-                        <div class="club-option" data-club="iron" data-value="5" data-score="1" onclick="selectIronOption(${holeNumber}, '5', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '5');">5</div>
-                        <div class="club-option" data-club="iron" data-value="6" data-score="1" onclick="selectIronOption(${holeNumber}, '6', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '6');">6</div>
-                        <div class="club-option" data-club="iron" data-value="7" data-score="1" onclick="selectIronOption(${holeNumber}, '7', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '7');">7</div>
-                        <div class="club-option" data-club="iron" data-value="8" data-score="1" onclick="selectIronOption(${holeNumber}, '8', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '8');">8</div>
-                        <div class="club-option" data-club="iron" data-value="9" data-score="1" onclick="selectIronOption(${holeNumber}, '9', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, '9');">9</div>
-                        <div class="club-option" data-club="iron" data-value="P" data-score="1" onclick="selectIronOption(${holeNumber}, 'P', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'P');">P</div>
-                        <div class="club-option" data-club="iron" data-value="A" data-score="1" onclick="selectIronOption(${holeNumber}, 'A', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'A');">A</div>
-                        <div class="club-option" data-club="iron" data-value="S" data-score="1" onclick="selectIronOption(${holeNumber}, 'S', 1)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'S');">S</div>
-                        <div class="club-option" data-club="iron" data-value="O/B" data-score="3" onclick="selectIronOption(${holeNumber}, 'O/B', 3)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'O/B');">O/B</div>
-                        <div class="club-option" data-club="iron" data-value="P/A" data-score="2" onclick="selectIronOption(${holeNumber}, 'P/A', 2)" oncontextmenu="event.preventDefault(); removeLastIronUsage(${holeNumber}, 'P/A');">P/A</div>
+                    <div class="club-title">⚡ Iron (다중 선택 가능)</div>
+                    <div class="club-options" id="iron-options-${holeNumber}">
+                        <!-- JavaScript로 동적 생성 -->
                     </div>
                 </div>
                 
@@ -773,7 +854,48 @@
                 </div>
             `;
             
+            // 아이언 옵션 동적 생성
+            createIronOptions(holeNumber);
+            
             return holeCard;
+        }
+        
+        // 아이언 옵션 동적 생성 (모바일 최적화)
+        function createIronOptions(holeNumber) {
+            const ironContainer = document.getElementById(`iron-options-${holeNumber}`);
+            const ironOptions = [
+                {value: '3', score: 1}, {value: '4', score: 1}, {value: '5', score: 1}, 
+                {value: '6', score: 1}, {value: '7', score: 1}, {value: '8', score: 1}, 
+                {value: '9', score: 1}, {value: 'P', score: 1}, {value: 'A', score: 1}, 
+                {value: 'S', score: 1}, {value: 'O/B', score: 3}, {value: 'P/A', score: 2}
+            ];
+            
+            ironOptions.forEach(iron => {
+                const optionContainer = document.createElement('div');
+                optionContainer.className = 'iron-option-container';
+                optionContainer.dataset.value = iron.value;
+                optionContainer.dataset.score = iron.score;
+                
+                // 페널티 옵션 스타일 적용
+                if (iron.value === 'O/B') {
+                    optionContainer.style.borderColor = '#dc3545';
+                    optionContainer.style.backgroundColor = '#fff5f5';
+                } else if (iron.value === 'P/A') {
+                    optionContainer.style.borderColor = '#ffc107';
+                    optionContainer.style.backgroundColor = '#fff8e1';
+                }
+                
+                optionContainer.innerHTML = `
+                    <div class="iron-option-label">${iron.value}</div>
+                    <div class="iron-count-display" id="iron-count-${holeNumber}-${iron.value}">0</div>
+                    <div class="iron-controls">
+                        <button class="iron-add-btn" onclick="addIronUsage(${holeNumber}, '${iron.value}', ${iron.score})" title="추가">+</button>
+                        <button class="iron-remove-btn" onclick="removeIronUsage(${holeNumber}, '${iron.value}')" title="제거" disabled>-</button>
+                    </div>
+                `;
+                
+                ironContainer.appendChild(optionContainer);
+            });
         }
         
         // 스코어 계산 이벤트 리스너 추가
@@ -844,86 +966,27 @@
             updateSummaries();
         }
         
-        // 아이언 다중 선택 함수 (동일 아이언 중복 허용)
-        function selectIronOption(holeNumber, value, score) {
-            const holeCard = document.getElementById(`hole-card-${holeNumber}`);
-            const clickedOption = event.target;
+        // 아이언 추가 함수 (모바일 최적화)
+        function addIronUsage(holeNumber, value, score) {
             const holeData = golfScoreData[holeNumber];
             
-            // 항상 새로운 아이언 사용을 추가 (중복 허용)
+            // 새로운 아이언 사용 추가
             holeData.iron.push({
                 value: value,
                 score: score,
                 id: Date.now() + Math.random() // 고유 ID 생성
             });
             
-            // 시각적 피드백 업데이트
-            updateIronVisualFeedback(holeNumber);
+            // UI 업데이트
+            updateMobileIronUI(holeNumber);
             
             // 홀 스코어 계산
             calculateHoleScore(holeNumber);
             updateSummaries();
         }
         
-        // 아이언 시각적 피드백 업데이트
-        function updateIronVisualFeedback(holeNumber) {
-            const holeCard = document.getElementById(`hole-card-${holeNumber}`);
-            const holeData = golfScoreData[holeNumber];
-            const ironOptions = holeCard.querySelectorAll('[data-club="iron"]');
-            
-            // 모든 아이언 옵션의 시각적 상태 초기화
-            ironOptions.forEach(option => {
-                option.classList.remove('iron-multi-selected');
-                // 기존 카운트 제거
-                const existingCount = option.querySelector('.iron-count');
-                if (existingCount) {
-                    existingCount.remove();
-                }
-            });
-            
-            // 각 아이언별 사용 횟수 계산
-            const ironCounts = {};
-            holeData.iron.forEach(iron => {
-                ironCounts[iron.value] = (ironCounts[iron.value] || 0) + 1;
-            });
-            
-            // 시각적 피드백 적용
-            ironOptions.forEach(option => {
-                const value = option.dataset.value;
-                const count = ironCounts[value] || 0;
-                
-                if (count > 0) {
-                    option.classList.add('iron-multi-selected');
-                    
-                    // 사용 횟수 표시 (2회 이상인 경우)
-                    if (count > 1) {
-                        const countSpan = document.createElement('span');
-                        countSpan.className = 'iron-count';
-                        countSpan.textContent = count;
-                        countSpan.style.cssText = `
-                            position: absolute;
-                            top: -5px;
-                            right: -5px;
-                            background: #dc3545;
-                            color: white;
-                            border-radius: 50%;
-                            width: 16px;
-                            height: 16px;
-                            font-size: 10px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-weight: bold;
-                        `;
-                        option.style.position = 'relative';
-                        option.appendChild(countSpan);
-                    }
-                }
-            });
-        }
-        
-        // 아이언 개별 제거 함수 (우클릭 또는 더블클릭으로 사용)
-        function removeLastIronUsage(holeNumber, value) {
+        // 아이언 제거 함수 (모바일 최적화)
+        function removeIronUsage(holeNumber, value) {
             const holeData = golfScoreData[holeNumber];
             
             // 해당 아이언의 마지막 사용 제거
@@ -934,12 +997,70 @@
                 }
             }
             
-            // 시각적 피드백 업데이트
-            updateIronVisualFeedback(holeNumber);
+            // UI 업데이트
+            updateMobileIronUI(holeNumber);
             
             // 홀 스코어 계산
             calculateHoleScore(holeNumber);
             updateSummaries();
+        }
+        
+        // 모바일 아이언 UI 업데이트
+        function updateMobileIronUI(holeNumber) {
+            const holeData = golfScoreData[holeNumber];
+            
+            // 각 아이언별 사용 횟수 계산
+            const ironCounts = {};
+            holeData.iron.forEach(iron => {
+                ironCounts[iron.value] = (ironCounts[iron.value] || 0) + 1;
+            });
+            
+            // 모든 아이언 옵션 업데이트
+            const ironOptions = [
+                '3', '4', '5', '6', '7', '8', '9', 'P', 'A', 'S', 'O/B', 'P/A'
+            ];
+            
+            ironOptions.forEach(value => {
+                const count = ironCounts[value] || 0;
+                const countDisplay = document.getElementById(`iron-count-${holeNumber}-${value}`);
+                const removeBtn = document.querySelector(`#iron-options-${holeNumber} [data-value="${value}"] .iron-remove-btn`);
+                const container = document.querySelector(`#iron-options-${holeNumber} [data-value="${value}"]`);
+                
+                if (countDisplay) {
+                    countDisplay.textContent = count;
+                    if (count > 0) {
+                        countDisplay.classList.add('has-count');
+                    } else {
+                        countDisplay.classList.remove('has-count');
+                    }
+                }
+                
+                if (removeBtn) {
+                    removeBtn.disabled = count === 0;
+                }
+                
+                // 컨테이너 하이라이트
+                if (container) {
+                    if (count > 0) {
+                        container.style.boxShadow = '0 0 0 2px #28a745';
+                    } else {
+                        container.style.boxShadow = 'none';
+                    }
+                }
+            });
+        }
+        
+        // 레거시 함수들 (호환성 유지)
+        function selectIronOption(holeNumber, value, score) {
+            addIronUsage(holeNumber, value, score);
+        }
+        
+        function removeLastIronUsage(holeNumber, value) {
+            removeIronUsage(holeNumber, value);
+        }
+        
+        function updateIronVisualFeedback(holeNumber) {
+            updateMobileIronUI(holeNumber);
         }
         
         // 지표 토글
